@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Anchor,
   AlertTriangle,
@@ -255,39 +255,57 @@ const ALLOWED_GOOGLE_DOMAINS = String(import.meta.env.VITE_ALLOWED_GOOGLE_DOMAIN
   .map((domain) => domain.trim().toLowerCase())
   .filter(Boolean);
 const AUTH_REQUIRED = String(import.meta.env.VITE_AUTH_REQUIRED ?? '').toLowerCase() === 'true' || Boolean(GOOGLE_CLIENT_ID);
-const GOOGLE_PROFILE_STORAGE_KEY = 'rate-monitoring-google-profile';
-
-type GoogleCredentialResponse = {
-  credential?: string;
-};
+// When set, the dashboard reads its data from this restricted Google Drive file
+// via the Drive API using the signed-in user's access token, instead of a public
+// static JSON. Keep the Drive file shared to the company domain only.
+const DRIVE_FILE_ID = String(import.meta.env.VITE_DRIVE_FILE_ID ?? '').trim();
+const DRIVE_SCOPES = 'openid email profile https://www.googleapis.com/auth/drive.readonly';
 
 type GoogleProfile = {
   email: string;
   name?: string;
   picture?: string;
   hd?: string;
-  exp?: number;
+};
+
+type GoogleTokenResponse = {
+  access_token?: string;
+  expires_in?: number;
+  scope?: string;
+  token_type?: string;
+  error?: string;
+  error_description?: string;
+};
+
+type GoogleTokenClient = {
+  requestAccessToken: (overrides?: { prompt?: string }) => void;
 };
 
 declare global {
   interface Window {
     google?: {
       accounts: {
-        id: {
-          initialize: (options: {
+        oauth2: {
+          initTokenClient: (config: {
             client_id: string;
-            callback: (response: GoogleCredentialResponse) => void;
-            auto_select?: boolean;
-            cancel_on_tap_outside?: boolean;
-          }) => void;
-          renderButton: (parent: HTMLElement, options: Record<string, string | number | boolean>) => void;
-          prompt: () => void;
-          disableAutoSelect: () => void;
+            scope: string;
+            callback: (response: GoogleTokenResponse) => void;
+            error_callback?: (error: { type?: string; message?: string }) => void;
+          }) => GoogleTokenClient;
+          revoke: (token: string, done?: () => void) => void;
         };
       };
     };
   }
 }
+
+type AuthContextValue = {
+  accessToken: string;
+  email: string;
+  refresh: () => Promise<string>;
+};
+
+const AuthContext = createContext<AuthContextValue | null>(null);
 
 const formatNumber = (value: number) => new Intl.NumberFormat('en-US').format(Math.round(value));
 const formatMoney = (value: number) => `$${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value)}`;
@@ -377,28 +395,19 @@ function selectedFilterLabel(values: string[], options: FilterOption[]) {
   return `${values.length} selected`;
 }
 
-function base64UrlDecode(value: string) {
-  const padded = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
-  const binary = window.atob(padded);
-  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
-
-function decodeGoogleCredential(credential: string): GoogleProfile | null {
+async function fetchGoogleProfile(accessToken: string): Promise<GoogleProfile | null> {
   try {
-    const [, payload] = credential.split('.');
-    if (!payload) {
+    const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
       return null;
     }
-    const profile = JSON.parse(base64UrlDecode(payload)) as GoogleProfile;
-    return profile.email ? profile : null;
+    const info = await response.json() as { email?: string; name?: string; picture?: string; hd?: string };
+    return info.email ? { email: info.email, name: info.name, picture: info.picture, hd: info.hd } : null;
   } catch {
     return null;
   }
-}
-
-function isFreshGoogleProfile(profile: GoogleProfile) {
-  return !profile.exp || profile.exp * 1000 > Date.now();
 }
 
 function isAllowedGoogleProfile(profile: GoogleProfile) {
@@ -773,68 +782,76 @@ function StatusBadge({ status }: { status: IssueStatus }) {
 }
 
 function GoogleAuthGate({ children }: { children: ReactNode }) {
-  const buttonRef = useRef<HTMLDivElement>(null);
-  const [profile, setProfile] = useState<GoogleProfile | null>(() => {
-    if (!AUTH_REQUIRED) {
-      return null;
-    }
-    try {
-      const saved = localStorage.getItem(GOOGLE_PROFILE_STORAGE_KEY);
-      const parsed = saved ? JSON.parse(saved) as GoogleProfile : null;
-      return parsed && isFreshGoogleProfile(parsed) && isAllowedGoogleProfile(parsed) ? parsed : null;
-    } catch {
-      return null;
-    }
-  });
+  const [accessToken, setAccessToken] = useState('');
+  const [profile, setProfile] = useState<GoogleProfile | null>(null);
   const [error, setError] = useState('');
+  const [ready, setReady] = useState(false);
+  const tokenClientRef = useRef<GoogleTokenClient | null>(null);
+  const pendingRef = useRef<{ resolve: (token: string) => void; reject: (reason: Error) => void } | null>(null);
 
+  // Load the Google Identity Services script and create an OAuth token client.
   useEffect(() => {
-    if (!AUTH_REQUIRED || profile || !GOOGLE_CLIENT_ID) {
+    if (!AUTH_REQUIRED || !GOOGLE_CLIENT_ID) {
       return;
     }
 
-    const handleCredential = (response: GoogleCredentialResponse) => {
-      if (!response.credential) {
-        setError('Google credential was not returned.');
+    const settlePending = (token: string | null, reason?: Error) => {
+      const pending = pendingRef.current;
+      pendingRef.current = null;
+      if (!pending) {
         return;
       }
-      const nextProfile = decodeGoogleCredential(response.credential);
-      if (!nextProfile || !isFreshGoogleProfile(nextProfile)) {
-        setError('Google login response is invalid or expired.');
-        return;
+      if (token) {
+        pending.resolve(token);
+      } else {
+        pending.reject(reason ?? new Error('Google authorization failed.'));
       }
-      if (!isAllowedGoogleProfile(nextProfile)) {
-        setError(`Allowed domains: ${ALLOWED_GOOGLE_DOMAINS.join(', ') || 'not configured'}`);
-        return;
-      }
-      localStorage.setItem(GOOGLE_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile));
-      setProfile(nextProfile);
-      setError('');
     };
 
-    const initialize = () => {
-      if (!window.google || !buttonRef.current) {
+    const setup = () => {
+      if (!window.google) {
         return;
       }
-      window.google.accounts.id.initialize({
+      tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
         client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredential,
-        auto_select: true,
-        cancel_on_tap_outside: false,
+        scope: DRIVE_SCOPES,
+        callback: (response) => {
+          if (response.error || !response.access_token) {
+            const message = response.error_description || response.error || 'Google authorization failed.';
+            setError(message);
+            settlePending(null, new Error(message));
+            return;
+          }
+          const token = response.access_token;
+          void (async () => {
+            const nextProfile = await fetchGoogleProfile(token);
+            if (!nextProfile) {
+              setError('Could not read the Google account profile.');
+              settlePending(null, new Error('profile unavailable'));
+              return;
+            }
+            if (!isAllowedGoogleProfile(nextProfile)) {
+              setError(`Allowed domains: ${ALLOWED_GOOGLE_DOMAINS.join(', ') || 'not configured'}`);
+              settlePending(null, new Error('domain not allowed'));
+              return;
+            }
+            setProfile(nextProfile);
+            setAccessToken(token);
+            setError('');
+            settlePending(token);
+          })();
+        },
+        error_callback: (err) => {
+          const message = err.message || err.type || 'Google authorization failed.';
+          setError(message);
+          settlePending(null, new Error(message));
+        },
       });
-      buttonRef.current.innerHTML = '';
-      window.google.accounts.id.renderButton(buttonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        text: 'signin_with',
-        shape: 'rectangular',
-        width: 320,
-      });
-      window.google.accounts.id.prompt();
+      setReady(true);
     };
 
     if (window.google) {
-      initialize();
+      setup();
       return;
     }
 
@@ -842,7 +859,7 @@ function GoogleAuthGate({ children }: { children: ReactNode }) {
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
-    script.onload = initialize;
+    script.onload = setup;
     script.onerror = () => setError('Google login script failed to load.');
     document.head.appendChild(script);
 
@@ -850,22 +867,40 @@ function GoogleAuthGate({ children }: { children: ReactNode }) {
       script.onload = null;
       script.onerror = null;
     };
-  }, [profile]);
+  }, []);
+
+  // Request (or silently refresh) an access token. `prompt: ''` reuses an active
+  // Google session without re-consent once the user has granted the scopes.
+  const requestToken = useCallback((prompt: string) => {
+    return new Promise<string>((resolve, reject) => {
+      const client = tokenClientRef.current;
+      if (!client) {
+        reject(new Error('Google auth is not ready yet.'));
+        return;
+      }
+      pendingRef.current = { resolve, reject };
+      client.requestAccessToken({ prompt });
+    });
+  }, []);
+
+  const refresh = useCallback(() => requestToken(''), [requestToken]);
 
   if (!AUTH_REQUIRED) {
     return <>{children}</>;
   }
 
-  if (profile) {
+  if (accessToken && profile) {
     return (
-      <>
+      <AuthContext.Provider value={{ accessToken, email: profile.email, refresh }}>
         <div className="auth-session">
           <span>{profile.email}</span>
           <button
             type="button"
             onClick={() => {
-              localStorage.removeItem(GOOGLE_PROFILE_STORAGE_KEY);
-              window.google?.accounts.id.disableAutoSelect();
+              if (accessToken) {
+                window.google?.accounts.oauth2.revoke(accessToken);
+              }
+              setAccessToken('');
               setProfile(null);
             }}
           >
@@ -873,7 +908,7 @@ function GoogleAuthGate({ children }: { children: ReactNode }) {
           </button>
         </div>
         {children}
-      </>
+      </AuthContext.Provider>
     );
   }
 
@@ -884,7 +919,16 @@ function GoogleAuthGate({ children }: { children: ReactNode }) {
       {GOOGLE_CLIENT_ID ? (
         <>
           <span>Use an approved company Google account to open the dashboard.</span>
-          <div className="google-login-button" ref={buttonRef} />
+          <button
+            type="button"
+            className="google-login-button"
+            disabled={!ready}
+            onClick={() => {
+              requestToken('').catch(() => {});
+            }}
+          >
+            Sign in with Google
+          </button>
           {ALLOWED_GOOGLE_DOMAINS.length > 0 && <span>Allowed domains: {ALLOWED_GOOGLE_DOMAINS.join(', ')}</span>}
         </>
       ) : (
@@ -1472,10 +1516,23 @@ function AppContent({ data }: { data: MonitoringData }) {
           <h1>운임파일 등록현황 모니터링</h1>
         </div>
         <div className="topbar-actions">
-          <a className="icon-button" href="./data/weekly-monitoring.json" download title="Download dashboard data">
+          <button
+            className="icon-button"
+            type="button"
+            title="Download dashboard data"
+            onClick={() => {
+              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+              const objectUrl = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = objectUrl;
+              link.download = 'weekly-monitoring.json';
+              link.click();
+              URL.revokeObjectURL(objectUrl);
+            }}
+          >
             <Download size={17} aria-hidden="true" />
             <span>JSON</span>
-          </a>
+          </button>
           <button className="icon-button" type="button" onClick={() => window.location.reload()} title="Reload data">
             <RefreshCw size={17} aria-hidden="true" />
             <span>Refresh</span>
@@ -2029,30 +2086,45 @@ function AppContent({ data }: { data: MonitoringData }) {
 }
 
 function DashboardLoader() {
+  const auth = useContext(AuthContext);
+  const authRef = useRef(auth);
+  authRef.current = auth;
   const [data, setData] = useState<MonitoringData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    const loadData = () => {
-      fetch(`${import.meta.env.BASE_URL}data/weekly-monitoring.json?t=${Date.now()}`, { cache: 'no-store' })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Data request failed: ${response.status}`);
-          }
-          return response.json() as Promise<MonitoringData>;
-        })
-        .then((nextData) => {
-          if (active) {
-            setData(nextData);
-            setError(null);
-          }
-        })
-        .catch((err: unknown) => {
-          if (active) {
-            setError(err instanceof Error ? err.message : 'Unknown data error');
-          }
+    const loadData = async () => {
+      const useDrive = Boolean(DRIVE_FILE_ID);
+      const url = useDrive
+        ? `https://www.googleapis.com/drive/v3/files/${DRIVE_FILE_ID}?alt=media`
+        : `${import.meta.env.BASE_URL}data/weekly-monitoring.json?t=${Date.now()}`;
+      const runFetch = (token: string) =>
+        fetch(url, {
+          cache: 'no-store',
+          headers: useDrive && token ? { Authorization: `Bearer ${token}` } : undefined,
         });
+      try {
+        let token = authRef.current?.accessToken ?? '';
+        let response = await runFetch(token);
+        // Access tokens expire (~1h); refresh once on an auth failure and retry.
+        if (useDrive && (response.status === 401 || response.status === 403) && authRef.current) {
+          token = await authRef.current.refresh();
+          response = await runFetch(token);
+        }
+        if (!response.ok) {
+          throw new Error(`Data request failed: ${response.status}`);
+        }
+        const nextData = await response.json() as MonitoringData;
+        if (active) {
+          setData(nextData);
+          setError(null);
+        }
+      } catch (err: unknown) {
+        if (active) {
+          setError(err instanceof Error ? err.message : 'Unknown data error');
+        }
+      }
     };
 
     loadData();
