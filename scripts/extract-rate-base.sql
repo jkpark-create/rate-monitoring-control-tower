@@ -380,6 +380,105 @@ RATE_COMPONENT AS (
     FROM RATE_BASE C
     WHERE C.FRT_CD <> 'O/F'
       AND C.RATE_APCL_BASC_CD <> '03'
+      AND NOT (
+          C.FRT_CD IN ('PSS', 'GRI')
+          AND (C.POR_CTR_CD = 'US' OR C.DLY_CTR_CD = 'US')
+      )
+    GROUP BY
+        C.FRT_APP_NO,
+        C.STR_DT,
+        C.END_DT,
+        C.POR_CTR_CD,
+        C.POR_PLC_CD,
+        C.DLY_CTR_CD,
+        C.DLY_PLC_CD,
+        C.BKG_SHPR_CST_NO,
+        C.CNTR_SZ_CD,
+        C.CNTR_TYP_CD,
+        C.CGO_TYP_CD,
+        C.SCG_TYP_CD,
+        C.FE_CAT_CD
+
+    UNION ALL
+
+    SELECT
+        'DETAIL_ONLY_GROUP' AS RATE_ROW_TYPE,
+        C.FRT_APP_NO,
+
+        C.STR_DT AS EFFECTIVE_START_DATE,
+        C.END_DT AS EFFECTIVE_END_DATE,
+        MIN(C.REQ_DT) AS REQUEST_DATE,
+        MAX(C.APV_DT) AS APPROVAL_DATE,
+        MAX(C.APV_STS_CD) AS APPROVAL_STATUS,
+
+        C.POR_CTR_CD,
+        C.POR_PLC_CD,
+        C.DLY_CTR_CD,
+        C.DLY_PLC_CD,
+
+        C.BKG_SHPR_CST_NO,
+        MAX(C.BKG_SHPR_ENM) AS BKG_SHPR_ENM,
+
+        MAX(C.BIZ_STAF_NO) AS SALES_STAFF_NO,
+        MAX(C.BIZ_TEAM_CAT_CD) AS SALES_TEAM_CATEGORY,
+
+        C.CNTR_SZ_CD,
+        C.CNTR_TYP_CD,
+        C.CGO_TYP_CD,
+        C.SCG_TYP_CD,
+        C.FE_CAT_CD,
+
+        MAX(C.FRT_UNIT_CD) AS FRT_UNIT_CD,
+        MAX(C.FRT_PNC_CD) AS FRT_PNC_CD,
+        MAX(C.MAS_FRT_PNC_CD) AS MAS_FRT_PNC_CD,
+
+        MAX(C.SALES_ROLE) AS SALES_ROLE,
+        MAX(C.SALES_ROLE_NM) AS SALES_ROLE_NM,
+
+        LISTAGG(C.FRT_CD, '+') WITHIN GROUP (ORDER BY C.FRT_CD) AS CHARGE_BASKET,
+        COUNT(DISTINCT C.FRT_CD) AS CHARGE_COUNT,
+        LISTAGG(
+            REPLACE(C.FRT_CD, '|', ' ') || '|' ||
+            REPLACE(NVL(C.CUR_CD, ''), '|', ' ') || '|' ||
+            TO_CHAR(
+                C.REGISTERED_LOCAL_AMOUNT,
+                'FM999999999999999990D999999',
+                'NLS_NUMERIC_CHARACTERS=''.,'''
+            ) || '|' ||
+            TO_CHAR(
+                C.RATE_USD_AMOUNT,
+                'FM999999999999999990D999999',
+                'NLS_NUMERIC_CHARACTERS=''.,'''
+            ) || '|' ||
+            REPLACE(NVL(C.FRT_PNC_CD, ''), '|', ' ') || '|RATE_FILE|' ||
+            CASE C.RATE_APCL_BASC_CD
+                WHEN '01' THEN 'AMOUNT'
+                WHEN '02' THEN 'TARIFF'
+                WHEN '03' THEN 'WAIVE'
+                WHEN '04' THEN 'PERCENT'
+                ELSE 'UNKNOWN'
+            END,
+            '~'
+        ) WITHIN GROUP (
+            ORDER BY C.FRT_CD, C.CUR_CD, C.REGISTERED_LOCAL_AMOUNT, C.RATE_USD_AMOUNT, C.FRT_PNC_CD, C.RATE_APCL_BASC_CD
+        ) AS CHARGE_DETAIL_LIST,
+
+        0 AS OF_RATE,
+        0 AS THC_RATE,
+        0 AS LSS_RATE,
+        0 AS FAF_RATE,
+        0 AS WRS_RATE,
+        0 AS EFC_RATE,
+        0 AS CIS_RATE,
+        0 AS SEC_RATE,
+        0 AS CORE_RATE,
+        0 AS ALL_IN_RATE,
+
+        MAX(C.LST_UPDT_DTM) AS LAST_UPDATE_DATETIME
+    FROM RATE_BASE C
+    WHERE C.FRT_CD IN ('PSS', 'GRI')
+      AND C.RATE_APCL_BASC_CD <> '03'
+      AND (C.POR_CTR_CD = 'US' OR C.DLY_CTR_CD = 'US')
     GROUP BY
         C.FRT_APP_NO,
         C.STR_DT,

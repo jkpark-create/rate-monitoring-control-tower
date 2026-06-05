@@ -102,6 +102,8 @@ type MonitoringData = {
     marketComparisonContainerTypes: string[];
     marketComparisonCargoType: string;
     marketAverageFallbackRate: string;
+    usComparisonExcludedCharges?: string[];
+    usComparisonExcludedRule?: string;
     marketAverageFallbackMinimumSamples: number;
     marketAverageFallbackGroupBy: string[];
     marketAverageFallbackPeriod: string;
@@ -514,7 +516,7 @@ function formatPaymentLocation(value: string) {
 
 function chargeUsage(item: ChargeItem) {
   return {
-    label: item.applicationType,
+    label: item.appliedToComparison ? item.applicationType : `${item.applicationType} · 제외`,
     className: `charge-usage-${item.applicationType.toLowerCase()}`,
     comparisonLabel: item.appliedToComparison ? '비교 반영' : '상세 조회',
   };
@@ -2091,6 +2093,10 @@ function AppContent({ data }: { data: MonitoringData }) {
               <dd>모든 저운임 판정은 all-in 기준으로 비교합니다. Market guideline은 O/F 레벨이므로 해당 건의 서차지·로컬차지(all-in − O/F)를 더해 all-in으로 환산합니다. 표시는 O/F와 괄호 안 all-in을 함께 보여줍니다.</dd>
             </div>
             <div>
+              <dt>US향발 PSS/GRI</dt>
+              <dd>선적지 또는 도착지가 US인 운임은 PSS와 GRI를 비교 all-in 계산에서 제외합니다. 항목 자체는 운임파일 detail에 표시합니다.</dd>
+            </div>
+            <div>
               <dt>Market 저운임</dt>
               <dd>구간 · CNTR Size에 매핑된 Market Rate(GP · HC · TK, Cargo 00 Non-DG)를 all-in으로 환산한 값보다 등록 all-in이 낮은 건</dd>
             </div>
@@ -2115,7 +2121,7 @@ function AppContent({ data }: { data: MonitoringData }) {
 
         <aside className="data-note">
           <FileText size={14} aria-hidden="true" />
-          <span>저운임 판정은 all-in 기준입니다. GP · HC · TK Non-DG는 Market Rate(O/F→all-in 환산)를 우선 적용하고, Market 미매핑 운임은 조회 기간 all-in 평균으로 fallback 합니다. 비정상 유효기간 {formatNumber(data.metadata.skippedInvalidDateRows)}건은 제외했습니다.</span>
+          <span>저운임 판정은 all-in 기준입니다. US향발 PSS/GRI는 비교 all-in 계산에서 제외합니다. GP · HC · TK Non-DG는 Market Rate(O/F→all-in 환산)를 우선 적용하고, Market 미매핑 운임은 조회 기간 all-in 평균으로 fallback 합니다. 비정상 유효기간 {formatNumber(data.metadata.skippedInvalidDateRows)}건은 제외했습니다.</span>
         </aside>
       </main>
     </div>

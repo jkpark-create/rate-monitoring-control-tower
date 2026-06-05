@@ -23,6 +23,7 @@ RECENT_WEEK_COUNT = 32
 HQ_ROUTE_TEAMS = ("OBT", "EST", "IST", "JBT")
 MARKET_CONTAINER_TYPES = ("GP", "HC", "TK")
 MARKET_NON_DG_CARGO_TYPE = "00"
+US_COMPARISON_EXCLUDED_CHARGES = ("PSS", "GRI")
 APPROVAL_STATUS_LABELS = {"03": "Accepted"}
 FALLBACK_CHARGE_COLUMNS = (
     ("O/F", "OF_RATE"),
@@ -207,6 +208,41 @@ def charge_category(code, currency):
     return "SURCHARGE" if currency.upper() == "USD" else "LOCAL CHARGE"
 
 
+def is_us_lane(row):
+    return row.get("POR_COUNTRY", "").strip().upper() == "US" or row.get("DLY_COUNTRY", "").strip().upper() == "US"
+
+
+def charge_detail_parts(raw_item):
+    return (raw_item.split("|", 6) + ["", "", "", "", "", "", ""])[:7]
+
+
+def charge_detail_code(raw_item):
+    return normalized_text(charge_detail_parts(raw_item)[0]).upper()
+
+
+def charge_detail_usd_amount(raw_item):
+    _, currency, local_amount, usd_amount, *_ = charge_detail_parts(raw_item)
+    amount = nullable_number(usd_amount)
+    if amount is None and normalized_text(currency).upper() == "USD":
+        amount = nullable_number(local_amount)
+    return amount or 0
+
+
+def is_us_comparison_excluded_charge(row, raw_item):
+    return is_us_lane(row) and charge_detail_code(raw_item) in US_COMPARISON_EXCLUDED_CHARGES
+
+
+def charge_basket_from_items(items):
+    codes = []
+    seen = set()
+    for item in items:
+        code = charge_detail_code(item)
+        if code and code not in seen:
+            seen.add(code)
+            codes.append(code)
+    return "+".join(codes), len(codes)
+
+
 def fallback_charge_items(row):
     items = []
     summarized_codes = set()
@@ -260,9 +296,7 @@ def charge_items(row):
         for raw_item in detail_list.split("~"):
             if not raw_item:
                 continue
-            code, currency, local_amount, usd_amount, payment_code, source, application_type = (
-                raw_item.split("|", 6) + ["", "", "", "", "", "", ""]
-            )[:7]
+            code, currency, local_amount, usd_amount, payment_code, source, application_type = charge_detail_parts(raw_item)
             source = normalized_text(source, "RATE_FILE")
             application_type = normalized_text(
                 application_type,
@@ -335,6 +369,38 @@ def compact_charge_component(row):
         normalized_text(row.get("CHARGE_BASKET", "")),
         normalized_text(row.get("CHARGE_DETAIL_LIST", "")),
         normalized_text(row.get("LAST_UPDATE_DATETIME", "")),
+    )
+
+
+def comparison_adjusted_component(row, component):
+    rates, charge_count, charge_basket, detail_list, last_update = component
+    items = [item for item in detail_list.split("~") if item]
+    if not items or not is_us_lane(row):
+        return rates, charge_count, charge_basket, detail_list, last_update, ()
+
+    included_items = []
+    excluded_items = []
+    for item in items:
+        if is_us_comparison_excluded_charge(row, item):
+            excluded_items.append(item)
+        else:
+            included_items.append(item)
+
+    if not excluded_items:
+        return rates, charge_count, charge_basket, detail_list, last_update, ()
+
+    adjusted_rates = list(rates)
+    all_in_index = COMPONENT_RATE_COLUMNS.index("ALL_IN_RATE")
+    adjusted_rates[all_in_index] -= sum(charge_detail_usd_amount(item) for item in excluded_items)
+    adjusted_basket, adjusted_count = charge_basket_from_items(included_items)
+
+    return (
+        tuple(adjusted_rates),
+        adjusted_count,
+        adjusted_basket,
+        "~".join(included_items),
+        last_update,
+        tuple(excluded_items),
     )
 
 
@@ -452,7 +518,7 @@ def charge_component_lookups(path):
                 detail_list = normalized_text(row.get("CHARGE_DETAIL_LIST", ""))
                 if container_size == "00" and container_type == "00" and detail_list:
                     detail_lookup[detail_match_key(row)].append(detail_list)
-            elif row.get("RATE_ROW_TYPE") in ("TARIFF_GROUP", "WAIVE_GROUP"):
+            elif row.get("RATE_ROW_TYPE") in ("TARIFF_GROUP", "WAIVE_GROUP", "DETAIL_ONLY_GROUP"):
                 detail_list = normalized_text(row.get("CHARGE_DETAIL_LIST", ""))
                 if detail_list:
                     is_common_waive = (
@@ -471,6 +537,7 @@ def charge_component_lookups(path):
     print(f"Indexed file-detail groups: {sum(len(items) for items in detail_lookup.values()):,}")
     print(f"Indexed basic tariff groups: {detail_only_counts['TARIFF_GROUP']:,}")
     print(f"Indexed waive groups: {detail_only_counts['WAIVE_GROUP']:,}")
+    print(f"Indexed detail-only groups: {detail_only_counts['DETAIL_ONLY_GROUP']:,}")
     return lookup, detail_lookup, detail_only_lookup, active_profiles
 
 
@@ -483,7 +550,17 @@ def merge_charge_components(row, lookup, detail_lookup, detail_only_lookup, dyna
         for size in ("00", container_size)
         for cntr_type in ("00", container_type)
     }
-    components = [component for key in keys for component in lookup.get(key, ())]
+    adjusted_components = [
+        comparison_adjusted_component(row, component)
+        for key in keys
+        for component in lookup.get(key, ())
+    ]
+    components = [component[:5] for component in adjusted_components]
+    comparison_excluded_items = [
+        item
+        for component in adjusted_components
+        for item in component[5]
+    ]
     merged = dict(row)
     if components:
         for column_index, column in enumerate(COMPONENT_RATE_COLUMNS):
@@ -501,6 +578,9 @@ def merge_charge_components(row, lookup, detail_lookup, detail_only_lookup, dyna
 
     applied_items = set(filter(None, normalized_text(merged.get("CHARGE_DETAIL_LIST", "")).split("~")))
     detail_only_items = []
+    for item in comparison_excluded_items:
+        if item and item not in applied_items and item not in detail_only_items:
+            detail_only_items.append(item)
     for detail_list in detail_lookup.get(detail_match_key(row), ()):
         for item in detail_list.split("~"):
             if item and item not in applied_items and item not in detail_only_items:
@@ -682,6 +762,8 @@ payload = {
         "marketComparisonContainerTypes": list(MARKET_CONTAINER_TYPES),
         "marketComparisonCargoType": MARKET_NON_DG_CARGO_TYPE,
         "marketAverageFallbackRate": "ALL_IN_RATE",
+        "usComparisonExcludedCharges": list(US_COMPARISON_EXCLUDED_CHARGES),
+        "usComparisonExcludedRule": "For lanes where POR_COUNTRY or DLY_COUNTRY is US, PSS and GRI remain visible in detail but are excluded from comparison all-in calculations.",
         "marketAverageFallbackMinimumSamples": 3,
         "marketAverageFallbackGroupBy": [
             "lane",
