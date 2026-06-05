@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+__pycache__/
+*.pyc
+*.local
+.env.local
+
+# Source exports are intentionally kept outside GitHub because they exceed repo-friendly limits.
+*.csv
+*.xlsx
+*.xls
+server.log
+*.log

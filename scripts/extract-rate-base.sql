@@ -1,0 +1,455 @@
+WITH RATE_APP_SCOPE AS (
+    SELECT /*+ MATERIALIZE */
+        DISTINCT F.FRT_APP_NO
+    FROM DW_SALES.SP301I F
+    WHERE F.FRT_APP_NO IS NOT NULL
+      AND F.FRT_CD = 'O/F'
+      AND F.APV_STS_CD = '03'
+      AND F.BIZ_TEAM_CAT_CD = 'O'
+      AND F.STR_DT <= TO_CHAR(SYSDATE, 'YYYYMMDD')
+      AND NVL(F.END_DT, '99991231') >= TO_CHAR(ADD_MONTHS(SYSDATE, -6), 'YYYYMMDD')
+      AND NVL(F.FIX_USD_AMT, F.USD_AMT) > 0
+),
+
+COMMON_WAIVE_SOURCE AS (
+    SELECT /*+ MATERIALIZE */
+        D.FRT_APP_NO,
+        D.FRT_CD,
+        NVL(NULLIF(D.CNTR_SZ_CD, 'BL'), '00') AS CNTR_SZ_CD,
+        NVL(NULLIF(D.CNTR_TYP_CD, 'BL'), '00') AS CNTR_TYP_CD,
+        NVL(D.CGO_TYP_CD, '00') AS CGO_TYP_CD,
+        NVL(D.SCG_TYP_CD, '00') AS SCG_TYP_CD,
+        NVL(D.FE_CAT_CD, 'F') AS FE_CAT_CD,
+        NVL(D.CUR_CD, '00') AS CUR_CD,
+        NVL(D.FRT_PNC_CD, '00') AS FRT_PNC_CD,
+        MAX(D.RATE_APCL_BASC_CD) AS RATE_APCL_BASC_CD
+    FROM ODS_ICC.SA202D D
+    WHERE D.RATE_APCL_BASC_CD = '03'
+      AND NVL(NULLIF(D.CNTR_SZ_CD, 'BL'), '00') = '00'
+      AND NVL(NULLIF(D.CNTR_TYP_CD, 'BL'), '00') = '00'
+    GROUP BY
+        D.FRT_APP_NO,
+        D.FRT_CD,
+        NVL(NULLIF(D.CNTR_SZ_CD, 'BL'), '00'),
+        NVL(NULLIF(D.CNTR_TYP_CD, 'BL'), '00'),
+        NVL(D.CGO_TYP_CD, '00'),
+        NVL(D.SCG_TYP_CD, '00'),
+        NVL(D.FE_CAT_CD, 'F'),
+        NVL(D.CUR_CD, '00'),
+        NVL(D.FRT_PNC_CD, '00')
+),
+
+COMMON_WAIVE_ENTRY AS (
+    SELECT /*+ MATERIALIZE */
+        D.*
+    FROM COMMON_WAIVE_SOURCE D
+    JOIN RATE_APP_SCOPE S
+        ON S.FRT_APP_NO = D.FRT_APP_NO
+),
+
+TARIFF_HEADER AS (
+    SELECT /*+ MATERIALIZE */
+        H.SCHG_TRF_NO,
+        MAX(H.BL_RATE) AS BL_RATE
+    FROM ODS_ICC.SA215I H
+    GROUP BY
+        H.SCHG_TRF_NO
+),
+
+RATE_BASE AS (
+    SELECT /*+ INLINE */
+        F.FRT_APP_NO,
+        F.STR_DT,
+        F.END_DT,
+        F.REQ_DT,
+        F.APV_DT,
+        F.APV_STS_CD,
+
+        F.POR_CTR_CD,
+        F.POR_PLC_CD,
+        F.DLY_CTR_CD,
+        F.DLY_PLC_CD,
+
+        F.BKG_SHPR_CST_NO,
+        F.BKG_SHPR_ENM,
+
+        F.BIZ_STAF_NO,
+        F.BIZ_TEAM_CAT_CD,
+
+        F.CNTR_SZ_CD,
+        F.CNTR_TYP_CD,
+        F.CGO_TYP_CD,
+        F.SCG_TYP_CD,
+        F.FE_CAT_CD,
+
+        F.FRT_CD,
+        F.FRT_UNIT_CD,
+        F.FRT_PNC_CD,
+        F.MAS_FRT_PNC_CD,
+        NVL(B.RATE_APCL_BASC_CD, F.RATE_APCL_BASC_CD) AS RATE_APCL_BASC_CD,
+
+        CASE
+            WHEN F.FRT_PNC_CD = 'P' THEN 'Origin Sales'
+            WHEN F.FRT_PNC_CD = 'C' THEN 'Destination Sales'
+            ELSE 'Unknown'
+        END AS SALES_ROLE,
+
+        CASE
+            WHEN F.FRT_PNC_CD = 'P' THEN '선적지 영업사원'
+            WHEN F.FRT_PNC_CD = 'C' THEN '도착지 영업사원'
+            ELSE '미확인'
+        END AS SALES_ROLE_NM,
+
+        F.CUR_CD,
+        F.LOC_AMT,
+        F.USD_AMT,
+        F.FIX_USD_AMT,
+        NVL(F.FIX_USD_AMT, F.USD_AMT) AS RATE_USD_AMOUNT,
+        CASE
+            WHEN NVL(B.RATE_APCL_BASC_CD, F.RATE_APCL_BASC_CD) = '03' THEN NULL
+            WHEN F.LOC_AMT IS NOT NULL THEN F.LOC_AMT
+            WHEN NVL(B.RATE_APCL_BASC_CD, F.RATE_APCL_BASC_CD) = '02'
+             AND F.FRT_UNIT_CD = '04'
+             AND NVL(H.BL_RATE, 0) <> 0 THEN H.BL_RATE
+            WHEN UPPER(NVL(F.CUR_CD, '')) = 'USD' THEN NVL(F.FIX_USD_AMT, F.USD_AMT)
+            ELSE NULL
+        END AS REGISTERED_LOCAL_AMOUNT,
+
+        F.LST_UPDT_DTM
+    FROM DW_SALES.SP301I F
+    LEFT JOIN COMMON_WAIVE_ENTRY B
+        ON B.FRT_APP_NO = F.FRT_APP_NO
+       AND B.FRT_CD = F.FRT_CD
+       AND B.CNTR_SZ_CD = NVL(NULLIF(F.CNTR_SZ_CD, 'BL'), '00')
+       AND B.CNTR_TYP_CD = NVL(NULLIF(F.CNTR_TYP_CD, 'BL'), '00')
+       AND B.CGO_TYP_CD = NVL(F.CGO_TYP_CD, '00')
+       AND B.SCG_TYP_CD = NVL(F.SCG_TYP_CD, '00')
+       AND B.FE_CAT_CD = NVL(F.FE_CAT_CD, 'F')
+       AND B.CUR_CD = NVL(F.CUR_CD, '00')
+       AND B.FRT_PNC_CD = NVL(F.FRT_PNC_CD, '00')
+    LEFT JOIN TARIFF_HEADER H
+        ON H.SCHG_TRF_NO = F.SCHG_TRF_NO
+    WHERE F.FRT_APP_NO IS NOT NULL
+      AND F.APV_STS_CD = '03'
+      AND F.BIZ_TEAM_CAT_CD = 'O'
+      AND F.STR_DT <= TO_CHAR(SYSDATE, 'YYYYMMDD')
+      AND NVL(F.END_DT, '99991231') >= TO_CHAR(ADD_MONTHS(SYSDATE, -6), 'YYYYMMDD')
+      AND (
+          NVL(F.FIX_USD_AMT, F.USD_AMT) > 0
+          OR NVL(F.LOC_AMT, 0) > 0
+          OR F.RATE_APCL_BASC_CD = '03'
+      )
+),
+
+OCEAN_FREIGHT_BASE AS (
+    SELECT /*+ MATERIALIZE */
+        O.*
+    FROM RATE_BASE O
+    WHERE O.FRT_CD = 'O/F'
+      AND O.RATE_USD_AMOUNT > 0
+),
+
+WAIVE_GROUP AS (
+    SELECT
+        'WAIVE_GROUP' AS RATE_ROW_TYPE,
+        C.FRT_APP_NO,
+
+        C.STR_DT AS EFFECTIVE_START_DATE,
+        C.END_DT AS EFFECTIVE_END_DATE,
+        MIN(C.REQ_DT) AS REQUEST_DATE,
+        MAX(C.APV_DT) AS APPROVAL_DATE,
+        MAX(C.APV_STS_CD) AS APPROVAL_STATUS,
+
+        C.POR_CTR_CD,
+        C.POR_PLC_CD,
+        C.DLY_CTR_CD,
+        C.DLY_PLC_CD,
+
+        C.BKG_SHPR_CST_NO,
+        MAX(C.BKG_SHPR_ENM) AS BKG_SHPR_ENM,
+
+        MAX(C.BIZ_STAF_NO) AS SALES_STAFF_NO,
+        MAX(C.BIZ_TEAM_CAT_CD) AS SALES_TEAM_CATEGORY,
+
+        C.CNTR_SZ_CD,
+        C.CNTR_TYP_CD,
+        C.CGO_TYP_CD,
+        C.SCG_TYP_CD,
+        C.FE_CAT_CD,
+
+        MAX(C.FRT_UNIT_CD) AS FRT_UNIT_CD,
+        MAX(C.FRT_PNC_CD) AS FRT_PNC_CD,
+        MAX(C.MAS_FRT_PNC_CD) AS MAS_FRT_PNC_CD,
+
+        MAX(C.SALES_ROLE) AS SALES_ROLE,
+        MAX(C.SALES_ROLE_NM) AS SALES_ROLE_NM,
+
+        LISTAGG(C.FRT_CD, '+') WITHIN GROUP (ORDER BY C.FRT_CD, C.CUR_CD, C.FRT_PNC_CD) AS CHARGE_BASKET,
+        COUNT(DISTINCT C.FRT_CD) AS CHARGE_COUNT,
+        LISTAGG(
+            REPLACE(C.FRT_CD, '|', ' ') || '|' ||
+            REPLACE(NVL(C.CUR_CD, ''), '|', ' ') || '|||' ||
+            REPLACE(NVL(C.FRT_PNC_CD, ''), '|', ' ') ||
+            '|RATE_FILE|WAIVE',
+            '~'
+        ) WITHIN GROUP (ORDER BY C.FRT_CD, C.CUR_CD, C.FRT_PNC_CD) AS CHARGE_DETAIL_LIST,
+
+        0 AS OF_RATE,
+        0 AS THC_RATE,
+        0 AS LSS_RATE,
+        0 AS FAF_RATE,
+        0 AS WRS_RATE,
+        0 AS EFC_RATE,
+        0 AS CIS_RATE,
+        0 AS SEC_RATE,
+        0 AS CORE_RATE,
+        0 AS ALL_IN_RATE,
+
+        MAX(C.LST_UPDT_DTM) AS LAST_UPDATE_DATETIME
+    FROM RATE_BASE C
+    WHERE C.FRT_CD <> 'O/F'
+      AND C.RATE_APCL_BASC_CD = '03'
+    GROUP BY
+        C.FRT_APP_NO,
+        C.STR_DT,
+        C.END_DT,
+        C.POR_CTR_CD,
+        C.POR_PLC_CD,
+        C.DLY_CTR_CD,
+        C.DLY_PLC_CD,
+        C.BKG_SHPR_CST_NO,
+        C.CNTR_SZ_CD,
+        C.CNTR_TYP_CD,
+        C.CGO_TYP_CD,
+        C.SCG_TYP_CD,
+        C.FE_CAT_CD
+),
+
+RATE_COMPONENT AS (
+    SELECT
+        'OCEAN_FREIGHT' AS RATE_ROW_TYPE,
+        O.FRT_APP_NO,
+
+        O.STR_DT AS EFFECTIVE_START_DATE,
+        O.END_DT AS EFFECTIVE_END_DATE,
+        O.REQ_DT AS REQUEST_DATE,
+        O.APV_DT AS APPROVAL_DATE,
+        O.APV_STS_CD AS APPROVAL_STATUS,
+
+        O.POR_CTR_CD,
+        O.POR_PLC_CD,
+        O.DLY_CTR_CD,
+        O.DLY_PLC_CD,
+
+        O.BKG_SHPR_CST_NO,
+        O.BKG_SHPR_ENM,
+
+        O.BIZ_STAF_NO AS SALES_STAFF_NO,
+        O.BIZ_TEAM_CAT_CD AS SALES_TEAM_CATEGORY,
+
+        O.CNTR_SZ_CD,
+        O.CNTR_TYP_CD,
+        O.CGO_TYP_CD,
+        O.SCG_TYP_CD,
+        O.FE_CAT_CD,
+
+        O.FRT_UNIT_CD,
+        O.FRT_PNC_CD,
+        O.MAS_FRT_PNC_CD,
+
+        O.SALES_ROLE,
+        O.SALES_ROLE_NM,
+
+        'O/F' AS CHARGE_BASKET,
+        1 AS CHARGE_COUNT,
+        'O/F|' ||
+        REPLACE(NVL(O.CUR_CD, ''), '|', ' ') || '|' ||
+        TO_CHAR(
+            O.REGISTERED_LOCAL_AMOUNT,
+            'FM999999999999999990D999999',
+            'NLS_NUMERIC_CHARACTERS=''.,'''
+        ) || '|' ||
+        TO_CHAR(
+            O.RATE_USD_AMOUNT,
+            'FM999999999999999990D999999',
+            'NLS_NUMERIC_CHARACTERS=''.,'''
+        ) || '|' ||
+        REPLACE(NVL(O.FRT_PNC_CD, ''), '|', ' ') || '|RATE_FILE|' ||
+        CASE O.RATE_APCL_BASC_CD
+            WHEN '01' THEN 'AMOUNT'
+            WHEN '02' THEN 'TARIFF'
+            WHEN '03' THEN 'WAIVE'
+            WHEN '04' THEN 'PERCENT'
+            ELSE 'UNKNOWN'
+        END AS CHARGE_DETAIL_LIST,
+
+        O.RATE_USD_AMOUNT AS OF_RATE,
+        0 AS THC_RATE,
+        0 AS LSS_RATE,
+        0 AS FAF_RATE,
+        0 AS WRS_RATE,
+        0 AS EFC_RATE,
+        0 AS CIS_RATE,
+        0 AS SEC_RATE,
+        O.RATE_USD_AMOUNT AS CORE_RATE,
+        O.RATE_USD_AMOUNT AS ALL_IN_RATE,
+
+        O.LST_UPDT_DTM AS LAST_UPDATE_DATETIME
+    FROM OCEAN_FREIGHT_BASE O
+
+    UNION ALL
+
+    SELECT
+        'CHARGE_GROUP' AS RATE_ROW_TYPE,
+        C.FRT_APP_NO,
+
+        C.STR_DT AS EFFECTIVE_START_DATE,
+        C.END_DT AS EFFECTIVE_END_DATE,
+        MIN(C.REQ_DT) AS REQUEST_DATE,
+        MAX(C.APV_DT) AS APPROVAL_DATE,
+        MAX(C.APV_STS_CD) AS APPROVAL_STATUS,
+
+        C.POR_CTR_CD,
+        C.POR_PLC_CD,
+        C.DLY_CTR_CD,
+        C.DLY_PLC_CD,
+
+        C.BKG_SHPR_CST_NO,
+        MAX(C.BKG_SHPR_ENM) AS BKG_SHPR_ENM,
+
+        MAX(C.BIZ_STAF_NO) AS SALES_STAFF_NO,
+        MAX(C.BIZ_TEAM_CAT_CD) AS SALES_TEAM_CATEGORY,
+
+        C.CNTR_SZ_CD,
+        C.CNTR_TYP_CD,
+        C.CGO_TYP_CD,
+        C.SCG_TYP_CD,
+        C.FE_CAT_CD,
+
+        MAX(C.FRT_UNIT_CD) AS FRT_UNIT_CD,
+        MAX(C.FRT_PNC_CD) AS FRT_PNC_CD,
+        MAX(C.MAS_FRT_PNC_CD) AS MAS_FRT_PNC_CD,
+
+        MAX(C.SALES_ROLE) AS SALES_ROLE,
+        MAX(C.SALES_ROLE_NM) AS SALES_ROLE_NM,
+
+        LISTAGG(C.FRT_CD, '+') WITHIN GROUP (ORDER BY C.FRT_CD) AS CHARGE_BASKET,
+        COUNT(DISTINCT C.FRT_CD) AS CHARGE_COUNT,
+        LISTAGG(
+            REPLACE(C.FRT_CD, '|', ' ') || '|' ||
+            REPLACE(NVL(C.CUR_CD, ''), '|', ' ') || '|' ||
+            TO_CHAR(
+                C.REGISTERED_LOCAL_AMOUNT,
+                'FM999999999999999990D999999',
+                'NLS_NUMERIC_CHARACTERS=''.,'''
+            ) || '|' ||
+            TO_CHAR(
+                C.RATE_USD_AMOUNT,
+                'FM999999999999999990D999999',
+                'NLS_NUMERIC_CHARACTERS=''.,'''
+            ) || '|' ||
+            REPLACE(NVL(C.FRT_PNC_CD, ''), '|', ' ') || '|RATE_FILE|' ||
+            CASE C.RATE_APCL_BASC_CD
+                WHEN '01' THEN 'AMOUNT'
+                WHEN '02' THEN 'TARIFF'
+                WHEN '03' THEN 'WAIVE'
+                WHEN '04' THEN 'PERCENT'
+                ELSE 'UNKNOWN'
+            END,
+            '~'
+        ) WITHIN GROUP (
+            ORDER BY C.FRT_CD, C.CUR_CD, C.REGISTERED_LOCAL_AMOUNT, C.RATE_USD_AMOUNT, C.FRT_PNC_CD, C.RATE_APCL_BASC_CD
+        ) AS CHARGE_DETAIL_LIST,
+
+        0 AS OF_RATE,
+        SUM(CASE WHEN C.FRT_CD = 'THC' THEN C.RATE_USD_AMOUNT ELSE 0 END) AS THC_RATE,
+        SUM(CASE WHEN C.FRT_CD = 'LSS' THEN C.RATE_USD_AMOUNT ELSE 0 END) AS LSS_RATE,
+        SUM(CASE WHEN C.FRT_CD = 'FAF' THEN C.RATE_USD_AMOUNT ELSE 0 END) AS FAF_RATE,
+        SUM(CASE WHEN C.FRT_CD = 'WRS' THEN C.RATE_USD_AMOUNT ELSE 0 END) AS WRS_RATE,
+        SUM(CASE WHEN C.FRT_CD = 'EFC' THEN C.RATE_USD_AMOUNT ELSE 0 END) AS EFC_RATE,
+        SUM(CASE WHEN C.FRT_CD = 'CIS' THEN C.RATE_USD_AMOUNT ELSE 0 END) AS CIS_RATE,
+        SUM(CASE WHEN C.FRT_CD = 'SEC' THEN C.RATE_USD_AMOUNT ELSE 0 END) AS SEC_RATE,
+        SUM(CASE
+                WHEN C.FRT_CD IN ('LSS', 'FAF', 'WRS', 'EFC')
+                THEN C.RATE_USD_AMOUNT
+                ELSE 0
+            END) AS CORE_RATE,
+        SUM(C.RATE_USD_AMOUNT) AS ALL_IN_RATE,
+
+        MAX(C.LST_UPDT_DTM) AS LAST_UPDATE_DATETIME
+    FROM RATE_BASE C
+    WHERE C.FRT_CD <> 'O/F'
+      AND C.RATE_APCL_BASC_CD <> '03'
+    GROUP BY
+        C.FRT_APP_NO,
+        C.STR_DT,
+        C.END_DT,
+        C.POR_CTR_CD,
+        C.POR_PLC_CD,
+        C.DLY_CTR_CD,
+        C.DLY_PLC_CD,
+        C.BKG_SHPR_CST_NO,
+        C.CNTR_SZ_CD,
+        C.CNTR_TYP_CD,
+        C.CGO_TYP_CD,
+        C.SCG_TYP_CD,
+        C.FE_CAT_CD
+
+    UNION ALL
+
+    SELECT *
+    FROM WAIVE_GROUP
+)
+
+SELECT
+    R.RATE_ROW_TYPE,
+    R.FRT_APP_NO AS RATE_APPLICATION_NO,
+
+    R.EFFECTIVE_START_DATE,
+    R.EFFECTIVE_END_DATE,
+    R.REQUEST_DATE,
+    R.APPROVAL_DATE,
+    R.APPROVAL_STATUS,
+
+    R.POR_CTR_CD AS POR_COUNTRY,
+    R.POR_PLC_CD AS POR_PORT,
+    R.DLY_CTR_CD AS DLY_COUNTRY,
+    R.DLY_PLC_CD AS DLY_PORT,
+
+    R.BKG_SHPR_CST_NO AS BOOKING_SHIPPER_CODE,
+    R.BKG_SHPR_ENM AS BOOKING_SHIPPER_NAME,
+
+    R.SALES_STAFF_NO,
+    R.SALES_TEAM_CATEGORY,
+
+    R.CNTR_SZ_CD AS CONTAINER_SIZE,
+    R.CNTR_TYP_CD AS CONTAINER_TYPE,
+    R.CGO_TYP_CD AS CARGO_TYPE,
+    R.SCG_TYP_CD AS SPECIAL_CARGO_TYPE,
+    R.FE_CAT_CD AS FULL_EMPTY_TYPE,
+
+    R.FRT_UNIT_CD AS FREIGHT_UNIT,
+    R.FRT_PNC_CD AS PREPAID_COLLECT,
+    R.MAS_FRT_PNC_CD AS MASTER_PREPAID_COLLECT,
+
+    R.SALES_ROLE,
+    R.SALES_ROLE_NM,
+
+    R.CHARGE_BASKET,
+    R.CHARGE_COUNT,
+    R.CHARGE_DETAIL_LIST,
+
+    R.OF_RATE,
+    R.THC_RATE,
+    R.LSS_RATE,
+    R.FAF_RATE,
+    R.WRS_RATE,
+    R.EFC_RATE,
+    R.CIS_RATE,
+    R.SEC_RATE,
+    R.CORE_RATE,
+    R.ALL_IN_RATE,
+
+    R.LAST_UPDATE_DATETIME
+
+FROM RATE_COMPONENT R;

@@ -1,0 +1,6637 @@
+{
+  "basis": "Latest visible SEA/ETC KMTC Working rate by route and container size",
+  "generatedAt": "2026-06-05T09:12:31",
+  "routes": {
+    "AQJ|BKK": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 500.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 600.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|DMM": {
+      "sheet": "JOAQJ",
+      "remark": "",
+      "20": 360.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 600.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|HKG": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 140.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 340.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|HPH": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 450.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 800.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|INC": {
+      "sheet": "JOAQJ",
+      "remark": "Inclusive of  BAF  CAF CIC LSS",
+      "20": 160.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 330.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|JEA": {
+      "sheet": "JOAQJ",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 30.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 50.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|JED": {
+      "sheet": "JOAQJ",
+      "remark": "",
+      "20": 200.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 450.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|JKT": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|JPM": {
+      "sheet": "JOAQJ",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 452.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|JPO": {
+      "sheet": "JOAQJ",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 303.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 452.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|KHI": {
+      "sheet": "JOAQJ",
+      "remark": "Including BAF,LSS",
+      "20": 464.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 1000.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|LCH": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 289.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|MIP": {
+      "sheet": "JOAQJ",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 500.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 400.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|MNL": {
+      "sheet": "JOAQJ",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 500.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 400.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|MUN": {
+      "sheet": "JOAQJ",
+      "remark": "",
+      "20": 25.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 300.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|NBO": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 10.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|NNS": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 175.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 550.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|PEN": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 425.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|PGU": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|PKW": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 90.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 143.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|PNC": {
+      "sheet": "JOAQJ",
+      "remark": "Inclusive of  BAF  CAF CIC LSS",
+      "20": 50.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 60.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|SGN": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 730.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|SHA": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 150.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|SHK": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 175.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 550.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|SIN": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 200.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|SKN": {
+      "sheet": "JOAQJ",
+      "remark": "",
+      "20": 50.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 100.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|SUB": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 250.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|TAO": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 150.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|XGG": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 200.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 300.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "AQJ|XMN": {
+      "sheet": "JOAQJ",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 175.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 550.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "BKK|DLC": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 300.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|HKG": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 20.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 40.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|HPH": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 40.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 80.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|INC": {
+      "sheet": "TH BKK",
+      "remark": "Subject to LSS",
+      "20": 100.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 200.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|NBO": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 1.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|NNS": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|PUS": {
+      "sheet": "TH BKK",
+      "remark": "Subject to LSS",
+      "20": 100.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 200.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|SGN": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 1.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|SHA": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 1.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|SHK": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|TAO": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 20.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 40.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|XGG": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 300.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "BKK|XMN": {
+      "sheet": "TH BKK",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "HPH|AQJ": {
+      "sheet": "VN HPH",
+      "remark": "",
+      "20": 5600.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 6700.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|BKK": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive+",
+      "20": 350.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 700.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|DAR": {
+      "sheet": "VN HPH",
+      "remark": "included BAF, LSS, WRS",
+      "20": 2600.0,
+      "20Week": "2025-W42",
+      "20Date": "2025-10-15",
+      "40": 3700.0,
+      "40Week": "2025-W42",
+      "40Date": "2025-10-15"
+    },
+    "HPH|DLC": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 300.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|DMM": {
+      "sheet": "VN HPH",
+      "remark": "",
+      "20": 3100.0,
+      "20Week": "2026-W11",
+      "20Date": "2026-03-12",
+      "40": 5200.0,
+      "40Week": "2026-W11",
+      "40Date": "2026-03-12"
+    },
+    "HPH|HKG": {
+      "sheet": "VN HPH",
+      "remark": "INCLUDE LCC AT POL",
+      "20": 10.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 20.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|HZR": {
+      "sheet": "VN HPH",
+      "remark": "Including  BAF, LSS, EIS(CIS)",
+      "20": 4000.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 4200.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|INC": {
+      "sheet": "VN HPH",
+      "remark": "PUS : Subject to LCC,LSS (INCLUDE EBS,FAF,CRC) INC : SBJ to LCC,LSS ( INCLUDE EBS,FAF,CRC AND CIC)",
+      "20": 150.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 300.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|JEA": {
+      "sheet": "VN HPH",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 5400.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 7100.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|JED": {
+      "sheet": "VN HPH",
+      "remark": "",
+      "20": 5600.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 6700.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|JKT": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 800.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|JPM": {
+      "sheet": "VN HPH",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 130.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 260.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|JPO": {
+      "sheet": "VN HPH",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 150.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 300.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|KHI": {
+      "sheet": "VN HPH",
+      "remark": "Including BAF,LSS",
+      "20": 5000.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 5100.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|KLF": {
+      "sheet": "VN HPH",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 5400.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 7100.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|KTP": {
+      "sheet": "VN HPH",
+      "remark": "Including  BAF, LSS, EIS(CIS)",
+      "20": 2000.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 2100.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|LCH": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive+",
+      "20": 350.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 700.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|LGB": {
+      "sheet": "VN HPH",
+      "remark": "",
+      "20": 3200.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 4000.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|MAA": {
+      "sheet": "VN HPH",
+      "remark": "Including  BAF, LSS, EIS(CIS)",
+      "20": 2000.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 2100.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|MBA": {
+      "sheet": "VN HPH",
+      "remark": "included BAF, LSS, WRS",
+      "20": 2600.0,
+      "20Week": "2025-W42",
+      "20Date": "2025-10-15",
+      "40": 3700.0,
+      "40Week": "2025-W42",
+      "40Date": "2025-10-15"
+    },
+    "HPH|MUN": {
+      "sheet": "VN HPH",
+      "remark": "Including  BAF, LSS, EIS(CIS)",
+      "20": 4000.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 4200.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|NBO": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 300.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|NNS": {
+      "sheet": "VN HPH",
+      "remark": "INCLUDE LCC AT POL",
+      "20": 5.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 10.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|NSA": {
+      "sheet": "VN HPH",
+      "remark": "Including  BAF, LSS, EIS(CIS)",
+      "20": 4000.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 4200.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|PEN": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 800.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|PGU": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 800.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|PKG": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 800.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|PUS": {
+      "sheet": "VN HPH",
+      "remark": "PUS : Subject to LCC,LSS (INCLUDE EBS,FAF,CRC) INC : SBJ to LCC,LSS ( INCLUDE EBS,FAF,CRC AND CIC)",
+      "20": 100.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 200.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|SHA": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 10.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|SHK": {
+      "sheet": "VN HPH",
+      "remark": "INCLUDE LCC AT POL",
+      "20": 5.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 10.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|SKN": {
+      "sheet": "VN HPH",
+      "remark": "",
+      "20": 5600.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 6700.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|SOH": {
+      "sheet": "VN HPH",
+      "remark": "",
+      "20": 5400.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 7100.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|SUB": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 800.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|TAO": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 300.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|VTZ": {
+      "sheet": "VN HPH",
+      "remark": "Including  BAF, LSS, EIS(CIS)",
+      "20": 2000.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 2100.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|XGG": {
+      "sheet": "VN HPH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 300.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|XMN": {
+      "sheet": "VN HPH",
+      "remark": "INCLUDE LCC AT POL",
+      "20": 5.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 10.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "JEA|AQJ": {
+      "sheet": "AE JEA",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 3000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|BKK": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 3000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|DLC": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive ,WRS ,ERS",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|DMM": {
+      "sheet": "AE JEA",
+      "remark": "",
+      "20": 1500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|HKG": {
+      "sheet": "AE JEA",
+      "remark": "",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|HPH": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive,WRS ,ERS",
+      "20": 3000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|INC": {
+      "sheet": "AE JEA",
+      "remark": "Inclusive of  BAF  CAF CIC LSS ,WRS ,EFC",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3800.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|JED": {
+      "sheet": "AE JEA",
+      "remark": "",
+      "20": 2500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|JKT": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|JPM": {
+      "sheet": "AE JEA",
+      "remark": "LSS, FAF Inclusive Subject to Local charge ,WRS ,ERS",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3800.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|JPO": {
+      "sheet": "AE JEA",
+      "remark": "LSS, FAF Inclusive Subject to Local charge ,WRS ,ERS",
+      "20": 2500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|LCH": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3800.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|MIP": {
+      "sheet": "AE JEA",
+      "remark": "EBS,LSS Inclusive, IES,PCS Exclusive",
+      "20": 3500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|MNL": {
+      "sheet": "AE JEA",
+      "remark": "EBS,LSS Inclusive, IES,PCS Exclusive",
+      "20": 3500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|MUN": {
+      "sheet": "AE JEA",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 2500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|NBO": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive ,WRS ,ERS",
+      "20": 2100.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|NNS": {
+      "sheet": "AE JEA",
+      "remark": "",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|NSA": {
+      "sheet": "AE JEA",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 3000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|PEN": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 3000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|PGU": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 3000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|PKG": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 3000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|PUS": {
+      "sheet": "AE JEA",
+      "remark": "Inclusive of  BAF  CAF CIC LSS ,WRS ,EFC",
+      "20": 2500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|SGN": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive,WRS ,ERS",
+      "20": 3000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|SHA": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive ,WRS ,ERS",
+      "20": 2000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|SHK": {
+      "sheet": "AE JEA",
+      "remark": "",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|SIN": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|SKN": {
+      "sheet": "AE JEA",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 3000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|SOH": {
+      "sheet": "AE JEA",
+      "remark": "",
+      "20": 125.0,
+      "20Week": "2026-W19",
+      "20Date": "2026-05-07",
+      "40": 250.0,
+      "40Week": "2026-W19",
+      "40Date": "2026-05-07"
+    },
+    "JEA|SUB": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|TAO": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive ,WRS ,ERS",
+      "20": 2100.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|XGG": {
+      "sheet": "AE JEA",
+      "remark": "FAF,EBS,LSS Inclusive ,WRS ,ERS",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 3800.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|XMN": {
+      "sheet": "AE JEA",
+      "remark": "",
+      "20": 2800.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JEA|ZLO": {
+      "sheet": "AE JEA",
+      "remark": "",
+      "20": 4000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 5500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JED|AQJ": {
+      "sheet": "SAJED",
+      "remark": "",
+      "20": 250.0,
+      "20Week": "2025-W15",
+      "20Date": "2025-04-09",
+      "40": 450.0,
+      "40Week": "2025-W15",
+      "40Date": "2025-04-09"
+    },
+    "JED|BKK": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 420.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|DLC": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 140.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 340.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|HKG": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 600.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|HPH": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 289.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|INC": {
+      "sheet": "SAJED",
+      "remark": "Inclusive of  BAF  CAF CIC LSS",
+      "20": 325.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 250.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|JEA": {
+      "sheet": "SAJED",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 250.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 200.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|JKT": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 48.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 143.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|JPM": {
+      "sheet": "SAJED",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 175.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 200.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|JPO": {
+      "sheet": "SAJED",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 600.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|LCH": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 125.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 168.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|MIP": {
+      "sheet": "SAJED",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|MNL": {
+      "sheet": "SAJED",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|MUN": {
+      "sheet": "SAJED",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 395.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|NBO": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 138.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|NNS": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 730.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|NSA": {
+      "sheet": "SAJED",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 80.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 208.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|PEN": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 43.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 103.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|PGU": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 464.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 1000.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|PKG": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 550.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|PUS": {
+      "sheet": "SAJED",
+      "remark": "Inclusive of  BAF  CAF CIC LSS",
+      "20": 125.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 188.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|SGN": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 225.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 250.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|SHA": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 40.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|SHK": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 730.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|SIN": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 200.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 250.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|SKN": {
+      "sheet": "SAJED",
+      "remark": "",
+      "20": 75.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 150.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|SOH": {
+      "sheet": "SAJED",
+      "remark": "",
+      "20": 500.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 1000.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|SUB": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 425.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|TAO": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 200.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 300.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|XGG": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 175.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 550.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JED|XMN": {
+      "sheet": "SAJED",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 730.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JKT|AQJ": {
+      "sheet": "ID JKT",
+      "remark": "",
+      "20": 4500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 5500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|BKK": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included subject to D.CIC (BKK : 50/100, LCH : 0/0)",
+      "20": 150.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|DAR": {
+      "sheet": "ID JKT",
+      "remark": "SUbject To THC and Local Charges",
+      "20": 2000.0,
+      "20Week": "2026-W20",
+      "20Date": "2026-05-14",
+      "40": 2400.0,
+      "40Week": "2026-W20",
+      "40Date": "2026-05-14"
+    },
+    "JKT|DLC": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 50.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 100.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|DMM": {
+      "sheet": "ID JKT",
+      "remark": "",
+      "20": 5500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 6500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|HKG": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 50.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 100.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|HPH": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included subject to D.CIC (SGN : 50/100, HPH : 100/200)",
+      "20": 250.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|HZR": {
+      "sheet": "ID JKT",
+      "remark": "Including  BAF, LSS, EIS, LTHC subject IHC  MAA SUbject to THC / local charge",
+      "20": 900.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 1300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|INC": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 250.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|JEA": {
+      "sheet": "ID JKT",
+      "remark": "Including BAF, LSS, WRS ,  subject to LTHC for JED / SKN / AQB",
+      "20": 5000.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 6000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|JED": {
+      "sheet": "ID JKT",
+      "remark": "",
+      "20": 4500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 5500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|JPM": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 150.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|JPO": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 200.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 450.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|KAN": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 150.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|KHI": {
+      "sheet": "ID JKT",
+      "remark": "Including BAF,LSS SUbject to, LTHC",
+      "20": 900.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 1300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|KLF": {
+      "sheet": "ID JKT",
+      "remark": "Including BAF, LSS, WRS ,  subject to LTHC for JED / SKN / AQB",
+      "20": 4500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 5500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|KTP": {
+      "sheet": "ID JKT",
+      "remark": "Including  BAF, LSS, EIS, LTHC subject IHC  MAA SUbject to THC / local charge",
+      "20": 850.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 1200.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|LCH": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included subject to D.CIC (BKK : 50/100, LCH : 0/0)",
+      "20": 150.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|LGB": {
+      "sheet": "ID JKT",
+      "remark": "SUbject To THC and Local Charges",
+      "20": 3900.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|MAA": {
+      "sheet": "ID JKT",
+      "remark": "Including  BAF, LSS, EIS, LTHC subject IHC  MAA SUbject to THC / local charge",
+      "20": 850.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 1200.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|MBA": {
+      "sheet": "ID JKT",
+      "remark": "SUbject To THC and Local Charges",
+      "20": 2000.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 2400.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "JKT|MIP": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included  CAC,IES,PCS Exclusive",
+      "20": 50.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 100.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|MUN": {
+      "sheet": "ID JKT",
+      "remark": "Including  BAF, LSS, EIS, LTHC subject IHC  MAA SUbject to THC / local charge",
+      "20": 850.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 1200.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|NBO": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 150.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|NNS": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 200.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 400.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|NSA": {
+      "sheet": "ID JKT",
+      "remark": "Including  BAF, LSS, EIS, LTHC subject IHC  MAA SUbject to THC / local charge",
+      "20": 750.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 1000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|PEN": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 200.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|PGU": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 200.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|PKG": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 100.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 200.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|PUS": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 150.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 300.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|SGN": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included subject to D.CIC (SGN : 50/100, HPH : 100/200)",
+      "20": 10.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 20.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|SHA": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 50.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 100.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|SHK": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 50.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 100.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|SIN": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 100.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 200.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|SKN": {
+      "sheet": "ID JKT",
+      "remark": "",
+      "20": 4500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 5500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|SOH": {
+      "sheet": "ID JKT",
+      "remark": "",
+      "20": 4500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 5500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|TAO": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 50.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 100.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|TUT": {
+      "sheet": "ID JKT",
+      "remark": "Including  BAF, LSS, EIS, LTHC subject IHC  MAA SUbject to THC / local charge",
+      "20": 750.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 1000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|VTZ": {
+      "sheet": "ID JKT",
+      "remark": "Including  BAF, LSS, EIS, LTHC subject IHC  MAA SUbject to THC / local charge",
+      "20": 850.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 1200.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|XGG": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 50.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 100.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|XMN": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 200.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 400.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "JKT|ZLO": {
+      "sheet": "ID JKT",
+      "remark": "SUbject To THC and Local Charges",
+      "20": 3200.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 4000.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "KTP|DLC": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 50.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|DMM": {
+      "sheet": "IN MAA KTP",
+      "remark": "",
+      "20": 1200.0,
+      "20Week": "2026-W11",
+      "20Date": "2026-03-12",
+      "40": 2000.0,
+      "40Week": "2026-W11",
+      "40Date": "2026-03-12"
+    },
+    "KTP|HKG": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|INC": {
+      "sheet": "IN MAA KTP",
+      "remark": "Inclusive  BAF  CAF CIC LSS",
+      "20": 150.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 300.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|JEA": {
+      "sheet": "IN MAA KTP",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 600.0,
+      "20Week": "2026-W11",
+      "20Date": "2026-03-12",
+      "40": 1000.0,
+      "40Week": "2026-W11",
+      "40Date": "2026-03-12"
+    },
+    "KTP|JKT": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 130.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|JPM": {
+      "sheet": "IN MAA KTP",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|JPO": {
+      "sheet": "IN MAA KTP",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 250.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 500.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|LGB": {
+      "sheet": "IN MAA KTP",
+      "remark": "",
+      "20": 2000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 2400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|MIP": {
+      "sheet": "IN MAA KTP",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|MNL": {
+      "sheet": "IN MAA KTP",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|NBO": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 50.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|PEN": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|PGU": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 25.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 45.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|PKG": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 5.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|PUS": {
+      "sheet": "IN MAA KTP",
+      "remark": "Inclusive  BAF  CAF CIC LSS",
+      "20": 20.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 40.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|SHA": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 10.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|SIN": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 5.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|SOH": {
+      "sheet": "IN MAA KTP",
+      "remark": "",
+      "20": 1100.0,
+      "20Week": "2026-W11",
+      "20Date": "2026-03-12",
+      "40": 2000.0,
+      "40Week": "2026-W11",
+      "40Date": "2026-03-12"
+    },
+    "KTP|SUB": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 130.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|TAO": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 10.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|XGG": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 50.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "KTP|ZLO": {
+      "sheet": "IN MAA KTP",
+      "remark": "",
+      "20": 2000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 2400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "LCH|AQJ": {
+      "sheet": "TH LCH",
+      "remark": "",
+      "20": 2800.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 4800.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|DAR": {
+      "sheet": "TH LCH",
+      "remark": "",
+      "20": 2700.0,
+      "20Week": "2025-W35",
+      "20Date": "2025-08-27",
+      "40": 3800.0,
+      "40Week": "2025-W35",
+      "40Date": "2025-08-27"
+    },
+    "LCH|DLC": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 300.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|DMM": {
+      "sheet": "TH LCH",
+      "remark": "",
+      "20": 1100.0,
+      "20Week": "2026-W09",
+      "20Date": "2026-02-26",
+      "40": 1300.0,
+      "40Week": "2026-W09",
+      "40Date": "2026-02-26"
+    },
+    "LCH|HKG": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 20.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 40.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|HPH": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 40.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 80.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|HZR": {
+      "sheet": "TH LCH",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 1300.0,
+      "20Week": "2025-W25",
+      "20Date": "2025-06-18",
+      "40": 2100.0,
+      "40Week": "2025-W25",
+      "40Date": "2025-06-18"
+    },
+    "LCH|INC": {
+      "sheet": "TH LCH",
+      "remark": "Subject to LSS",
+      "20": 100.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 200.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|JEA": {
+      "sheet": "TH LCH",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 5500.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 7000.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|JED": {
+      "sheet": "TH LCH",
+      "remark": "",
+      "20": 2800.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 4800.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|JKT": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 100.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|KHI": {
+      "sheet": "TH LCH",
+      "remark": "Including BAF,LSS",
+      "20": 800.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 1100.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|KLF": {
+      "sheet": "TH LCH",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 5000.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5500.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|KTP": {
+      "sheet": "TH LCH",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 600.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 800.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|LGB": {
+      "sheet": "TH LCH",
+      "remark": "",
+      "20": 2000.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 2500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "LCH|MAA": {
+      "sheet": "TH LCH",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 600.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 800.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|MBA": {
+      "sheet": "TH LCH",
+      "remark": "",
+      "20": 2200.0,
+      "20Week": "2025-W35",
+      "20Date": "2025-08-27",
+      "40": 3000.0,
+      "40Week": "2025-W35",
+      "40Date": "2025-08-27"
+    },
+    "LCH|MUN": {
+      "sheet": "TH LCH",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 600.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 700.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|NBO": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 1.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|NNS": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|NSA": {
+      "sheet": "TH LCH",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 600.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 700.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|PKW": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 200.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|PUS": {
+      "sheet": "TH LCH",
+      "remark": "Subject to LSS",
+      "20": 100.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 200.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|SGN": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 1.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|SHA": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 1.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|SHK": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|SKN": {
+      "sheet": "TH LCH",
+      "remark": "",
+      "20": 2800.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 4800.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|SOH": {
+      "sheet": "TH LCH",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5500.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|TAO": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 20.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 40.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|VTZ": {
+      "sheet": "TH LCH",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 600.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 800.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|XGG": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 300.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LCH|XMN": {
+      "sheet": "TH LCH",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|AQJ": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 2900.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 4950.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|DAR": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 2800.0,
+      "20Week": "2025-W35",
+      "20Date": "2025-08-27",
+      "40": 3950.0,
+      "40Week": "2025-W35",
+      "40Date": "2025-08-27"
+    },
+    "LKB|DLC": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 250.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 450.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|DMM": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 1200.0,
+      "20Week": "2026-W09",
+      "20Date": "2026-02-26",
+      "40": 1450.0,
+      "40Week": "2026-W09",
+      "40Date": "2026-02-26"
+    },
+    "LKB|HKG": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 120.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 190.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|HPH": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 140.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 230.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|HZR": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 1400.0,
+      "20Week": "2025-W25",
+      "20Date": "2025-06-18",
+      "40": 2250.0,
+      "40Week": "2025-W25",
+      "40Date": "2025-06-18"
+    },
+    "LKB|INC": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 200.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 350.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|JEA": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 5600.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 7150.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|JED": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 2900.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 4950.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|JKT": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 150.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 250.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|KHI": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 900.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 1250.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|KLF": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 5100.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5650.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|KTP": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 700.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 950.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|LGB": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 2100.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 2650.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "LKB|MAA": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 700.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 950.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|MBA": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 2300.0,
+      "20Week": "2025-W35",
+      "20Date": "2025-08-27",
+      "40": 3150.0,
+      "40Week": "2025-W35",
+      "40Date": "2025-08-27"
+    },
+    "LKB|MUN": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 700.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 850.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|NBO": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 101.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 151.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|NNS": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 105.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 155.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|NSA": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 700.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 850.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|PKW": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 200.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 350.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|PUS": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 200.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 350.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|SGN": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 101.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 151.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|SHA": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 101.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 151.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|SHK": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 105.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 155.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|SKN": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 2900.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 4950.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|SOH": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 5100.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 5650.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|TAO": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 120.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 190.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|VTZ": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 700.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 950.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|XGG": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 250.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 450.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "LKB|XMN": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 105.0,
+      "20Week": "2026-W21",
+      "20Date": "2026-05-21",
+      "40": 155.0,
+      "40Week": "2026-W21",
+      "40Date": "2026-05-21"
+    },
+    "MAA|DLC": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 50.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|DMM": {
+      "sheet": "IN MAA KTP",
+      "remark": "",
+      "20": 1200.0,
+      "20Week": "2026-W11",
+      "20Date": "2026-03-12",
+      "40": 2000.0,
+      "40Week": "2026-W11",
+      "40Date": "2026-03-12"
+    },
+    "MAA|HKG": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|INC": {
+      "sheet": "IN MAA KTP",
+      "remark": "Inclusive  BAF  CAF CIC LSS",
+      "20": 150.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 300.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|JEA": {
+      "sheet": "IN MAA KTP",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 600.0,
+      "20Week": "2026-W11",
+      "20Date": "2026-03-12",
+      "40": 1000.0,
+      "40Week": "2026-W11",
+      "40Date": "2026-03-12"
+    },
+    "MAA|JKT": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 130.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|JPM": {
+      "sheet": "IN MAA KTP",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|JPO": {
+      "sheet": "IN MAA KTP",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 250.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 500.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|LGB": {
+      "sheet": "IN MAA KTP",
+      "remark": "",
+      "20": 2000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 2400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|MIP": {
+      "sheet": "IN MAA KTP",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|MNL": {
+      "sheet": "IN MAA KTP",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|NBO": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 50.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|PEN": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|PGU": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 25.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 45.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|PKG": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 5.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|PUS": {
+      "sheet": "IN MAA KTP",
+      "remark": "Inclusive  BAF  CAF CIC LSS",
+      "20": 20.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 40.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|SHA": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 10.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|SIN": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 5.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|SOH": {
+      "sheet": "IN MAA KTP",
+      "remark": "",
+      "20": 1100.0,
+      "20Week": "2026-W11",
+      "20Date": "2026-03-12",
+      "40": 2000.0,
+      "40Week": "2026-W11",
+      "40Date": "2026-03-12"
+    },
+    "MAA|SUB": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 130.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|TAO": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 10.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|XGG": {
+      "sheet": "IN MAA KTP",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 50.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MAA|ZLO": {
+      "sheet": "IN MAA KTP",
+      "remark": "",
+      "20": 2000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 2400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MIP|BKK": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, Subject to L.THC, LSS and POD charges",
+      "20": 50.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 100.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|DLC": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, subject to LSS and POD charges",
+      "20": 175.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 300.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|DMM": {
+      "sheet": "PH MIP",
+      "remark": "",
+      "20": 1900.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 2500.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|HKG": {
+      "sheet": "PH MIP",
+      "remark": "Inclusive of POL Charges (WK ~28, Subject to LSS)",
+      "20": 30.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 60.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|HPH": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, Subject to LSS and POD charges",
+      "20": 400.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 800.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|HZR": {
+      "sheet": "PH MIP",
+      "remark": "Including  BAF, Subject to local charges and POD charges",
+      "20": 1700.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 3000.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|INC": {
+      "sheet": "PH MIP",
+      "remark": "Subject to POL LSS,  POD: EBS, CRC, CIS",
+      "20": 85.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 170.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|JEA": {
+      "sheet": "PH MIP",
+      "remark": "Including BAF, WRS, Subject to POD Charges",
+      "20": 1500.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 2300.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|JKT": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, Subject to LSS and POD charges",
+      "20": 400.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 800.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|JPM": {
+      "sheet": "PH MIP",
+      "remark": "FAF/YAS Inclusive, Subject to local charges and POD charges",
+      "20": 100.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 200.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|JPO": {
+      "sheet": "PH MIP",
+      "remark": "FAF/YAS Inclusive, Subject to local charges and POD charges",
+      "20": 300.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 600.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|KHI": {
+      "sheet": "PH MIP",
+      "remark": "Including  BAF, Subject to local charges and POD charges",
+      "20": 1400.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 2500.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|KTP": {
+      "sheet": "PH MIP",
+      "remark": "Including  BAF, Subject to local charges and POD charges",
+      "20": 1700.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 3000.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|LCH": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, Subject to L.THC, LSS and POD charges",
+      "20": 50.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 100.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|MAA": {
+      "sheet": "PH MIP",
+      "remark": "Including  BAF, Subject to local charges and POD charges",
+      "20": 1700.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 3000.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|MUN": {
+      "sheet": "PH MIP",
+      "remark": "Including  BAF, Subject to local charges and POD charges",
+      "20": 1600.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 2300.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|NNS": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, subject to LSS and POD charges",
+      "20": 500.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 1000.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|NSA": {
+      "sheet": "PH MIP",
+      "remark": "Including  BAF, Subject to local charges and POD charges",
+      "20": 1400.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 2300.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|PEN": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, Subject to L.THC, LSS and POD charges",
+      "20": 400.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 800.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|PGU": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, Subject to L.THC, LSS and POD charges",
+      "20": 400.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 800.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|PKG": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, Subject to LSS and POD charges",
+      "20": 400.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 800.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|PUS": {
+      "sheet": "PH MIP",
+      "remark": "Subject to POL LSS,  POD: EBS, CRC, CIS",
+      "20": 75.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 150.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|SGN": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, Subject to LSS and POD charges",
+      "20": 75.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 150.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|SHK": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, subject to LSS and POD charges",
+      "20": 30.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 60.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|SOH": {
+      "sheet": "PH MIP",
+      "remark": "",
+      "20": 1600.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 2300.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|SUB": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, Subject to LSS and POD charges",
+      "20": 400.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 800.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|TAO": {
+      "sheet": "PH MIP",
+      "remark": "Inclusive of POL Charges",
+      "20": 125.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 200.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|VTZ": {
+      "sheet": "PH MIP",
+      "remark": "Including  BAF, Subject to local charges and POD charges",
+      "20": 1300.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 2700.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|XGG": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, subject to LSS and POD charges",
+      "20": 175.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 300.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MIP|XMN": {
+      "sheet": "PH MIP",
+      "remark": "FAF inclusive, subject to LSS and POD charges",
+      "20": 175.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 300.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MNL|DLC": {
+      "sheet": "PH MNL",
+      "remark": "FAF inclusive, subject to LSS and POD charges",
+      "20": 175.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 300.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MNL|INC": {
+      "sheet": "PH MNL",
+      "remark": "Subject to POL LSS,  POD: EBS, CRC, CIS",
+      "20": 85.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 170.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MNL|JPM": {
+      "sheet": "PH MNL",
+      "remark": "FAF/YAS Inclusive, Subject to local charges and POD charges",
+      "20": 100.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 200.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MNL|JPO": {
+      "sheet": "PH MNL",
+      "remark": "FAF/YAS Inclusive, Subject to local charges and POD charges",
+      "20": 300.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 600.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MNL|PUS": {
+      "sheet": "PH MNL",
+      "remark": "Subject to POL LSS,  POD: EBS, CRC, CIS",
+      "20": 75.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 150.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MNL|TAO": {
+      "sheet": "PH MNL",
+      "remark": "Inclusive of POL Charges",
+      "20": 125.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 200.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MNL|XGG": {
+      "sheet": "PH MNL",
+      "remark": "FAF inclusive, subject to LSS and POD charges",
+      "20": 175.0,
+      "20Week": "2025-W44",
+      "20Date": "2025-10-29",
+      "40": 300.0,
+      "40Week": "2025-W44",
+      "40Date": "2025-10-29"
+    },
+    "MUN|AQJ": {
+      "sheet": "IN MUN",
+      "remark": "",
+      "20": 2450.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 3000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|BKK": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|DLC": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 5.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|DMM": {
+      "sheet": "IN MUN",
+      "remark": "",
+      "20": 550.0,
+      "20Week": "2025-W17",
+      "20Date": "2025-04-23",
+      "40": 1100.0,
+      "40Week": "2025-W18",
+      "40Date": "2025-04-30"
+    },
+    "MUN|HKG": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 20.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|HPH": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 15.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|INC": {
+      "sheet": "IN MUN",
+      "remark": "Inclusive  BAF  CAF CIC LSS",
+      "20": 150.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 250.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|JEA": {
+      "sheet": "IN MUN",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 150.0,
+      "20Week": "2026-W07",
+      "20Date": "2026-02-12",
+      "40": 300.0,
+      "40Week": "2026-W07",
+      "40Date": "2026-02-12"
+    },
+    "MUN|JED": {
+      "sheet": "IN MUN",
+      "remark": "",
+      "20": 2050.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 3000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|JKT": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|JPM": {
+      "sheet": "IN MUN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|JPO": {
+      "sheet": "IN MUN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|LCH": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 50.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|LGB": {
+      "sheet": "IN MUN",
+      "remark": "",
+      "20": 1800.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|MIP": {
+      "sheet": "IN MUN",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|MNL": {
+      "sheet": "IN MUN",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|NBO": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 5.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|NNS": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 30.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|PEN": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|PGU": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|PKG": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 20.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|PUS": {
+      "sheet": "IN MUN",
+      "remark": "Inclusive  BAF  CAF CIC LSS",
+      "20": 25.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 50.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|SGN": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 15.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|SHA": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 5.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|SHK": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 30.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|SIN": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 10.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|SKN": {
+      "sheet": "IN MUN",
+      "remark": "",
+      "20": 2050.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 3400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|SUB": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|TAO": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 5.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|XGG": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 5.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|XMN": {
+      "sheet": "IN MUN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 30.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "MUN|ZLO": {
+      "sheet": "IN MUN",
+      "remark": "",
+      "20": 2600.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 3600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|BKK": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|DLC": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|DMM": {
+      "sheet": "IN NSA",
+      "remark": "",
+      "20": 450.0,
+      "20Week": "2026-W08",
+      "20Date": "2026-02-19",
+      "40": 750.0,
+      "40Week": "2026-W08",
+      "40Date": "2026-02-19"
+    },
+    "NSA|HKG": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 10.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|HPH": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|INC": {
+      "sheet": "IN NSA",
+      "remark": "Inclusive  BAF  CAF CIC LSS",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|JEA": {
+      "sheet": "IN NSA",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 100.0,
+      "20Week": "2026-W08",
+      "20Date": "2026-02-19",
+      "40": 200.0,
+      "40Week": "2026-W08",
+      "40Date": "2026-02-19"
+    },
+    "NSA|JKT": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 25.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 50.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|JPM": {
+      "sheet": "IN NSA",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|JPO": {
+      "sheet": "IN NSA",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 250.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|KLF": {
+      "sheet": "IN NSA",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 1700.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2300.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|LCH": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|LGB": {
+      "sheet": "IN NSA",
+      "remark": "",
+      "20": 1800.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|MIP": {
+      "sheet": "IN NSA",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|MNL": {
+      "sheet": "IN NSA",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|NBO": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|NNS": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|PEN": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 20.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 50.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|PGU": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|PKG": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|PUS": {
+      "sheet": "IN NSA",
+      "remark": "Inclusive  BAF  CAF CIC LSS",
+      "20": 5.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 5.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|SGN": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|SHA": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|SHK": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|SIN": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|SUB": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 25.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 50.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|TAO": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|XGG": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "NSA|XMN": {
+      "sheet": "IN NSA",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|DLC": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive.",
+      "20": 20.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 40.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|DMM": {
+      "sheet": "MY PEN",
+      "remark": "",
+      "20": 1600.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 3200.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|HKG": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 20.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|HPH": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive",
+      "20": 200.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|INC": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC, Incluvise of BAF CAF CIC LSS.",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|JEA": {
+      "sheet": "MY PEN",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 1000.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 1800.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|JKT": {
+      "sheet": "MY PEN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 200.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 400.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|JPM": {
+      "sheet": "MY PEN",
+      "remark": "LSS, FAF Inclusive Subject to EFC, Local charges",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|JPO": {
+      "sheet": "MY PEN",
+      "remark": "LSS, FAF Inclusive Subject to EFC, Local charges",
+      "20": 150.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 300.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|KHI": {
+      "sheet": "MY PEN",
+      "remark": "Including BAF,LSS",
+      "20": 950.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 1550.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|KTP": {
+      "sheet": "MY PEN",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 550.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 1100.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|MAA": {
+      "sheet": "MY PEN",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 550.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 1100.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|MUN": {
+      "sheet": "MY PEN",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 600.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 1200.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|NBO": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive.",
+      "20": 20.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 40.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|NNS": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 60.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|NSA": {
+      "sheet": "MY PEN",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 600.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 1200.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|PUS": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC, Incluvise of BAF CAF CIC LSS.",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|SGN": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|SHA": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive.",
+      "20": 10.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 20.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|SHK": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 60.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|SIN": {
+      "sheet": "MY PEN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 80.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 160.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|SUB": {
+      "sheet": "MY PEN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2025-W53",
+      "20Date": "2025-12-31",
+      "40": 300.0,
+      "40Week": "2025-W53",
+      "40Date": "2025-12-31"
+    },
+    "PEN|TAO": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive.",
+      "20": 10.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 20.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|XGG": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive.",
+      "20": 20.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 40.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|XMN": {
+      "sheet": "MY PEN",
+      "remark": "Subject to EFC. FAF, LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 60.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PEN|ZLO": {
+      "sheet": "MY PEN",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 3500.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 4500.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PGU|BKK": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 250.0,
+      "20Week": "2024-W36",
+      "20Date": "2024-09-02",
+      "40": 500.0,
+      "40Week": "2024-W36",
+      "40Date": "2024-09-02"
+    },
+    "PGU|DLC": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 60.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|HKG": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 20.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|HPH": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 300.0,
+      "20Week": "2024-W37",
+      "20Date": "2024-09-09",
+      "40": 600.0,
+      "40Week": "2024-W37",
+      "40Date": "2024-09-09"
+    },
+    "PGU|INC": {
+      "sheet": "MY PGU",
+      "remark": "Subject to BAF  CAF CIC LSS",
+      "20": 100.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 200.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|JPM": {
+      "sheet": "MY PGU",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 200.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 400.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|JPO": {
+      "sheet": "MY PGU",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 250.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 500.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|LCH": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 30.0,
+      "20Week": "2025-W43",
+      "20Date": "2025-10-22",
+      "40": 60.0,
+      "40Week": "2025-W43",
+      "40Date": "2025-10-22"
+    },
+    "PGU|NBO": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 100.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|NNS": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 60.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|PUS": {
+      "sheet": "MY PGU",
+      "remark": "Subject to BAF  CAF CIC LSS",
+      "20": 50.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 100.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|SGN": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 300.0,
+      "20Week": "2024-W37",
+      "20Date": "2024-09-09",
+      "40": 600.0,
+      "40Week": "2024-W37",
+      "40Date": "2024-09-09"
+    },
+    "PGU|SHA": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 20.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|SHK": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 60.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|TAO": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 10.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 20.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|XGG": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 60.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|XMN": {
+      "sheet": "MY PGU",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 30.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 60.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PGU|ZLO": {
+      "sheet": "MY PGU",
+      "remark": "Including BAF,LSS",
+      "20": 4000.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 4700.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "PKG|AQJ": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 6000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|BKK": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 200.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|DAR": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 1500.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|DLC": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|DMM": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 700.0,
+      "20Week": "2026-W09",
+      "20Date": "2026-02-26",
+      "40": 900.0,
+      "40Week": "2026-W09",
+      "40Date": "2026-02-26"
+    },
+    "PKG|HKG": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|HZR": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 1200.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|INC": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Subject to EFC include BAF CAF CIC LSS",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|JEA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 600.0,
+      "20Week": "2026-W10",
+      "20Date": "2026-03-05",
+      "40": 800.0,
+      "40Week": "2026-W10",
+      "40Date": "2026-03-05"
+    },
+    "PKG|JED": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 6000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|JKT": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 80.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 160.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|JPM": {
+      "sheet": "MY PKW,PKG",
+      "remark": "LSS, FAF Inclusive Subject EFC and Origin Local charge",
+      "20": 180.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 360.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|JPO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "LSS, FAF Inclusive Subject EFC and Origin Local charge",
+      "20": 200.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|KHI": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF,LSS Subject to EFC",
+      "20": 800.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|KLF": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 3000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 5500.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|KTP": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|LCH": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|LGB": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 1360.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1700.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|MAA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|MBA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 1800.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|MIP": {
+      "sheet": "MY PKW,PKG",
+      "remark": "EBS,LSS Inclusive Subject to EFC and POD CAC,IES,PCS",
+      "20": 150.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 300.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|MUN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 700.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|NBO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|NNS": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|NSA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|PUS": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Subject to EFC include BAF CAF CIC LSS",
+      "20": 30.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 60.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|SGN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|SHA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|SHK": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|SIN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|SKN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 6000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|SOH": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 2000.0,
+      "20Week": "2024-W35",
+      "20Date": "2024-08-26",
+      "40": 3000.0,
+      "40Week": "2024-W35",
+      "40Date": "2024-08-26"
+    },
+    "PKG|SUB": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|TAO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|TUT": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|VTZ": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|XGG": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|XMN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|ZLO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 3500.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 4500.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|AQJ": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 6000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|BKK": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 200.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|DAR": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 1500.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|DLC": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|DMM": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 700.0,
+      "20Week": "2026-W09",
+      "20Date": "2026-02-26",
+      "40": 900.0,
+      "40Week": "2026-W09",
+      "40Date": "2026-02-26"
+    },
+    "PKW|HKG": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|HZR": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 1200.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|INC": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Subject to EFC include BAF CAF CIC LSS",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|JEA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 600.0,
+      "20Week": "2026-W10",
+      "20Date": "2026-03-05",
+      "40": 800.0,
+      "40Week": "2026-W10",
+      "40Date": "2026-03-05"
+    },
+    "PKW|JED": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 6000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|JKT": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 80.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 160.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|JPM": {
+      "sheet": "MY PKW,PKG",
+      "remark": "LSS, FAF Inclusive Subject EFC and Origin Local charge",
+      "20": 180.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 360.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|JPO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "LSS, FAF Inclusive Subject EFC and Origin Local charge",
+      "20": 200.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|KHI": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF,LSS Subject to EFC",
+      "20": 800.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|KLF": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 3000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 5500.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|KTP": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|LCH": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|LGB": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 1360.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1700.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|MAA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|MBA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 1800.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|MIP": {
+      "sheet": "MY PKW,PKG",
+      "remark": "EBS,LSS Inclusive Subject to EFC and POD CAC,IES,PCS",
+      "20": 150.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 300.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|MUN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 700.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|NBO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|NNS": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|NSA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|PUS": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Subject to EFC include BAF CAF CIC LSS",
+      "20": 30.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 60.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|SGN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|SHA": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|SHK": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|SIN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|SKN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 6000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|SOH": {
+      "sheet": "MY PKW,PKG",
+      "remark": "",
+      "20": 2000.0,
+      "20Week": "2024-W35",
+      "20Date": "2024-08-26",
+      "40": 3000.0,
+      "40Week": "2024-W35",
+      "40Date": "2024-08-26"
+    },
+    "PKW|SUB": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 200.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|TAO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|TUT": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|VTZ": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, EIS Subject to EFC",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|XGG": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|XMN": {
+      "sheet": "MY PKW,PKG",
+      "remark": "FAF,EBS,LSS Inclusive Subject to EFC",
+      "20": 1.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKW|ZLO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "Including BAF, LSS, WRS Subject to EFC",
+      "20": 3500.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 4500.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SGN|AQJ": {
+      "sheet": "VN SGN",
+      "remark": "",
+      "20": 3900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 5000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|BKK": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive+  L.THC inclusive",
+      "20": 10.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 20.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|DAR": {
+      "sheet": "VN SGN",
+      "remark": "Including BAF,LSS",
+      "20": 0.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 0.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|DLC": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 30.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 60.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|DMM": {
+      "sheet": "VN SGN",
+      "remark": "",
+      "20": 0.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 0.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|HKG": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 10.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 20.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|HZR": {
+      "sheet": "VN SGN",
+      "remark": "Including  BAF, LSS, EIS, EFC",
+      "20": 950.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|INC": {
+      "sheet": "VN SGN",
+      "remark": "Subject to LSS",
+      "20": 200.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|JEA": {
+      "sheet": "VN SGN",
+      "remark": "Including BAF, LSS, WRS, EFC",
+      "20": 5100.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 6200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|JED": {
+      "sheet": "VN SGN",
+      "remark": "",
+      "20": 3900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 5000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|JKT": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 160.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 320.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|JPM": {
+      "sheet": "VN SGN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 100.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|JPO": {
+      "sheet": "VN SGN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 105.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 210.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|KHI": {
+      "sheet": "VN SGN",
+      "remark": "Including BAF,LSS, EFC",
+      "20": 900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|KLF": {
+      "sheet": "VN SGN",
+      "remark": "Including BAF, LSS, WRS, EFC",
+      "20": 3500.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 4400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|KTP": {
+      "sheet": "VN SGN",
+      "remark": "Including  BAF, LSS, EIS, EFC",
+      "20": 900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|LCH": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive+  L.THC inclusive",
+      "20": 10.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 20.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|LGB": {
+      "sheet": "VN SGN",
+      "remark": "",
+      "20": 2000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 2500.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|MAA": {
+      "sheet": "VN SGN",
+      "remark": "Including  BAF, LSS, EIS, EFC",
+      "20": 900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|MBA": {
+      "sheet": "VN SGN",
+      "remark": "Including BAF,LSS",
+      "20": 0.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 0.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|MUN": {
+      "sheet": "VN SGN",
+      "remark": "Including  BAF, LSS, EIS, EFC",
+      "20": 900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|NBO": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 15.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 30.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|NNS": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 60.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 120.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|NSA": {
+      "sheet": "VN SGN",
+      "remark": "Including  BAF, LSS, EIS, EFC",
+      "20": 900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|PEN": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 0.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 0.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|PGU": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 0.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 0.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|PKW": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 5.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 30.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|PUS": {
+      "sheet": "VN SGN",
+      "remark": "Subject to LSS",
+      "20": 100.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|SHA": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 10.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 20.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|SHK": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 10.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 20.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|SIN": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 0.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 0.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|SKN": {
+      "sheet": "VN SGN",
+      "remark": "",
+      "20": 3900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 5000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|SOH": {
+      "sheet": "VN SGN",
+      "remark": "",
+      "20": 4000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 5000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|SUB": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 300.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|TAO": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 30.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 60.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|VTZ": {
+      "sheet": "VN SGN",
+      "remark": "Including  BAF, LSS, EIS, EFC",
+      "20": 950.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|XGG": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 30.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 60.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SGN|XMN": {
+      "sheet": "VN SGN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 60.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 120.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SIN|AQJ": {
+      "sheet": "SG SIN",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 8000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|DAR": {
+      "sheet": "SG SIN",
+      "remark": "Including BAF,LSS",
+      "20": 1900.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 3600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|DLC": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive Inclusive of POLTHC",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|DMM": {
+      "sheet": "SG SIN",
+      "remark": "",
+      "20": 2750.0,
+      "20Week": "2026-W13",
+      "20Date": "2026-03-26",
+      "40": 4150.0,
+      "40Week": "2026-W13",
+      "40Date": "2026-03-26"
+    },
+    "SIN|HKG": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|HPH": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive, POLTHC Inclusvie",
+      "20": 130.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 260.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|HZR": {
+      "sheet": "SG SIN",
+      "remark": "Including  BAF, LSS, EIS, POLTHC",
+      "20": 1700.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|INC": {
+      "sheet": "SG SIN",
+      "remark": "Subject to BAF  CAF CIC LSS Inclusive of POLTHC",
+      "20": 180.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 360.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|JEA": {
+      "sheet": "SG SIN",
+      "remark": "Including BAF, LSS, WRS, POLTHC SUBJ WEF WK 12",
+      "20": 4000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 7000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|JED": {
+      "sheet": "SG SIN",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 8000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|JKT": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS, POLTHC Inclusive",
+      "20": 120.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 240.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|JPM": {
+      "sheet": "SG SIN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 130.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 260.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|JPO": {
+      "sheet": "SG SIN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 600.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|KHI": {
+      "sheet": "SG SIN",
+      "remark": "Including BAF,LSS POLTHC",
+      "20": 900.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1400.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|KLF": {
+      "sheet": "SG SIN",
+      "remark": "Including BAF, LSS, WRS, POLTHC SUBJ WEF WK 12",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 8000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|KTP": {
+      "sheet": "SG SIN",
+      "remark": "Including  BAF, LSS, EIS, POLTHC",
+      "20": 400.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 800.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|LCH": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 80.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|LGB": {
+      "sheet": "SG SIN",
+      "remark": "SubJ POLTHC",
+      "20": 2100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 2500.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|MAA": {
+      "sheet": "SG SIN",
+      "remark": "Including  BAF, LSS, EIS, POLTHC",
+      "20": 400.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 800.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|MBA": {
+      "sheet": "SG SIN",
+      "remark": "Including BAF,LSS",
+      "20": 2100.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 3800.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|MIP": {
+      "sheet": "SG SIN",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 180.0,
+      "20Week": "2026-W08",
+      "20Date": "2026-02-19",
+      "40": 360.0,
+      "40Week": "2026-W08",
+      "40Date": "2026-02-19"
+    },
+    "SIN|MUN": {
+      "sheet": "SG SIN",
+      "remark": "Including  BAF, LSS, EIS, POLTHC",
+      "20": 650.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|NBO": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive Inclusive of POLTHC",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|NNS": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|NSA": {
+      "sheet": "SG SIN",
+      "remark": "Including  BAF, LSS, EIS, POLTHC",
+      "20": 650.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|PEN": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS, POLTHC Inclusive",
+      "20": 130.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 250.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|PGU": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS, POLTHC Inclusive",
+      "20": 110.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 220.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|PKG": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS, POLTHC Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 250.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|PUS": {
+      "sheet": "SG SIN",
+      "remark": "Subject to BAF  CAF CIC LSS Inclusive of POLTHC",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|SGN": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive, POLTHC Inclusvie",
+      "20": 110.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 220.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|SHA": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive Inclusive of POLTHC",
+      "20": 40.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 80.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|SHK": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|SKN": {
+      "sheet": "SG SIN",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 8000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|SOH": {
+      "sheet": "SG SIN",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 8000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|SUB": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS, POLTHC Inclusive",
+      "20": 120.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 240.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|TAO": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive Inclusive of POLTHC",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|VTZ": {
+      "sheet": "SG SIN",
+      "remark": "Including  BAF, LSS, EIS, POLTHC",
+      "20": 500.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 1000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|XGG": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive Inclusive of POLTHC",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|XMN": {
+      "sheet": "SG SIN",
+      "remark": "FAF,EBS,LSS Inclusive+ L.THC inclusive",
+      "20": 50.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|ZLO": {
+      "sheet": "SG SIN",
+      "remark": "Including BAF,LSS",
+      "20": 6000.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 7000.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SKN|AQJ": {
+      "sheet": "EGSKN",
+      "remark": "",
+      "20": 225.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 250.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|BKK": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 750.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|DLC": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 180.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 200.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|DMM": {
+      "sheet": "EGSKN",
+      "remark": "",
+      "20": 500.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 750.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|HKG": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 650.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|INC": {
+      "sheet": "EGSKN",
+      "remark": "Inclusive of  BAF  CAF CIC LSS",
+      "20": 150.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 300.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|JEA": {
+      "sheet": "EGSKN",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 150.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 150.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|JED": {
+      "sheet": "EGSKN",
+      "remark": "",
+      "20": 200.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 250.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|JKT": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|JPM": {
+      "sheet": "EGSKN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 325.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|JPO": {
+      "sheet": "EGSKN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 250.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 375.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|KHI": {
+      "sheet": "EGSKN",
+      "remark": "Including BAF,LSS",
+      "20": 600.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 800.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|LCH": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 300.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 700.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|MIP": {
+      "sheet": "EGSKN",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|MNL": {
+      "sheet": "EGSKN",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 500.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|MUN": {
+      "sheet": "EGSKN",
+      "remark": "Including BAF, LSS, EIS",
+      "20": 100.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 300.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|NBO": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 200.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|PEN": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 350.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 400.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|PKG": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 800.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|PNC": {
+      "sheet": "EGSKN",
+      "remark": "Inclusive of  BAF  CAF CIC LSS",
+      "20": 150.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 300.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|SGN": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 325.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|SHA": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 150.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|SHK": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive+",
+      "20": 200.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 220.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|SIN": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 100.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 250.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|SOH": {
+      "sheet": "EGSKN",
+      "remark": "",
+      "20": 500.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 600.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|SUB": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 500.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 600.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|TAO": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 140.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SKN|XGG": {
+      "sheet": "EGSKN",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 200.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 300.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SUB|AQJ": {
+      "sheet": "ID SUB",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 6000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|BKK": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 250.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|DAR": {
+      "sheet": "ID SUB",
+      "remark": "SUbject To THC and Local Charges",
+      "20": 2000.0,
+      "20Week": "2026-W20",
+      "20Date": "2026-05-14",
+      "40": 2400.0,
+      "40Week": "2026-W20",
+      "40Date": "2026-05-14"
+    },
+    "SUB|DLC": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 260.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|DMM": {
+      "sheet": "ID SUB",
+      "remark": "",
+      "20": 5500.0,
+      "20Week": "2026-W22",
+      "20Date": "2026-05-28",
+      "40": 6500.0,
+      "40Week": "2026-W22",
+      "40Date": "2026-05-28"
+    },
+    "SUB|HKG": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive + L.THC inclusive",
+      "20": 150.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 350.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|HPH": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive subject to D.CIC (SGN : 50/100, HPH : 100/200)",
+      "20": 350.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 550.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|HZR": {
+      "sheet": "ID SUB",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 1000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1350.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|INC": {
+      "sheet": "ID SUB",
+      "remark": "Subject to BAF  CAF CIC LSS",
+      "20": 250.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 500.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|JEA": {
+      "sheet": "ID SUB",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 5000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 6000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|JED": {
+      "sheet": "ID SUB",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 6000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|JPM": {
+      "sheet": "ID SUB",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 250.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 350.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|JPO": {
+      "sheet": "ID SUB",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 300.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 500.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|KHI": {
+      "sheet": "ID SUB",
+      "remark": "Including BAF,LSS",
+      "20": 1000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1350.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|KLF": {
+      "sheet": "ID SUB",
+      "remark": "Including BAF, LSS, WRS",
+      "20": 5000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 6000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|KTP": {
+      "sheet": "ID SUB",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 850.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|LCH": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS, POD CIC Inclusive",
+      "20": 250.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 350.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|LGB": {
+      "sheet": "ID SUB",
+      "remark": "SUbject To THC and Local Charges",
+      "20": 3900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 4300.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|MAA": {
+      "sheet": "ID SUB",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 850.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1200.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|MBA": {
+      "sheet": "ID SUB",
+      "remark": "SUbject To THC and Local Charges",
+      "20": 2000.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 2400.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
+    "SUB|MIP": {
+      "sheet": "ID SUB",
+      "remark": "EBS,LSS Inclusive, CAC,IES,PCS Exclusive",
+      "20": 25.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 70.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|MUN": {
+      "sheet": "ID SUB",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1300.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|NBO": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 260.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|NNS": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive + L.THC inclusive",
+      "20": 250.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|NSA": {
+      "sheet": "ID SUB",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 850.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|PEN": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 300.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 500.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|PGU": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 300.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 500.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|PKG": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 200.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 250.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|PUS": {
+      "sheet": "ID SUB",
+      "remark": "Subject to BAF  CAF CIC LSS",
+      "20": 200.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 300.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|SGN": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive subject to D.CIC (SGN : 50/100, HPH : 100/200)",
+      "20": 100.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 150.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|SHA": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 75.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 150.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|SHK": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive + L.THC inclusive",
+      "20": 250.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|SIN": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 150.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 250.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|SKN": {
+      "sheet": "ID SUB",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 6000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|SOH": {
+      "sheet": "ID SUB",
+      "remark": "",
+      "20": 5000.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 6000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|TAO": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 165.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 300.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|TUT": {
+      "sheet": "ID SUB",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 850.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1100.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|VTZ": {
+      "sheet": "ID SUB",
+      "remark": "Including  BAF, LSS, EIS",
+      "20": 900.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 1300.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|XGG": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive",
+      "20": 260.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|XMN": {
+      "sheet": "ID SUB",
+      "remark": "FAF,EBS,LSS Inclusive + L.THC inclusive",
+      "20": 250.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 400.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "SUB|ZLO": {
+      "sheet": "ID SUB",
+      "remark": "SUbject To THC and Local Charges",
+      "20": 3200.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 4000.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    }
+  },
+  "source": "C:\\Users\\JKPARK\\OneDrive\\Documents\\Claude\\organizing rate file\\[SEA] Market Rate.xlsx"
+}

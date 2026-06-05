@@ -1,0 +1,30 @@
+{
+  "name": "rate-monitoring-control-tower",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "data": "python scripts/refresh-dashboard-data.py",
+    "data:fresh": "python scripts/refresh-dashboard-data.py --refresh-guideline",
+    "data:oracle": "python scripts/refresh-dashboard-data.py --oracle",
+    "data:oracle:watch": "python scripts/refresh-dashboard-data.py --oracle --watch-seconds 900",
+    "data:task:install": "powershell -ExecutionPolicy Bypass -File scripts/install-refresh-task.ps1",
+    "serve:dist": "python -m http.server 4173 --directory dist"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.1.1",
+    "lucide-react": "^0.561.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "recharts": "^3.5.1",
+    "vite": "^7.2.7"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}
