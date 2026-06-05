@@ -47,6 +47,13 @@ button {
   backdrop-filter: blur(14px);
 }
 
+.topbar-title {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
 .topbar p,
 .panel-head p {
   margin: 0 0 4px;
@@ -168,17 +175,21 @@ main {
 }
 
 .scope-heading {
-  padding-top: 14px;
-}
-
-.scope-heading {
   flex: 0 0 auto;
-  gap: 7px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
   color: #34404a;
   white-space: nowrap;
 }
 
-.scope-heading span {
+.scope-heading-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.scope-heading > span:not(.scope-heading-title) {
   padding: 3px 6px;
   border-radius: 999px;
   background: #e9eef0;
@@ -192,7 +203,7 @@ main {
   min-width: 0;
   flex: 1 1 auto;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
   overflow: visible;
   padding-bottom: 2px;
 }
@@ -204,26 +215,26 @@ main {
 .filter-grid label,
 .filter-grid .filter-field {
   display: grid;
-  min-width: 108px;
-  flex: 0 0 124px;
+  min-width: 92px;
+  flex: 0 0 106px;
   gap: 3px;
 }
 
 .filter-grid .date-filter {
-  flex-basis: 118px;
+  flex-basis: 108px;
 }
 
 .filter-grid .company-filter {
-  flex-basis: 156px;
+  flex-basis: 130px;
 }
 
 .filter-grid .cargo-type-filter,
 .filter-grid .special-cargo-filter {
-  flex-basis: 128px;
+  flex-basis: 116px;
 }
 
 .filter-grid .full-empty-filter {
-  flex-basis: 100px;
+  flex-basis: 94px;
 }
 
 .filter-grid .query-filter {

@@ -1571,23 +1571,21 @@ function AppContent({ data }: { data: MonitoringData }) {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div>
-          <p>Rate Application Monitoring</p>
+        <div className="topbar-title">
           <h1>운임파일 등록현황 모니터링</h1>
+          <aside className="source-remark">
+            <Database size={14} aria-hidden="true" />
+            <strong>Source</strong>
+            <span title={data.metadata.sourceFile}>{data.metadata.sourceFile}</span>
+            <span>O/F · Origin Sales</span>
+            <span>{formatNumber(data.metadata.recordCount)} records</span>
+            <span>Updated {formatDate(data.metadata.latestSourceDate)}</span>
+            <span>Cache {data.metadata.generatedAt.replace('T', ' ')}</span>
+          </aside>
         </div>
       </header>
 
       <main>
-        <aside className="source-remark">
-          <Database size={14} aria-hidden="true" />
-          <strong>Source</strong>
-          <span title={data.metadata.sourceFile}>{data.metadata.sourceFile}</span>
-          <span>O/F · Origin Sales</span>
-          <span>{formatNumber(data.metadata.recordCount)} records</span>
-          <span>Updated {formatDate(data.metadata.latestSourceDate)}</span>
-          <span>Cache {data.metadata.generatedAt.replace('T', ' ')}</span>
-        </aside>
-
         {!data.metadata.chargeDetailAvailable && (
           <aside className="data-quality-warning">
             <strong>이전 CSV 사용 중</strong>
@@ -1597,8 +1595,10 @@ function AppContent({ data }: { data: MonitoringData }) {
 
         <section className="scope-bar">
           <div className="scope-heading">
-            <Filter size={17} aria-hidden="true" />
-            <strong>조회 조건</strong>
+            <span className="scope-heading-title">
+              <Filter size={17} aria-hidden="true" />
+              <strong>조회 조건</strong>
+            </span>
             <span>{currentFilterCount} filters</span>
           </div>
           <div className="filter-grid active-filter-grid">
