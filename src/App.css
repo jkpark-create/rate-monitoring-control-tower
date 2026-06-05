@@ -160,11 +160,15 @@ main {
   position: relative;
   min-width: 0;
   gap: 10px;
-  align-items: center;
+  align-items: flex-start;
   padding: 8px 10px;
   border: 1px solid #dce3e0;
   border-radius: 7px;
   background: #ffffff;
+}
+
+.scope-heading {
+  padding-top: 14px;
 }
 
 .scope-heading {
@@ -187,10 +191,9 @@ main {
   display: flex;
   min-width: 0;
   flex: 1 1 auto;
-  flex-wrap: nowrap;
-  gap: 6px;
-  overflow-x: auto;
-  overflow-y: visible;
+  flex-wrap: wrap;
+  gap: 8px;
+  overflow: visible;
   padding-bottom: 2px;
 }
 
@@ -201,8 +204,8 @@ main {
 .filter-grid label,
 .filter-grid .filter-field {
   display: grid;
-  min-width: 76px;
-  flex: 0 0 86px;
+  min-width: 108px;
+  flex: 0 0 124px;
   gap: 3px;
 }
 
