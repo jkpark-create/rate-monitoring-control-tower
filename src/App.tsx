@@ -8,7 +8,6 @@ import {
   ChevronRight,
   CircleDollarSign,
   Database,
-  Download,
   FileText,
   Filter,
   Info,
@@ -1575,29 +1574,6 @@ function AppContent({ data }: { data: MonitoringData }) {
         <div>
           <p>Rate Application Monitoring</p>
           <h1>운임파일 등록현황 모니터링</h1>
-        </div>
-        <div className="topbar-actions">
-          <button
-            className="icon-button"
-            type="button"
-            title="Download dashboard data"
-            onClick={() => {
-              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-              const objectUrl = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = objectUrl;
-              link.download = 'weekly-monitoring.json';
-              link.click();
-              URL.revokeObjectURL(objectUrl);
-            }}
-          >
-            <Download size={17} aria-hidden="true" />
-            <span>JSON</span>
-          </button>
-          <button className="icon-button" type="button" onClick={() => window.location.reload()} title="Reload data">
-            <RefreshCw size={17} aria-hidden="true" />
-            <span>Refresh</span>
-          </button>
         </div>
       </header>
 
