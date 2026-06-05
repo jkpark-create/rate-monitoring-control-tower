@@ -307,6 +307,41 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// Persist the access token + profile for the tab so a page refresh (or the in-app
+// Refresh button, which reloads the page) reuses a still-valid token instead of
+// forcing another Google sign-in. Mirrors the -3W dashboard's sessionStorage gate.
+const AUTH_SESSION_KEY = 'rate-monitoring-auth-session';
+const AUTH_SIGNED_IN_FLAG = 'rate-monitoring-signed-in';
+
+type StoredAuthSession = { accessToken: string; profile: GoogleProfile; expiry: number };
+
+function loadStoredAuthSession(): StoredAuthSession | null {
+  try {
+    const raw = sessionStorage.getItem(AUTH_SESSION_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw) as StoredAuthSession;
+    // Require at least one more minute of validity so a refresh doesn't race expiry.
+    if (parsed?.accessToken && parsed?.profile?.email
+        && typeof parsed.expiry === 'number' && parsed.expiry > Date.now() + 60_000) {
+      return parsed;
+    }
+  } catch {
+    // ignore malformed storage
+  }
+  return null;
+}
+
+function clearStoredAuthSession() {
+  try {
+    sessionStorage.removeItem(AUTH_SESSION_KEY);
+    localStorage.removeItem(AUTH_SIGNED_IN_FLAG);
+  } catch {
+    // ignore storage errors
+  }
+}
+
 const formatNumber = (value: number) => new Intl.NumberFormat('en-US').format(Math.round(value));
 const formatMoney = (value: number) => `$${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value)}`;
 const formatRateMoney = (value: number | null) => value === null ? '-' : `${value < 0 ? '-' : ''}$${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Math.abs(value))}`;
@@ -782,12 +817,14 @@ function StatusBadge({ status }: { status: IssueStatus }) {
 }
 
 function GoogleAuthGate({ children }: { children: ReactNode }) {
-  const [accessToken, setAccessToken] = useState('');
-  const [profile, setProfile] = useState<GoogleProfile | null>(null);
+  const initialSession = AUTH_REQUIRED ? loadStoredAuthSession() : null;
+  const [accessToken, setAccessToken] = useState(initialSession?.accessToken ?? '');
+  const [profile, setProfile] = useState<GoogleProfile | null>(initialSession?.profile ?? null);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
   const tokenClientRef = useRef<GoogleTokenClient | null>(null);
   const pendingRef = useRef<{ resolve: (token: string) => void; reject: (reason: Error) => void } | null>(null);
+  const autoSilentRef = useRef(false);
 
   // Load the Google Identity Services script and create an OAuth token client.
   useEffect(() => {
@@ -838,16 +875,39 @@ function GoogleAuthGate({ children }: { children: ReactNode }) {
             setProfile(nextProfile);
             setAccessToken(token);
             setError('');
+            autoSilentRef.current = false;
+            try {
+              const expiry = Date.now() + (response.expires_in ?? 3600) * 1000;
+              sessionStorage.setItem(AUTH_SESSION_KEY,
+                JSON.stringify({ accessToken: token, profile: nextProfile, expiry }));
+              localStorage.setItem(AUTH_SIGNED_IN_FLAG, '1');
+            } catch {
+              // ignore storage errors
+            }
             settlePending(token);
           })();
         },
         error_callback: (err) => {
           const message = err.message || err.type || 'Google authorization failed.';
-          setError(message);
+          // Suppress noise from the silent (no-UI) auto-refresh attempt on load.
+          if (pendingRef.current || !autoSilentRef.current) {
+            setError(message);
+          }
+          autoSilentRef.current = false;
           settlePending(null, new Error(message));
         },
       });
       setReady(true);
+      // Returning user whose stored token expired: try a silent (no-UI) refresh so
+      // they don't have to click "Sign in" again.
+      if (!accessToken && localStorage.getItem(AUTH_SIGNED_IN_FLAG)) {
+        autoSilentRef.current = true;
+        try {
+          tokenClientRef.current.requestAccessToken({ prompt: '' });
+        } catch {
+          autoSilentRef.current = false;
+        }
+      }
     };
 
     if (window.google) {
@@ -900,6 +960,7 @@ function GoogleAuthGate({ children }: { children: ReactNode }) {
               if (accessToken) {
                 window.google?.accounts.oauth2.revoke(accessToken);
               }
+              clearStoredAuthSession();
               setAccessToken('');
               setProfile(null);
             }}
