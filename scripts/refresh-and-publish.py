@@ -29,7 +29,11 @@ def log(msg):
 
 def run(label, args):
     log(f"START {label}: {' '.join(args)}")
-    proc = subprocess.run(args, cwd=str(ROOT), capture_output=True, text=True)
+    # CREATE_NO_WINDOW keeps any child process from flashing a console window when
+    # the pipeline is launched headless (pythonw) from Task Scheduler.
+    no_window = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+    proc = subprocess.run(args, cwd=str(ROOT), capture_output=True, text=True,
+                          creationflags=no_window)
     if proc.stdout:
         _write(proc.stdout)
     if proc.stderr:

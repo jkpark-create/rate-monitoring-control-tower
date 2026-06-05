@@ -1786,12 +1786,12 @@ function AppContent({ data }: { data: MonitoringData }) {
           </div>
           <div>
             <CircleDollarSign size={18} aria-hidden="true" />
-            <span>Market 대비 저운임</span>
+            <span>Market 대비 저운임 건수</span>
             <strong>{formatNumber(marketLowCount)}</strong>
           </div>
           <div>
             <BarChart3 size={18} aria-hidden="true" />
-            <span>기간 Avg 대비 저운임</span>
+            <span>기간 AVG 대비 저운임 건수</span>
             <strong>{formatNumber(averageLowCount)}</strong>
           </div>
           <div>
@@ -1911,8 +1911,8 @@ function AppContent({ data }: { data: MonitoringData }) {
                             <th>운임파일수</th>
                           </>
                         ) : <th>저운임 화주수</th>}
-                        <th>Market 저운임</th>
-                        <th>기간 Avg 저운임</th>
+                        <th>Market 저운임 건수</th>
+                        <th>기간 AVG 저운임 건수</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2059,7 +2059,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                         <strong>{lane.lane}</strong>
                         <strong className="lane-count">{formatNumber(lane.count)}</strong>
                       </div>
-                      <span>Market 저운임 {lane.marketLow} · 기간 Avg 저운임 {lane.averageLow}</span>
+                      <span>Market 저운임 {lane.marketLow}건 · 기간 AVG 저운임 {lane.averageLow}건</span>
                       <span>저운임 화주 {lane.lowShipperCount} · 직접 Market {lane.marketMapped}/{lane.activeCount}</span>
                     </article>
                   )) : <span className="muted">표시할 구간이 없습니다.</span>}

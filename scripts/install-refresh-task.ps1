@@ -1,13 +1,13 @@
 param(
     [string]$TaskName = "RateMonitoringRefresh",
-    [int]$IntervalMinutes = 15,
+    [string[]]$DailyTimes = @("06:30", "12:00"),
     [string]$EnvFile = ".env.local"
 )
 
 $ErrorActionPreference = "Stop"
 
-if ($IntervalMinutes -lt 1) {
-    throw "IntervalMinutes must be at least 1."
+if (-not $DailyTimes -or $DailyTimes.Count -eq 0) {
+    throw "DailyTimes must include at least one HH:mm value."
 }
 
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
@@ -25,11 +25,15 @@ if (-not (Test-Path -LiteralPath $pipelineScript)) {
 # Pipeline = refresh Oracle cache -> publish weekly-monitoring.json to Google Drive.
 $argument = "`"$pipelineScript`" --env-file `"$EnvFile`""
 $action = New-ScheduledTaskAction -Execute $exe -Argument $argument -WorkingDirectory $repoRoot
-$trigger = New-ScheduledTaskTrigger `
-    -Once `
-    -At (Get-Date).AddMinutes(1) `
-    -RepetitionInterval (New-TimeSpan -Minutes $IntervalMinutes) `
-    -RepetitionDuration (New-TimeSpan -Days 3650)
+$trigger = foreach ($dailyTime in $DailyTimes) {
+    $parsedTime = [datetime]::ParseExact(
+        $dailyTime,
+        [string[]]@("HH:mm", "H:mm"),
+        [Globalization.CultureInfo]::InvariantCulture,
+        [Globalization.DateTimeStyles]::None
+    )
+    New-ScheduledTaskTrigger -Daily -At $parsedTime
+}
 $settings = New-ScheduledTaskSettingsSet `
     -MultipleInstances IgnoreNew `
     -StartWhenAvailable `
@@ -44,5 +48,5 @@ Register-ScheduledTask `
     -Description "Refresh Oracle rate-monitoring cache and publish to Google Drive (headless)" `
     -Force | Out-Null
 
-Write-Host "Registered scheduled task '$TaskName' every $IntervalMinutes minutes (no window; logs to logs\refresh-and-publish.log)."
+Write-Host "Registered scheduled task '$TaskName' daily at $($DailyTimes -join ', ') (no window; logs to logs\refresh-and-publish.log)."
 Write-Host "Run once now: Start-ScheduledTask -TaskName '$TaskName'"

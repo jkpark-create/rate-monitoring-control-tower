@@ -80,13 +80,13 @@ RATE_DBEAVER_CONNECTION=ORCL
 
 자동 추출 파일은 `data/rate-base-latest.csv`, `data/basic-tariff-latest.csv`, `data/rate-route-latest.csv`에 저장됩니다. CSV와 JSON은 임시 파일 작성 후 교체합니다. OneDrive가 기존 파일을 잠근 경우에는 짧게 재시도한 뒤 덮어쓰기로 fallback 합니다. 운영 내부 서버는 가능하면 OneDrive 밖의 경로에서 실행하는 편이 안정적입니다.
 
-Windows 작업 스케줄러에 15분 주기 갱신을 등록하려면:
+Windows 작업 스케줄러에 하루 2회(06:30, 12:00) 갱신을 등록하려면:
 
 ```bash
 npm run data:task:install
 ```
 
-터미널 프로세스로 15분 주기 동기화를 유지할 수도 있습니다.
+터미널 프로세스로 임시 반복 동기화를 유지할 수도 있습니다. 기본 예시는 15분 주기입니다.
 
 ```bash
 npm run data:oracle:watch
