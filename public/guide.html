@@ -125,6 +125,25 @@
       background: #fff8e8;
     }
     .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .logic-flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .logic-step {
+      position: relative;
+      padding: 13px;
+      border: 1px solid #dce3e0;
+      border-radius: 9px;
+      background: #ffffff;
+    }
+    .logic-step strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #1f6a51;
+      font-size: 13px;
+    }
     .mini-card {
       padding: 14px;
       border: 1px solid #e2e8e5;
@@ -141,7 +160,7 @@
     body.lang-ko .ko { display: block; }
     body.lang-ko span.ko, body.lang-ko a.ko { display: inline; }
     @media (max-width: 860px) {
-      .toc, .grid-2 { grid-template-columns: 1fr; }
+      .toc, .grid-2, .logic-flow { grid-template-columns: 1fr; }
       .topbar { align-items: flex-start; flex-direction: column; }
       .actions { justify-content: flex-start; }
       section.card, .hero { padding: 16px; }
@@ -176,7 +195,7 @@
       <a href="#kpi">4. KPI와 지표</a>
       <a href="#summary">5. 집계 분석</a>
       <a href="#detail">6. 상세 검토</a>
-      <a href="#logic">7. 판정 로직</a>
+      <a href="#logic">7. 비교/판정 로직</a>
       <a href="#faq">8. FAQ</a>
     </nav>
     <nav class="toc en">
@@ -186,13 +205,14 @@
       <a href="#kpi-en">4. KPI</a>
       <a href="#summary-en">5. Aggregates</a>
       <a href="#detail-en">6. Detail Review</a>
-      <a href="#logic-en">7. Logic</a>
+      <a href="#logic-en">7. Comparison Logic</a>
       <a href="#faq-en">8. FAQ</a>
     </nav>
 
     <section class="card ko" id="purpose">
       <h2>1. 목적과 사용 시점</h2>
       <p><strong>업무 질문:</strong> “이번 조회 기간에 유효한 등록 운임 중 Market 또는 내부 평균 대비 과도하게 낮아 영업 확인이 필요한 건은 무엇인가?”</p>
+      <p>운임은 같은 구간이라도 컨테이너 사이즈, 타입, 화물 성격, OOG 여부, Full/Empty 조건에 따라 정상 운임 수준이 달라집니다. 따라서 이 화면은 단순히 전체 평균과 비교하지 않고, 최대한 같은 조건의 운임끼리 비교해 “비교 가능한 운임 대비 낮은지”를 확인합니다.</p>
       <table>
         <tr><th>상황</th><th>이 화면으로 확인할 것</th><th>다음 행동</th></tr>
         <tr><td>신규/갱신 운임파일 등록 후</td><td>저운임으로 잡히는 Rate No., 업체, 구간, CNTR 조건</td><td>상세 패널에서 O/F와 charge 구성 확인 후 담당자 또는 등록 기준 확인</td></tr>
@@ -206,6 +226,7 @@
     <section class="card en" id="purpose-en">
       <h2>1. Purpose</h2>
       <p><strong>Business question:</strong> “Which valid registered rates in the selected period need sales review because they are materially lower than Market or internal peer average?”</p>
+      <p>Even on the same lane, normal freight level changes by container size, container type, cargo type, OOG condition, and Full/Empty condition. The dashboard therefore avoids a broad total-average comparison and compares each rate against the closest comparable condition group.</p>
       <table>
         <tr><th>Situation</th><th>What to check</th><th>Next action</th></tr>
         <tr><td>After new or renewed rate registration</td><td>Low Rate No., company, lane, and CNTR condition</td><td>Open detail panel, check O/F and charge composition, then confirm with the owner</td></tr>
@@ -224,6 +245,7 @@
         <li><strong>확인 집중 구간 확인:</strong> 우측 Focus Lanes에서 건수가 큰 Lane을 우선 봅니다. 이 영역은 집계 탭에서만 표시됩니다.</li>
         <li><strong>포트 행 클릭:</strong> 국가를 펼친 뒤 포트 행을 클릭하면 상세 탭으로 이동하며 해당 조건이 상세 필터에 적용됩니다.</li>
         <li><strong>상세 행 선택:</strong> Rate No. 행을 클릭하면 오른쪽 패널에서 운임파일 상세와 charge 항목을 확인합니다.</li>
+        <li><strong>비교 기준 확인:</strong> 같은 구간·사이즈·타입·Cargo·OOG·F/E 조건끼리 비교됐는지, Market 기준인지 기간 평균 기준인지 확인합니다.</li>
         <li><strong>조치 판단:</strong> Market 저운임인지 기간 AVG 저운임인지, Gap 금액이 큰지, WAIVE/Basic Tariff 등 상세 조회 항목인지 확인 후 담당자 확인 대상을 정합니다.</li>
       </ol>
       <div class="callout warning"><strong>집계/상세 필터 분리:</strong> 집계 탭에서 보던 조건과 상세 탭에서 검토하는 조건은 별도로 유지됩니다. 상세에서 조건을 바꿔도 집계로 돌아오면 기존 집계 조건이 유지됩니다.</div>
@@ -237,6 +259,7 @@
         <li><strong>Use Focus Lanes:</strong> Prioritize lanes with high low-rate count. Focus Lanes appears only in Summary view.</li>
         <li><strong>Click a port row:</strong> Expanding a country and clicking a port moves to Detail with that condition applied.</li>
         <li><strong>Select a detail row:</strong> Click a Rate No. row to review charge items on the right panel.</li>
+        <li><strong>Check comparison basis:</strong> Confirm whether comparison used the same lane, size, type, Cargo, OOG, and F/E condition, and whether the benchmark came from Market or Period AVG.</li>
         <li><strong>Decide action:</strong> Check whether the case is Market Low or Period AVG Low, the gap amount, and whether charge items are comparison-applied or detail-only.</li>
       </ol>
       <div class="callout warning"><strong>Separated filters:</strong> Summary and Detail filters are maintained separately. Changing detail filters does not overwrite the Summary view.</div>
@@ -249,10 +272,10 @@
         <tr><td>시작일 / 종료일</td><td>운임 유효기간과 겹치는 건을 조회</td><td>등록일이 아니라 Effective Start/End 기준입니다.</td></tr>
         <tr><td>선적지 / 도착지 국가</td><td>POR/DLY 국가 기준 필터</td><td>국가만 선택하면 해당 국가 전체 포트를 포함합니다.</td></tr>
         <tr><td>선적지 / 도착지 포트</td><td>POR/DLY 포트 기준 필터</td><td>국가 선택 후 포트 선택으로 좁히는 흐름이 가장 안정적입니다.</td></tr>
-        <tr><td>CNTR Size / Type</td><td>20/40/45, GP/HC/TK 등 장비 조건</td><td>Market Rate 직접 비교는 GP/HC/TK 중심입니다.</td></tr>
-        <tr><td>Cargo Type</td><td>General, HZ, RF, OOG, ING, FB 등 화물 구분</td><td>화면에는 코드와 의미를 함께 표시합니다.</td></tr>
-        <tr><td>OOG Type</td><td>None, OH, OW, OWH, OL, OLH, OLW, OLWH</td><td>기존 Special Cargo 필터를 OOG Type 기준으로 변경했습니다.</td></tr>
-        <tr><td>Full / Empty</td><td>Full 또는 Empty</td><td>저운임 비교군 생성 시 같은 조건으로 묶입니다.</td></tr>
+        <tr><td>CNTR Size / Type</td><td>20/40/45, GP/HC/TK 등 장비 조건</td><td>같은 구간이라도 20GP와 40HC의 운임 수준은 다르므로 비교군을 나눕니다. Market Rate 직접 비교는 GP/HC/TK 중심입니다.</td></tr>
+        <tr><td>Cargo Type</td><td>General, HZ, RF, OOG, ING, FB 등 화물 구분</td><td>위험물, Reefer, Flexi Bag 등은 비용/리스크가 달라 일반화물과 같은 평균으로 비교하면 왜곡될 수 있습니다.</td></tr>
+        <tr><td>OOG Type</td><td>None, OH, OW, OWH, OL, OLH, OLW, OLWH</td><td>OOG 조건은 장비 운용과 비용 차이가 크므로 동일 OOG 조건끼리 비교합니다.</td></tr>
+        <tr><td>Full / Empty</td><td>Full 또는 Empty</td><td>Empty 운임은 Full 운임과 성격이 다르므로 비교군 생성 시 분리합니다.</td></tr>
         <tr><td>영업사원 / 업체</td><td>담당자 또는 화주 단위 검토</td><td>업체는 코드/회사명 검색 후 멀티 선택 가능합니다.</td></tr>
         <tr><td>판정 Status</td><td>Market 저운임 / 기간 AVG 저운임</td><td>상세 탭에서만 사용합니다.</td></tr>
         <tr><td>운임번호 검색</td><td>Rate Application No. 직접 검색</td><td>상세 탭에서 특정 파일을 빠르게 찾을 때 사용합니다.</td></tr>
@@ -266,10 +289,10 @@
         <tr><td>Start / End</td><td>Rates whose effective period overlaps the selected query period</td><td>This is based on Effective Start/End, not registration date.</td></tr>
         <tr><td>Origin / Destination Country</td><td>POR/DLY country filter</td><td>Country-only selection includes all ports in that country.</td></tr>
         <tr><td>Origin / Destination Port</td><td>POR/DLY port filter</td><td>Selecting country first and then port is the most stable workflow.</td></tr>
-        <tr><td>CNTR Size / Type</td><td>Equipment condition such as 20/40/45, GP/HC/TK</td><td>Direct Market comparison mainly uses GP/HC/TK.</td></tr>
-        <tr><td>Cargo Type</td><td>General, HZ, RF, OOG, ING, FB, etc.</td><td>The UI shows code and meaning together.</td></tr>
-        <tr><td>OOG Type</td><td>None, OH, OW, OWH, OL, OLH, OLW, OLWH</td><td>This replaces the old Special Cargo filter.</td></tr>
-        <tr><td>Full / Empty</td><td>Full or Empty</td><td>Period-average peer groups use the same condition.</td></tr>
+        <tr><td>CNTR Size / Type</td><td>Equipment condition such as 20/40/45, GP/HC/TK</td><td>20GP and 40HC have different normal price levels, so peer groups are separated. Direct Market comparison mainly uses GP/HC/TK.</td></tr>
+        <tr><td>Cargo Type</td><td>General, HZ, RF, OOG, ING, FB, etc.</td><td>Dangerous, reefer, flexi bag, and other cargo types carry different cost/risk profiles and should not be compared to general cargo averages.</td></tr>
+        <tr><td>OOG Type</td><td>None, OH, OW, OWH, OL, OLH, OLW, OLWH</td><td>OOG conditions affect equipment operation and cost, so comparison uses the same OOG condition.</td></tr>
+        <tr><td>Full / Empty</td><td>Full or Empty</td><td>Empty rates are structurally different from Full rates and are separated in peer grouping.</td></tr>
         <tr><td>Sales Staff / Company</td><td>Owner or shipper-level review</td><td>Company supports code/name search and multi-select.</td></tr>
         <tr><td>Judgement Status</td><td>Market Low / Period AVG Low</td><td>Used in Detail view only.</td></tr>
         <tr><td>Rate No. Search</td><td>Direct Rate Application No. search</td><td>Useful when locating a specific file.</td></tr>
@@ -278,6 +301,7 @@
 
     <section class="card ko" id="kpi">
       <h2>4. 상단 KPI 의미</h2>
+      <p>상단 KPI는 “전체 운임 규모 → 확인 대상 규모 → 어떤 기준으로 저운임이 잡혔는지 → 얼마나 넓게 퍼졌는지”를 순서대로 보도록 배치했습니다.</p>
       <table>
         <tr><th>KPI</th><th>의미</th><th>해석 방법</th></tr>
         <tr><td>기간 유효 운임</td><td>조회 기간과 유효기간이 겹치는 운임 건수</td><td>모니터링 대상 전체 규모입니다.</td></tr>
@@ -291,6 +315,7 @@
 
     <section class="card en" id="kpi-en">
       <h2>4. KPI Meaning</h2>
+      <p>The top KPI strip is designed to read from total monitoring population to review volume, judgement source, and spread of low-rate cases.</p>
       <table>
         <tr><th>KPI</th><th>Meaning</th><th>How to read it</th></tr>
         <tr><td>Active Rates</td><td>Rates whose effective period overlaps the selected period</td><td>Total monitoring population.</td></tr>
@@ -385,17 +410,41 @@
     </section>
 
     <section class="card ko" id="logic">
-      <h2>7. 저운임 판정 로직</h2>
+      <h2>7. 비교/판정 로직</h2>
+      <p>이 화면의 핵심은 “비슷하지 않은 운임끼리 비교하지 않는다”는 점입니다. 같은 Lane이라도 컨테이너, 화물, OOG, Full/Empty 조건에 따라 정상 운임 수준이 달라지므로, 비교군은 아래 조건 조합으로 만듭니다.</p>
+      <table>
+        <tr><th>비교 기준 필드</th><th>왜 필요한가</th><th>예시</th></tr>
+        <tr><td>Lane</td><td>운임은 출발/도착 구간이 가장 큰 차이를 만듭니다.</td><td>HPH VN → HKG HK와 HPH VN → SWA CN은 별도 비교</td></tr>
+        <tr><td>CNTR Size</td><td>20/40/45는 단가 구조가 다릅니다.</td><td>20GP 운임을 40GP 평균과 비교하지 않음</td></tr>
+        <tr><td>CNTR Type</td><td>GP/HC/TK/RF 등 장비 타입별 비용과 시장가가 다릅니다.</td><td>40GP와 40HC를 분리</td></tr>
+        <tr><td>Cargo Type</td><td>General, HZ, RF, FB 등 화물 성격에 따른 비용/리스크가 다릅니다.</td><td>위험물(HZ)을 General 평균과 비교하지 않음</td></tr>
+        <tr><td>OOG Type</td><td>OH/OW/OL 등 초과 규격 조건은 장비 운용 난이도가 다릅니다.</td><td>OOG None과 OH를 분리</td></tr>
+        <tr><td>Full / Empty</td><td>Full과 Empty는 운임 목적이 다릅니다.</td><td>Empty 재배치성 운임을 Full 영업 운임과 비교하지 않음</td></tr>
+      </table>
+      <h3>비교 절차</h3>
+      <div class="logic-flow">
+        <div class="logic-step"><strong>1. 유효 운임 선별</strong>조회 기간과 Effective Start/End가 겹치는 O/F 등록 운임만 대상으로 합니다.</div>
+        <div class="logic-step"><strong>2. 비교 조건 생성</strong>Lane + CNTR Size + CNTR Type + Cargo Type + OOG Type + Full/Empty 조합으로 비교키를 만듭니다.</div>
+        <div class="logic-step"><strong>3. 기준 운임 선택</strong>Market Rate가 있으면 Market을 우선 사용하고, 없으면 같은 비교키의 기간 평균을 사용합니다.</div>
+        <div class="logic-step"><strong>4. all-in 비교</strong>등록 all-in이 기준 all-in보다 낮으면 저운임 확인 대상으로 표시합니다.</div>
+      </div>
       <div class="grid-2">
         <div class="mini-card">
           <h3>Market 저운임</h3>
-          <p>구간과 CNTR Size 기준 Market Rate가 직접 매핑되는 경우 사용합니다. Market guideline은 O/F 레벨이므로, 해당 운임의 surcharge/local charge 차이를 더해 all-in 기준으로 환산한 뒤 등록 all-in과 비교합니다.</p>
+          <p>구간과 CNTR Size 기준 Market Rate가 직접 매핑되는 경우 사용합니다. Market guideline은 O/F 레벨이므로, 해당 운임의 surcharge/local charge 차이를 더해 all-in 기준으로 환산한 뒤 등록 all-in과 비교합니다. 이 기준은 명확한 외부/가이드 기준이 있으므로 확인 우선순위가 높습니다.</p>
         </div>
         <div class="mini-card">
           <h3>기간 AVG 저운임</h3>
-          <p>Market Rate가 없는 경우 같은 구간, CNTR Size, CNTR Type, Cargo, OOG Type, Full/Empty 조건의 기간 평균 all-in과 비교합니다. 표본은 최소 3건 이상이어야 합니다.</p>
+          <p>Market Rate가 없는 경우 같은 Lane, CNTR Size, CNTR Type, Cargo, OOG Type, Full/Empty 조건의 기간 평균 all-in과 비교합니다. 동일 조건의 등록 운임들이 실제 내부 시장 기준 역할을 하며, 표본은 최소 3건 이상이어야 합니다.</p>
         </div>
       </div>
+      <h3>all-in으로 비교하는 이유</h3>
+      <p>O/F만 낮아 보여도 surcharge나 local charge가 높으면 실제 all-in은 낮지 않을 수 있습니다. 반대로 O/F는 정상처럼 보여도 charge가 빠져 all-in이 낮을 수도 있습니다. 그래서 저운임 판정은 화면에 보이는 O/F가 아니라 <strong>O/F + 비교 반영 charge</strong>의 all-in 기준으로 수행합니다.</p>
+      <h3>Market Rate가 O/F 기준인데 all-in과 비교하는 방법</h3>
+      <p>Market Rate는 O/F 레벨 기준입니다. 이를 등록 all-in과 직접 비교하면 기준이 맞지 않으므로, 해당 운임파일의 all-in과 O/F 차이인 surcharge/local charge delta를 Market O/F에 더해 Market all-in으로 환산합니다.</p>
+      <div class="callout"><strong>계산 흐름:</strong> Market all-in = Market O/F + (등록 all-in - 등록 O/F). 등록 all-in &lt; Market all-in이면 Market 저운임입니다.</div>
+      <h3>기간 평균 비교에서 자기 자신은 어떻게 처리되나?</h3>
+      <p>기간 평균은 같은 비교 조건의 유효 운임 전체를 기준으로 계산합니다. 특정 건이 평균보다 낮은지 보는 구조이므로, 개별 검토 시에는 표본 수와 같은 업체 반복 여부를 함께 확인해야 합니다. 표본이 적거나 특수 계약이 섞이면 평균 자체가 흔들릴 수 있기 때문입니다.</p>
       <h3>US향발 PSS/GRI 제외</h3>
       <p>선적지 또는 도착지가 US인 운임은 PSS와 GRI를 비교 all-in 계산에서 제외합니다. 단, 원천 파일 확인을 위해 상세 Charge에는 그대로 표시합니다.</p>
       <h3>해석 예시</h3>
@@ -409,17 +458,41 @@
     </section>
 
     <section class="card en" id="logic-en">
-      <h2>7. Low Freight Judgement Logic</h2>
+      <h2>7. Comparison and Judgement Logic</h2>
+      <p>The key principle is: do not compare rates that are not truly comparable. Even on the same lane, normal freight level changes by container, cargo, OOG, and Full/Empty condition. Peer comparison is therefore built using the following condition set.</p>
+      <table>
+        <tr><th>Comparison field</th><th>Why it matters</th><th>Example</th></tr>
+        <tr><td>Lane</td><td>Origin/destination pair is the largest freight driver.</td><td>HPH VN → HKG HK and HPH VN → SWA CN are separate groups.</td></tr>
+        <tr><td>CNTR Size</td><td>20/40/45 have different price structures.</td><td>20GP is not compared to a 40GP average.</td></tr>
+        <tr><td>CNTR Type</td><td>GP/HC/TK/RF carry different cost and market levels.</td><td>40GP and 40HC are separated.</td></tr>
+        <tr><td>Cargo Type</td><td>General, HZ, RF, FB, etc. have different cost/risk profiles.</td><td>Dangerous cargo is not compared to General average.</td></tr>
+        <tr><td>OOG Type</td><td>OH/OW/OL conditions change equipment operation complexity.</td><td>OOG None and OH are separated.</td></tr>
+        <tr><td>Full / Empty</td><td>Full and Empty rates serve different purposes.</td><td>Empty repositioning rates are not compared to Full sales rates.</td></tr>
+      </table>
+      <h3>Comparison Steps</h3>
+      <div class="logic-flow">
+        <div class="logic-step"><strong>1. Select valid rates</strong>Use O/F registered rates whose Effective Start/End overlaps the selected period.</div>
+        <div class="logic-step"><strong>2. Build peer key</strong>Create a comparison key from Lane + CNTR Size + CNTR Type + Cargo Type + OOG Type + Full/Empty.</div>
+        <div class="logic-step"><strong>3. Choose benchmark</strong>Use Market Rate first when mapped. Otherwise use period average from the same peer key.</div>
+        <div class="logic-step"><strong>4. Compare all-in</strong>If registered all-in is lower than benchmark all-in, show it as a low freight case.</div>
+      </div>
       <div class="grid-2">
         <div class="mini-card">
           <h3>Market Low</h3>
-          <p>Used when Market Rate is directly mapped by lane and CNTR Size. Because Market guideline is O/F-level, the record's surcharge/local charge delta is added to convert it to all-in before comparison.</p>
+          <p>Used when Market Rate is directly mapped by lane and CNTR Size. Because Market guideline is O/F-level, the record's surcharge/local charge delta is added to convert it to all-in before comparison. This is generally the higher-priority case because the benchmark is explicit.</p>
         </div>
         <div class="mini-card">
           <h3>Period AVG Low</h3>
-          <p>Used when no Market Rate exists. It compares against period-average all-in for the same lane, CNTR Size, CNTR Type, Cargo, OOG Type, and Full/Empty. Minimum 3 samples are required.</p>
+          <p>Used when no Market Rate exists. It compares against period-average all-in for the same Lane, CNTR Size, CNTR Type, Cargo, OOG Type, and Full/Empty. The peer group acts as the internal market reference, and minimum 3 samples are required.</p>
         </div>
       </div>
+      <h3>Why all-in comparison?</h3>
+      <p>O/F alone can be misleading. A low O/F with high surcharge/local charge may not be low all-in, while a normal-looking O/F with missing charges may be low all-in. For this reason, judgement uses <strong>O/F + comparison-applied charges</strong>.</p>
+      <h3>How O/F-level Market Rate is compared to all-in</h3>
+      <p>Market Rate is O/F-level. To compare it with registered all-in, the dashboard adds the record's surcharge/local charge delta to Market O/F.</p>
+      <div class="callout"><strong>Formula:</strong> Market all-in = Market O/F + (registered all-in - registered O/F). If registered all-in &lt; Market all-in, it is Market Low.</div>
+      <h3>How to read period average</h3>
+      <p>Period average is calculated from valid rates in the same peer group. When reviewing an individual case, read the sample count and repeated company pattern together because small samples or special contracts can move the average.</p>
       <h3>US-bound/origin PSS/GRI exclusion</h3>
       <p>For rates where origin or destination country is US, PSS and GRI are excluded from comparison all-in. They remain visible in charge detail for source-file review.</p>
       <h3>Examples</h3>

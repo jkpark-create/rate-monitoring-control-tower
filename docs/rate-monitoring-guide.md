@@ -43,6 +43,53 @@ Market guideline / SEA guideline 동기화
 - 기간 평균 fallback은 비교군이 최소 3건 이상일 때만 적용합니다.
 - US 향발 운임은 PSS와 GRI를 비교 all-in 계산에서 제외합니다. 단, 상세 항목에는 표시합니다.
 
+### 비교군을 이렇게 나누는 이유
+
+이 대시보드는 전체 평균과 등록 운임을 단순 비교하지 않습니다. 같은 구간이라도 운임 수준은 장비와 화물 조건에 따라 달라지기 때문입니다. 그래서 기간 평균 fallback 비교군은 아래 조합으로 생성합니다.
+
+```text
+Lane
++ CNTR Size
++ CNTR Type
++ Cargo Type
++ OOG Type
++ Full / Empty
+```
+
+- `Lane`: 출발/도착 구간이 다르면 시장 가격대가 달라집니다.
+- `CNTR Size`: 20/40/45는 단가 구조가 다릅니다.
+- `CNTR Type`: GP/HC/TK/RF 등 장비 타입별 비용과 시장가가 다릅니다.
+- `Cargo Type`: General, HZ, RF, OOG, ING, FB 등 화물 성격에 따라 비용/리스크가 다릅니다.
+- `OOG Type`: OH/OW/OL 등 초과 규격 조건은 장비 운용 난이도가 달라집니다.
+- `Full / Empty`: Full 영업 운임과 Empty 재배치성 운임은 목적이 다릅니다.
+
+### 비교 절차
+
+1. 조회 기간과 유효기간이 겹치는 O/F 등록 운임을 선별합니다.
+2. `Lane + CNTR Size + CNTR Type + Cargo Type + OOG Type + Full/Empty`로 비교키를 만듭니다.
+3. Market Rate가 직접 매핑되면 Market Rate를 우선 사용합니다.
+4. Market Rate가 없으면 같은 비교키의 기간 평균 all-in을 사용합니다.
+5. 등록 all-in이 기준 all-in보다 낮으면 확인 대상 저운임으로 표시합니다.
+
+### Market Rate를 all-in으로 환산하는 이유
+
+Market Rate guideline은 O/F 기준입니다. 반면 저운임 판정은 실제 등록 파일의 all-in 수준을 보기 때문에 기준을 맞춰야 합니다.
+
+```text
+Market all-in = Market O/F + (등록 all-in - 등록 O/F)
+```
+
+즉 등록 운임파일에 포함된 surcharge/local charge 차이를 Market O/F에 더해 Market all-in으로 환산한 뒤 등록 all-in과 비교합니다.
+
+### all-in 기준을 사용하는 이유
+
+O/F만 보면 실제 운임 수준을 잘못 판단할 수 있습니다.
+
+- O/F는 낮지만 surcharge/local charge가 높으면 실제 all-in은 낮지 않을 수 있습니다.
+- O/F는 정상처럼 보이지만 charge가 누락되면 실제 all-in은 낮을 수 있습니다.
+
+따라서 저운임 판정은 `O/F + 비교 반영 charge`의 all-in 기준으로 수행합니다.
+
 ## 5. Charge 표시 기준
 
 상세 패널은 비교 all-in에 반영되는 항목과 원천 파일에서 조회되는 항목을 함께 보여줍니다.
