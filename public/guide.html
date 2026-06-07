@@ -156,9 +156,15 @@
     body.lang-en .ko { display: none; }
     body.lang-en .en { display: block; }
     body.lang-en tr.en { display: table-row; }
-    body.lang-en span.en, body.lang-en a.en { display: inline; }
+    body.lang-en span.en { display: inline; }
     body.lang-ko .ko { display: block; }
-    body.lang-ko span.ko, body.lang-ko a.ko { display: inline; }
+    body.lang-ko span.ko { display: inline; }
+    .actions .btn.ko,
+    .actions .btn.en { display: none; }
+    body.lang-ko .actions .btn.ko,
+    body.lang-en .actions .btn.en { display: inline-flex; }
+    body.lang-ko .toc.ko,
+    body.lang-en .toc.en { display: grid; }
     @media (max-width: 860px) {
       .toc, .grid-2, .logic-flow { grid-template-columns: 1fr; }
       .topbar { align-items: flex-start; flex-direction: column; }
@@ -176,7 +182,7 @@
       <div class="actions">
         <a class="btn ko" href="./">대시보드로 돌아가기</a>
         <a class="btn en" href="./">Back to Dashboard</a>
-        <button class="btn" type="button" id="langToggle">EN</button>
+        <button class="btn language-btn" type="button" id="langToggle">English</button>
       </div>
     </header>
 
@@ -539,12 +545,14 @@
 
   <script>
     const LANG_KEY = 'rate-monitoring-language';
-    let lang = localStorage.getItem(LANG_KEY) || 'ko';
+    const params = new URLSearchParams(window.location.search);
+    const urlLang = params.get('lang');
+    let lang = urlLang === 'en' || urlLang === 'ko' ? urlLang : 'ko';
     function applyLang() {
       document.body.classList.toggle('lang-ko', lang !== 'en');
       document.body.classList.toggle('lang-en', lang === 'en');
       document.documentElement.lang = lang === 'en' ? 'en' : 'ko';
-      document.getElementById('langToggle').textContent = lang === 'en' ? 'KO' : 'EN';
+      document.getElementById('langToggle').textContent = lang === 'en' ? '한국어' : 'English';
     }
     document.getElementById('langToggle').addEventListener('click', () => {
       lang = lang === 'en' ? 'ko' : 'en';

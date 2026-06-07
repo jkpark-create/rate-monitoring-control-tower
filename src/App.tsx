@@ -1982,7 +1982,7 @@ function AppContent({ data }: { data: MonitoringData }) {
           </aside>
         </div>
         <div className="topbar-actions">
-          <a className="icon-button" href={USER_GUIDE_URL} target="_blank" rel="noreferrer">
+          <a className="icon-button" href={`${USER_GUIDE_URL}?lang=${language}`} target="_blank" rel="noreferrer">
             <BookOpen size={15} aria-hidden="true" />
             {USER_GUIDE_COPY[language].button}
           </a>
