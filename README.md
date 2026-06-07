@@ -2,6 +2,7 @@
 
 선택한 기간에 유효한 등록 O/F 운임 중 확인이 필요한 저운임을 찾는 대시보드입니다.
 
+사용자 가이드는 배포 화면 상단의 `사용자 가이드` 버튼 또는 `public/guide.html`에서 확인할 수 있습니다.
 운영/판정/배포 가이드는 [docs/rate-monitoring-guide.md](docs/rate-monitoring-guide.md)에 정리되어 있습니다.
 
 ## 판단 기준

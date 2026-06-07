@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rate Application Monitoring User Guide</title>
+  <style>
+    :root {
+      color: #20272e;
+      background: #f3f5f4;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f5f4; }
+    a { color: #0f5d77; }
+    .page { max-width: 1180px; margin: 0 auto; padding: 24px 20px 48px; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin: -24px -20px 20px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #dce3e0;
+      background: rgba(251, 252, 251, 0.96);
+      backdrop-filter: blur(14px);
+    }
+    .topbar strong { font-size: 15px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border: 1px solid #cbd5d1;
+      border-radius: 6px;
+      background: #fff;
+      color: #34404a;
+      font-weight: 800;
+      font-size: 12px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .hero {
+      padding: 24px;
+      border: 1px solid #dce3e0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ffffff 0%, #edf5f2 100%);
+      box-shadow: 0 12px 32px rgba(31, 43, 51, 0.08);
+    }
+    .eyebrow {
+      margin: 0 0 6px;
+      color: #687580;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: clamp(26px, 4vw, 38px); line-height: 1.15; }
+    .hero p { max-width: 860px; margin: 12px 0 0; color: #53616a; font-size: 15px; }
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+    .toc a {
+      padding: 11px 12px;
+      border: 1px solid #dce3e0;
+      border-radius: 8px;
+      background: #fff;
+      color: #34404a;
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    section.card {
+      margin-top: 16px;
+      padding: 20px;
+      border: 1px solid #dce3e0;
+      border-radius: 12px;
+      background: #fbfcfb;
+    }
+    h2 { margin: 0 0 10px; font-size: 22px; line-height: 1.25; }
+    h3 { margin: 18px 0 8px; font-size: 16px; color: #26323a; }
+    p { margin: 8px 0; color: #4d5a63; }
+    ul, ol { margin: 8px 0; padding-left: 21px; color: #4d5a63; }
+    li { margin: 5px 0; }
+    table {
+      width: 100%;
+      margin: 12px 0;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid #dce3e0;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 13px;
+    }
+    th, td { padding: 10px 11px; border-bottom: 1px solid #e7ece9; text-align: left; vertical-align: top; }
+    th { background: #f0f4f2; color: #34404a; font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    code {
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: #eef3f1;
+      color: #26323a;
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
+    .callout {
+      margin: 12px 0;
+      padding: 12px 14px;
+      border-left: 4px solid #1f6a51;
+      border-radius: 8px;
+      background: #eef8f4;
+      color: #34404a;
+    }
+    .warning {
+      border-left-color: #b57c16;
+      background: #fff8e8;
+    }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .mini-card {
+      padding: 14px;
+      border: 1px solid #e2e8e5;
+      border-radius: 9px;
+      background: #fff;
+    }
+    .mini-card h3 { margin-top: 0; }
+    .footer { margin-top: 24px; color: #687580; font-size: 12px; text-align: center; }
+    .en { display: none; }
+    body.lang-en .ko { display: none; }
+    body.lang-en .en { display: block; }
+    body.lang-en tr.en { display: table-row; }
+    body.lang-en span.en, body.lang-en a.en { display: inline; }
+    body.lang-ko .ko { display: block; }
+    body.lang-ko span.ko, body.lang-ko a.ko { display: inline; }
+    @media (max-width: 860px) {
+      .toc, .grid-2 { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .actions { justify-content: flex-start; }
+      section.card, .hero { padding: 16px; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body class="lang-ko">
+  <div class="page">
+    <header class="topbar">
+      <strong class="ko">운임파일 등록현황 모니터링 사용 가이드</strong>
+      <strong class="en">Rate Application Monitoring User Guide</strong>
+      <div class="actions">
+        <a class="btn ko" href="./">대시보드로 돌아가기</a>
+        <a class="btn en" href="./">Back to Dashboard</a>
+        <button class="btn" type="button" id="langToggle">EN</button>
+      </div>
+    </header>
+
+    <div class="hero">
+      <p class="eyebrow">Rate Application Monitoring</p>
+      <h1 class="ko">사용 가이드</h1>
+      <h1 class="en">User Guide</h1>
+      <p class="ko">이 화면은 등록된 운임파일 중 영업 검토가 필요한 저운임 건을 찾기 위한 모니터링 도구입니다. 단순히 O/F가 낮은 파일을 나열하는 것이 아니라, surcharge와 local charge를 포함한 all-in 기준으로 Market Rate 또는 기간 평균과 비교합니다.</p>
+      <p class="en">This dashboard helps identify registered rate files that need sales review for low freight. It does not simply list low O/F values; it compares all-in values including surcharge and local charge against Market Rate or period averages.</p>
+    </div>
+
+    <nav class="toc ko">
+      <a href="#purpose">1. 목적과 사용 시점</a>
+      <a href="#workflow">2. 업무 흐름</a>
+      <a href="#filters">3. 조회 조건</a>
+      <a href="#kpi">4. KPI와 지표</a>
+      <a href="#summary">5. 집계 분석</a>
+      <a href="#detail">6. 상세 검토</a>
+      <a href="#logic">7. 판정 로직</a>
+      <a href="#faq">8. FAQ</a>
+    </nav>
+    <nav class="toc en">
+      <a href="#purpose-en">1. Purpose</a>
+      <a href="#workflow-en">2. Workflow</a>
+      <a href="#filters-en">3. Filters</a>
+      <a href="#kpi-en">4. KPI</a>
+      <a href="#summary-en">5. Aggregates</a>
+      <a href="#detail-en">6. Detail Review</a>
+      <a href="#logic-en">7. Logic</a>
+      <a href="#faq-en">8. FAQ</a>
+    </nav>
+
+    <section class="card ko" id="purpose">
+      <h2>1. 목적과 사용 시점</h2>
+      <p><strong>업무 질문:</strong> “이번 조회 기간에 유효한 등록 운임 중 Market 또는 내부 평균 대비 과도하게 낮아 영업 확인이 필요한 건은 무엇인가?”</p>
+      <table>
+        <tr><th>상황</th><th>이 화면으로 확인할 것</th><th>다음 행동</th></tr>
+        <tr><td>신규/갱신 운임파일 등록 후</td><td>저운임으로 잡히는 Rate No., 업체, 구간, CNTR 조건</td><td>상세 패널에서 O/F와 charge 구성 확인 후 담당자 또는 등록 기준 확인</td></tr>
+        <tr><td>특정 국가/포트 저운임이 늘어난 경우</td><td>집계 분석에서 국가 → 포트로 확장해 발생 위치 확인</td><td>해당 국가/포트 상세로 이동해 업체와 담당자별 반복 여부 확인</td></tr>
+        <tr><td>Market Rate 미매핑 구간 관리</td><td>기간 AVG 저운임 건과 직접 Market 매핑률</td><td>Market guideline 보강 필요 여부와 비교군 표본 적정성 검토</td></tr>
+        <tr><td>업체별 운임 추이 확인</td><td>업체별 트렌드에서 업체 평균 O/F와 동종 조건 타 업체 평균</td><td>특정 업체가 지속적으로 낮은지, 특정 주차만 낮은지 구분</td></tr>
+      </table>
+      <div class="callout"><strong>핵심:</strong> 이 대시보드는 “등록 오류를 단정”하는 화면이 아니라 “확인 우선순위를 정하는 화면”입니다. 최종 조정 여부는 계약/프로모션/특수 조건을 함께 확인해야 합니다.</div>
+    </section>
+
+    <section class="card en" id="purpose-en">
+      <h2>1. Purpose</h2>
+      <p><strong>Business question:</strong> “Which valid registered rates in the selected period need sales review because they are materially lower than Market or internal peer average?”</p>
+      <table>
+        <tr><th>Situation</th><th>What to check</th><th>Next action</th></tr>
+        <tr><td>After new or renewed rate registration</td><td>Low Rate No., company, lane, and CNTR condition</td><td>Open detail panel, check O/F and charge composition, then confirm with the owner</td></tr>
+        <tr><td>Low rates increase in a country/port</td><td>Expand country to port in Aggregated Analysis</td><td>Move to detail and check repeated companies or sales staff</td></tr>
+        <tr><td>Market-unmapped lane review</td><td>Period AVG low count and direct Market mapping ratio</td><td>Review whether market guideline coverage needs improvement</td></tr>
+        <tr><td>Company rate trend review</td><td>Company average O/F trend and peer average line</td><td>Separate persistent low pricing from a one-week event</td></tr>
+      </table>
+      <div class="callout"><strong>Key point:</strong> The dashboard prioritizes review candidates. It does not by itself prove an error; contract, promotion, or special conditions should be checked before final action.</div>
+    </section>
+
+    <section class="card ko" id="workflow">
+      <h2>2. 권장 업무 흐름</h2>
+      <ol>
+        <li><strong>조회 기간 확인:</strong> 기본값은 실행일 기준 금주 일요일부터 토요일까지입니다. 과거 등록분을 보려면 시작일/종료일을 조정합니다.</li>
+        <li><strong>집계 분석에서 방향 잡기:</strong> 선적지 또는 도착지 국가/포트별로 저운임이 어디에 몰리는지 확인합니다.</li>
+        <li><strong>확인 집중 구간 확인:</strong> 우측 Focus Lanes에서 건수가 큰 Lane을 우선 봅니다. 이 영역은 집계 탭에서만 표시됩니다.</li>
+        <li><strong>포트 행 클릭:</strong> 국가를 펼친 뒤 포트 행을 클릭하면 상세 탭으로 이동하며 해당 조건이 상세 필터에 적용됩니다.</li>
+        <li><strong>상세 행 선택:</strong> Rate No. 행을 클릭하면 오른쪽 패널에서 운임파일 상세와 charge 항목을 확인합니다.</li>
+        <li><strong>조치 판단:</strong> Market 저운임인지 기간 AVG 저운임인지, Gap 금액이 큰지, WAIVE/Basic Tariff 등 상세 조회 항목인지 확인 후 담당자 확인 대상을 정합니다.</li>
+      </ol>
+      <div class="callout warning"><strong>집계/상세 필터 분리:</strong> 집계 탭에서 보던 조건과 상세 탭에서 검토하는 조건은 별도로 유지됩니다. 상세에서 조건을 바꿔도 집계로 돌아오면 기존 집계 조건이 유지됩니다.</div>
+    </section>
+
+    <section class="card en" id="workflow-en">
+      <h2>2. Recommended Workflow</h2>
+      <ol>
+        <li><strong>Check period:</strong> The default is the current week from Sunday to Saturday. Adjust start/end dates to review older effective rates.</li>
+        <li><strong>Start from aggregates:</strong> Identify where low rates are concentrated by origin/destination country and port.</li>
+        <li><strong>Use Focus Lanes:</strong> Prioritize lanes with high low-rate count. Focus Lanes appears only in Summary view.</li>
+        <li><strong>Click a port row:</strong> Expanding a country and clicking a port moves to Detail with that condition applied.</li>
+        <li><strong>Select a detail row:</strong> Click a Rate No. row to review charge items on the right panel.</li>
+        <li><strong>Decide action:</strong> Check whether the case is Market Low or Period AVG Low, the gap amount, and whether charge items are comparison-applied or detail-only.</li>
+      </ol>
+      <div class="callout warning"><strong>Separated filters:</strong> Summary and Detail filters are maintained separately. Changing detail filters does not overwrite the Summary view.</div>
+    </section>
+
+    <section class="card ko" id="filters">
+      <h2>3. 조회 조건</h2>
+      <table>
+        <tr><th>필터</th><th>의미</th><th>주의점</th></tr>
+        <tr><td>시작일 / 종료일</td><td>운임 유효기간과 겹치는 건을 조회</td><td>등록일이 아니라 Effective Start/End 기준입니다.</td></tr>
+        <tr><td>선적지 / 도착지 국가</td><td>POR/DLY 국가 기준 필터</td><td>국가만 선택하면 해당 국가 전체 포트를 포함합니다.</td></tr>
+        <tr><td>선적지 / 도착지 포트</td><td>POR/DLY 포트 기준 필터</td><td>국가 선택 후 포트 선택으로 좁히는 흐름이 가장 안정적입니다.</td></tr>
+        <tr><td>CNTR Size / Type</td><td>20/40/45, GP/HC/TK 등 장비 조건</td><td>Market Rate 직접 비교는 GP/HC/TK 중심입니다.</td></tr>
+        <tr><td>Cargo Type</td><td>General, HZ, RF, OOG, ING, FB 등 화물 구분</td><td>화면에는 코드와 의미를 함께 표시합니다.</td></tr>
+        <tr><td>OOG Type</td><td>None, OH, OW, OWH, OL, OLH, OLW, OLWH</td><td>기존 Special Cargo 필터를 OOG Type 기준으로 변경했습니다.</td></tr>
+        <tr><td>Full / Empty</td><td>Full 또는 Empty</td><td>저운임 비교군 생성 시 같은 조건으로 묶입니다.</td></tr>
+        <tr><td>영업사원 / 업체</td><td>담당자 또는 화주 단위 검토</td><td>업체는 코드/회사명 검색 후 멀티 선택 가능합니다.</td></tr>
+        <tr><td>판정 Status</td><td>Market 저운임 / 기간 AVG 저운임</td><td>상세 탭에서만 사용합니다.</td></tr>
+        <tr><td>운임번호 검색</td><td>Rate Application No. 직접 검색</td><td>상세 탭에서 특정 파일을 빠르게 찾을 때 사용합니다.</td></tr>
+      </table>
+    </section>
+
+    <section class="card en" id="filters-en">
+      <h2>3. Filters</h2>
+      <table>
+        <tr><th>Filter</th><th>Meaning</th><th>Note</th></tr>
+        <tr><td>Start / End</td><td>Rates whose effective period overlaps the selected query period</td><td>This is based on Effective Start/End, not registration date.</td></tr>
+        <tr><td>Origin / Destination Country</td><td>POR/DLY country filter</td><td>Country-only selection includes all ports in that country.</td></tr>
+        <tr><td>Origin / Destination Port</td><td>POR/DLY port filter</td><td>Selecting country first and then port is the most stable workflow.</td></tr>
+        <tr><td>CNTR Size / Type</td><td>Equipment condition such as 20/40/45, GP/HC/TK</td><td>Direct Market comparison mainly uses GP/HC/TK.</td></tr>
+        <tr><td>Cargo Type</td><td>General, HZ, RF, OOG, ING, FB, etc.</td><td>The UI shows code and meaning together.</td></tr>
+        <tr><td>OOG Type</td><td>None, OH, OW, OWH, OL, OLH, OLW, OLWH</td><td>This replaces the old Special Cargo filter.</td></tr>
+        <tr><td>Full / Empty</td><td>Full or Empty</td><td>Period-average peer groups use the same condition.</td></tr>
+        <tr><td>Sales Staff / Company</td><td>Owner or shipper-level review</td><td>Company supports code/name search and multi-select.</td></tr>
+        <tr><td>Judgement Status</td><td>Market Low / Period AVG Low</td><td>Used in Detail view only.</td></tr>
+        <tr><td>Rate No. Search</td><td>Direct Rate Application No. search</td><td>Useful when locating a specific file.</td></tr>
+      </table>
+    </section>
+
+    <section class="card ko" id="kpi">
+      <h2>4. 상단 KPI 의미</h2>
+      <table>
+        <tr><th>KPI</th><th>의미</th><th>해석 방법</th></tr>
+        <tr><td>기간 유효 운임</td><td>조회 기간과 유효기간이 겹치는 운임 건수</td><td>모니터링 대상 전체 규모입니다.</td></tr>
+        <tr><td>저운임 확인 필요</td><td>Market 또는 기간 AVG 기준보다 등록 all-in이 낮은 건수</td><td>실제 확인 목록으로 이어지는 핵심 지표입니다.</td></tr>
+        <tr><td>Market 대비 저운임 건수</td><td>직접 Market Rate 매핑 후 낮게 판정된 건수</td><td>Market 기준이 명확하므로 우선 확인 가치가 높습니다.</td></tr>
+        <tr><td>기간 AVG 대비 저운임 건수</td><td>Market 미매핑 건 중 기간 평균보다 낮은 건수</td><td>비교군 표본과 특수 조건 여부를 함께 봐야 합니다.</td></tr>
+        <tr><td>저운임 화주수</td><td>확인 대상에 포함된 고유 화주 수</td><td>많으면 이슈가 여러 화주에 퍼진 상태, 적으면 특정 화주 집중 가능성이 큽니다.</td></tr>
+        <tr><td>Market 직접 매핑</td><td>유효 운임 중 Market Rate가 직접 매핑된 비율</td><td>낮으면 기간 AVG fallback 의존도가 높아집니다.</td></tr>
+      </table>
+    </section>
+
+    <section class="card en" id="kpi-en">
+      <h2>4. KPI Meaning</h2>
+      <table>
+        <tr><th>KPI</th><th>Meaning</th><th>How to read it</th></tr>
+        <tr><td>Active Rates</td><td>Rates whose effective period overlaps the selected period</td><td>Total monitoring population.</td></tr>
+        <tr><td>Low Freight Cases</td><td>Registered all-in lower than Market or Period AVG benchmark</td><td>Main list to review.</td></tr>
+        <tr><td>Below Market Count</td><td>Cases judged lower than directly mapped Market Rate</td><td>Usually higher priority because the benchmark is explicit.</td></tr>
+        <tr><td>Below Period AVG Count</td><td>Market-unmapped cases lower than peer period average</td><td>Check peer sample count and special conditions.</td></tr>
+        <tr><td>Low Freight Shippers</td><td>Unique shippers included in low cases</td><td>High count means broad issue; low count means concentration.</td></tr>
+        <tr><td>Direct Market Match</td><td>Share of active rates with direct Market mapping</td><td>Low ratio means stronger reliance on period-average fallback.</td></tr>
+      </table>
+    </section>
+
+    <section class="card ko" id="summary">
+      <h2>5. 집계 분석 화면</h2>
+      <p><strong>무엇을 보는 화면인가:</strong> 저운임이 어느 국가, 포트, 영업사원, 업체에 집중되어 있는지 빠르게 찾는 화면입니다.</p>
+      <h3>서브탭별 활용</h3>
+      <table>
+        <tr><th>탭</th><th>업무 질문</th><th>해석과 다음 행동</th></tr>
+        <tr><td>선적지 국가 / 포트</td><td>저운임이 어느 선적지에서 많이 발생하는가?</td><td>국가를 펼쳐 포트별로 확인하고, 큰 포트는 상세로 이동해 업체/담당자를 확인합니다.</td></tr>
+        <tr><td>도착지 국가 / 포트</td><td>저운임이 어느 도착지 시장에 몰리는가?</td><td>도착지 시장 특성인지 특정 포트/화주 문제인지 구분합니다.</td></tr>
+        <tr><td>영업사원별</td><td>어떤 담당자에게 확인 대상이 집중되는가?</td><td>저운임 건수와 화주수를 함께 봅니다. 건수는 많지만 화주수가 적으면 특정 화주 조건일 가능성이 큽니다.</td></tr>
+        <tr><td>업체별 트렌드</td><td>특정 업체의 O/F가 동종 조건 대비 지속적으로 낮은가?</td><td>업체 행을 클릭하면 상단 그래프가 해당 업체 기준으로 변경됩니다. 점선은 동일 조건 타 업체 평균입니다.</td></tr>
+      </table>
+      <h3>확인 집중 구간</h3>
+      <p>집계 탭 우측의 확인 집중 구간은 현재 조회 조건에서 저운임 건수가 큰 Lane 상위 10개입니다. 영업 활동 관점에서는 이 목록부터 보면 가장 빠르게 이슈 밀집 구간을 찾을 수 있습니다.</p>
+      <div class="callout"><strong>해석 팁:</strong> Market 저운임은 적고 기간 AVG 저운임만 많다면 Market guideline이 없는 구간일 가능성이 큽니다. 반대로 Market 저운임이 많으면 직접 기준 대비 낮은 등록이 반복되고 있는지 우선 확인합니다.</div>
+    </section>
+
+    <section class="card en" id="summary-en">
+      <h2>5. Aggregated Analysis</h2>
+      <p><strong>Purpose:</strong> Find where low freight is concentrated by country, port, sales staff, or company.</p>
+      <h3>Sub-view Guide</h3>
+      <table>
+        <tr><th>View</th><th>Business question</th><th>Interpretation and next action</th></tr>
+        <tr><td>Origin Country / Port</td><td>Which origin creates many low cases?</td><td>Expand country to port, then drill to detail for company and owner.</td></tr>
+        <tr><td>Destination Country / Port</td><td>Which destination market has low-rate concentration?</td><td>Separate market behavior from specific port/shipper issues.</td></tr>
+        <tr><td>By Sales Staff</td><td>Which owner has many review candidates?</td><td>Read low count with shipper count. Many cases but few shippers may indicate a specific shipper condition.</td></tr>
+        <tr><td>Company Trend</td><td>Is a company's O/F persistently below peers?</td><td>Click a company row to switch the chart. The dotted line is peer average under the same condition.</td></tr>
+      </table>
+      <h3>Focus Lanes</h3>
+      <p>Focus Lanes lists the top 10 lanes by low-case count under current summary filters. It is the fastest entry point for sales follow-up prioritization.</p>
+      <div class="callout"><strong>Tip:</strong> If most cases are Period AVG Low, the lane may lack Market guideline coverage. If Market Low is high, repeated registrations below an explicit benchmark should be checked first.</div>
+    </section>
+
+    <section class="card ko" id="detail">
+      <h2>6. 상세 검토 화면</h2>
+      <p><strong>무엇을 보는 화면인가:</strong> 집계에서 발견한 저운임 후보를 Rate No. 단위로 열어 실제 등록 O/F, 비교 기준, Gap, charge 구성을 확인하는 화면입니다.</p>
+      <table>
+        <tr><th>컬럼/영역</th><th>의미</th><th>확인 포인트</th></tr>
+        <tr><td>Status</td><td>Market 저운임 또는 기간 AVG 저운임</td><td>Market 저운임은 직접 기준, 기간 AVG 저운임은 fallback 기준입니다.</td></tr>
+        <tr><td>Registered O/F (all-in)</td><td>등록 O/F와 괄호 안 all-in</td><td>화면의 저운임 판정은 괄호 안 all-in 기준입니다.</td></tr>
+        <tr><td>Market Rate</td><td>직접 매핑된 Market Rate</td><td>없으면 기간 평균 fallback이 적용됩니다.</td></tr>
+        <tr><td>적용 비교 기준</td><td>판정에 실제 사용된 benchmark</td><td>Market Rate 또는 기간 AVG 중 어떤 기준인지 확인합니다.</td></tr>
+        <tr><td>조회 기간 Avg</td><td>동일 조건 비교군 평균</td><td>표본 수가 작으면 해석에 주의합니다. 최소 3건 이상만 적용합니다.</td></tr>
+        <tr><td>Gap</td><td>등록 all-in과 benchmark all-in의 차이</td><td>비율뿐 아니라 금액이 큰 건을 우선 확인합니다.</td></tr>
+        <tr><td>Charge 항목</td><td>파일 내 O/F, surcharge, local charge 상세</td><td>적용 방식, 지불지, 비교 반영 여부를 확인합니다.</td></tr>
+      </table>
+      <h3>Charge 항목 해석</h3>
+      <ul>
+        <li><strong>OCEAN FREIGHT:</strong> O/F이며 항상 가장 위에 표시됩니다.</li>
+        <li><strong>SURCHARGE:</strong> O/F 외 USD 등록 항목입니다.</li>
+        <li><strong>LOCAL CHARGE:</strong> O/F 외 비-USD 등록 항목입니다. 등록 금액은 로컬 통화와 금액으로 표시하고 USD 환산 금액을 함께 보여줍니다.</li>
+        <li><strong>선적지 지불(P) / 도착지 지불(C):</strong> 원천 `FRT_PNC_CD` 기준입니다.</li>
+        <li><strong>AMOUNT / TARIFF / WAIVE / PERCENT:</strong> 원천 적용 방식입니다. WAIVE는 금액 없이 표시되며 비교 all-in에는 포함하지 않습니다.</li>
+        <li><strong>파일 조회:</strong> Basic Tariff 등 상세 조회용 항목으로, 비교 all-in에는 포함되지 않을 수 있습니다.</li>
+      </ul>
+      <div class="callout warning"><strong>중요:</strong> Charge Basket은 비교 all-in에 반영되는 항목 중심입니다. 상세 패널에는 EDI, AMS, DCF, EFC 등 파일 조회용 항목도 함께 표시될 수 있으므로 “비교 반영”과 “파일 조회”를 구분해서 봐야 합니다.</div>
+    </section>
+
+    <section class="card en" id="detail-en">
+      <h2>6. Detail Review</h2>
+      <p><strong>Purpose:</strong> Open a low-rate candidate by Rate No. and review registered O/F, benchmark, gap, and charge composition.</p>
+      <table>
+        <tr><th>Column / Area</th><th>Meaning</th><th>Check point</th></tr>
+        <tr><td>Status</td><td>Market Low or Period AVG Low</td><td>Market Low uses direct benchmark; Period AVG uses fallback.</td></tr>
+        <tr><td>Registered O/F (all-in)</td><td>Registered O/F and all-in in parentheses</td><td>Judgement uses all-in.</td></tr>
+        <tr><td>Market Rate</td><td>Directly mapped Market Rate</td><td>If absent, period-average fallback applies.</td></tr>
+        <tr><td>Applied Benchmark</td><td>Actual benchmark used for judgement</td><td>Check whether Market or Period AVG was used.</td></tr>
+        <tr><td>Period AVG</td><td>Peer average under same condition</td><td>Interpret carefully when sample count is small. Minimum 3 samples are required.</td></tr>
+        <tr><td>Gap</td><td>Difference between registered all-in and benchmark all-in</td><td>Prioritize large amount gaps as well as high percentages.</td></tr>
+        <tr><td>Charge Items</td><td>O/F, surcharge, local charge detail</td><td>Check application type, payment location, and comparison inclusion.</td></tr>
+      </table>
+      <h3>Charge Interpretation</h3>
+      <ul>
+        <li><strong>OCEAN FREIGHT:</strong> O/F, always shown first.</li>
+        <li><strong>SURCHARGE:</strong> Non-O/F items registered in USD.</li>
+        <li><strong>LOCAL CHARGE:</strong> Non-O/F items registered in non-USD currency. The UI shows local currency/amount and USD conversion.</li>
+        <li><strong>Origin Pay (P) / Destination Pay (C):</strong> Based on source `FRT_PNC_CD`.</li>
+        <li><strong>AMOUNT / TARIFF / WAIVE / PERCENT:</strong> Source application type. WAIVE is displayed without amount and excluded from comparison all-in.</li>
+        <li><strong>Detail only:</strong> Basic Tariff or dynamically applied items may be shown for review but not included in comparison all-in.</li>
+      </ul>
+      <div class="callout warning"><strong>Important:</strong> Charge Basket mainly reflects comparison all-in items. Detail panel may also show EDI, AMS, DCF, EFC, and other review-only items, so distinguish comparison-applied from detail-only.</div>
+    </section>
+
+    <section class="card ko" id="logic">
+      <h2>7. 저운임 판정 로직</h2>
+      <div class="grid-2">
+        <div class="mini-card">
+          <h3>Market 저운임</h3>
+          <p>구간과 CNTR Size 기준 Market Rate가 직접 매핑되는 경우 사용합니다. Market guideline은 O/F 레벨이므로, 해당 운임의 surcharge/local charge 차이를 더해 all-in 기준으로 환산한 뒤 등록 all-in과 비교합니다.</p>
+        </div>
+        <div class="mini-card">
+          <h3>기간 AVG 저운임</h3>
+          <p>Market Rate가 없는 경우 같은 구간, CNTR Size, CNTR Type, Cargo, OOG Type, Full/Empty 조건의 기간 평균 all-in과 비교합니다. 표본은 최소 3건 이상이어야 합니다.</p>
+        </div>
+      </div>
+      <h3>US향발 PSS/GRI 제외</h3>
+      <p>선적지 또는 도착지가 US인 운임은 PSS와 GRI를 비교 all-in 계산에서 제외합니다. 단, 원천 파일 확인을 위해 상세 Charge에는 그대로 표시합니다.</p>
+      <h3>해석 예시</h3>
+      <table>
+        <tr><th>상황</th><th>의미</th><th>권장 확인</th></tr>
+        <tr><td>Market 저운임 + Gap 금액 큼</td><td>명확한 시장 기준 대비 낮게 등록</td><td>담당자, 업체, 유효기간, O/F 등록 의도 확인</td></tr>
+        <tr><td>기간 AVG 저운임 + 표본 3~5건</td><td>직접 Market은 없고 비교군 평균 기반</td><td>비교군이 실제로 같은 시장 조건인지 확인</td></tr>
+        <tr><td>특정 업체 반복 저운임</td><td>계약/프로모션 또는 등록 패턴 가능성</td><td>업체별 트렌드와 상세 Rate No.를 함께 확인</td></tr>
+        <tr><td>WAIVE 항목 많음</td><td>금액이 없는 상세 조회 항목이 많음</td><td>비교 all-in 포함 여부보다 원천 등록 방식 확인</td></tr>
+      </table>
+    </section>
+
+    <section class="card en" id="logic-en">
+      <h2>7. Low Freight Judgement Logic</h2>
+      <div class="grid-2">
+        <div class="mini-card">
+          <h3>Market Low</h3>
+          <p>Used when Market Rate is directly mapped by lane and CNTR Size. Because Market guideline is O/F-level, the record's surcharge/local charge delta is added to convert it to all-in before comparison.</p>
+        </div>
+        <div class="mini-card">
+          <h3>Period AVG Low</h3>
+          <p>Used when no Market Rate exists. It compares against period-average all-in for the same lane, CNTR Size, CNTR Type, Cargo, OOG Type, and Full/Empty. Minimum 3 samples are required.</p>
+        </div>
+      </div>
+      <h3>US-bound/origin PSS/GRI exclusion</h3>
+      <p>For rates where origin or destination country is US, PSS and GRI are excluded from comparison all-in. They remain visible in charge detail for source-file review.</p>
+      <h3>Examples</h3>
+      <table>
+        <tr><th>Situation</th><th>Meaning</th><th>Recommended check</th></tr>
+        <tr><td>Market Low + large gap amount</td><td>Registered below explicit market benchmark</td><td>Check owner, company, effective period, and O/F registration intent</td></tr>
+        <tr><td>Period AVG Low + 3-5 samples</td><td>Fallback based on small peer group</td><td>Check whether peer group truly reflects same market condition</td></tr>
+        <tr><td>Repeated low cases for one company</td><td>Possible contract/promotion or registration pattern</td><td>Use company trend together with detail Rate No. list</td></tr>
+        <tr><td>Many WAIVE items</td><td>Many detail-only zero-amount items</td><td>Focus on source application type rather than comparison all-in inclusion</td></tr>
+      </table>
+    </section>
+
+    <section class="card ko" id="faq">
+      <h2>8. FAQ / 문제 확인</h2>
+      <h3>데이터가 최신이 아닌 것 같습니다.</h3>
+      <p>상단 Cache 시각을 확인하세요. 자동 갱신은 06:30과 12:00 KST에 실행됩니다. Google Drive JSON 업로드 또는 배치 실패가 있으면 이전 캐시가 보일 수 있습니다.</p>
+      <h3>금액이 비어 있는데 USD 환산만 보입니다.</h3>
+      <p>원천 적용 방식이 WAIVE인지 먼저 확인합니다. WAIVE가 아니라면 SQL 추출에서 `CUR_CD`, `LOC_AMT`, `USD_AMT`, `FIX_USD_AMT`가 들어왔는지 확인해야 합니다.</p>
+      <h3>Basic Tariff 항목이 비교 all-in에 포함되지 않는 이유는?</h3>
+      <p>동적으로 조회되는 Basic Tariff 항목은 상세 검토용입니다. 등록 운임파일 Basket에 포함된 항목과 구분해야 합니다.</p>
+      <h3>Market 직접 매핑률이 낮으면 어떻게 해야 하나요?</h3>
+      <p>기간 AVG fallback 의존도가 높아집니다. 반복적으로 중요한 구간이 미매핑된다면 Market guideline 보강 또는 route 매핑 기준 정비가 필요합니다.</p>
+      <h3>로그인이 필요한 이유는?</h3>
+      <p>운영 데이터 JSON은 회사 Google Drive 파일을 OAuth 토큰으로 읽습니다. 브라우저에서 Oracle에 직접 접속하지 않기 위해 이 방식을 사용합니다.</p>
+    </section>
+
+    <section class="card en" id="faq-en">
+      <h2>8. FAQ / Troubleshooting</h2>
+      <h3>Data does not look current.</h3>
+      <p>Check the Cache timestamp in the header. Refresh runs at 06:30 and 12:00 KST. If Drive upload or batch failed, an older cache may remain visible.</p>
+      <h3>Registered amount is blank but USD amount exists.</h3>
+      <p>First check whether the source application type is WAIVE. If not WAIVE, confirm that `CUR_CD`, `LOC_AMT`, `USD_AMT`, and `FIX_USD_AMT` were included in SQL extract.</p>
+      <h3>Why are Basic Tariff items not included in comparison all-in?</h3>
+      <p>Dynamically looked-up Basic Tariff items are for detail review. They should be distinguished from items in the registered rate basket.</p>
+      <h3>What if direct Market mapping ratio is low?</h3>
+      <p>The dashboard relies more on Period AVG fallback. If important lanes are repeatedly unmapped, market guideline or route mapping should be improved.</p>
+      <h3>Why is Google sign-in required?</h3>
+      <p>The production JSON is read from a company-restricted Google Drive file with OAuth. The browser does not connect directly to Oracle.</p>
+    </section>
+
+    <div class="footer ko">Rate Monitoring Control Tower Guide | Last updated: 2026-06-08</div>
+    <div class="footer en">Rate Monitoring Control Tower Guide | Last updated: 2026-06-08</div>
+  </div>
+
+  <script>
+    const LANG_KEY = 'rate-monitoring-language';
+    let lang = localStorage.getItem(LANG_KEY) || 'ko';
+    function applyLang() {
+      document.body.classList.toggle('lang-ko', lang !== 'en');
+      document.body.classList.toggle('lang-en', lang === 'en');
+      document.documentElement.lang = lang === 'en' ? 'en' : 'ko';
+      document.getElementById('langToggle').textContent = lang === 'en' ? 'KO' : 'EN';
+    }
+    document.getElementById('langToggle').addEventListener('click', () => {
+      lang = lang === 'en' ? 'ko' : 'en';
+      localStorage.setItem(LANG_KEY, lang);
+      applyLang();
+    });
+    applyLang();
+  </script>
+</body>
+</html>
