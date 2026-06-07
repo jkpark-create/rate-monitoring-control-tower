@@ -2,6 +2,8 @@
 
 선택한 기간에 유효한 등록 O/F 운임 중 확인이 필요한 저운임을 찾는 대시보드입니다.
 
+운영/판정/배포 가이드는 [docs/rate-monitoring-guide.md](docs/rate-monitoring-guide.md)에 정리되어 있습니다.
+
 ## 판단 기준
 
 - 유효 운임: 선택 기간과 `EFFECTIVE_START_DATE` / `EFFECTIVE_END_DATE`가 겹치는 등록 건. 동일 운임은 기간 안에서 한 번만 집계

@@ -8,9 +8,11 @@ import {
   ChevronRight,
   CircleDollarSign,
   Database,
+  ExternalLink,
   FileText,
   Filter,
   Info,
+  Languages,
   RefreshCw,
   Route,
   Search,
@@ -245,6 +247,366 @@ type FilterOption = {
   label: string;
 };
 
+type Language = 'ko' | 'en';
+
+const RATE_DASHBOARD_URL = 'https://jkpark-create.github.io/kmtc-rate-dashboard/';
+const LANGUAGE_STORAGE_KEY = 'rate-monitoring-language';
+
+const UI_COPY = {
+  ko: {
+    all: 'All',
+    selectedSuffix: 'selected',
+    dashboardLink: 'Rate Dashboard',
+    languageToggle: 'EN',
+    source: {
+      source: 'Source',
+      role: 'O/F · Origin Sales',
+      records: 'records',
+      updated: 'Updated',
+      cache: 'Cache',
+    },
+    title: '운임파일 등록현황 모니터링',
+    dataQuality: {
+      title: '이전 CSV 사용 중',
+      message: '새 SQL 추출본이 연결되지 않아 charge별 통화와 금액을 확인할 수 없습니다. `npm run data:oracle`로 최신 CSV를 추출해 주세요.',
+    },
+    filter: {
+      title: '조회 조건',
+      filters: 'filters',
+      startDate: '시작일',
+      endDate: '종료일',
+      originCountry: '선적지 국가',
+      originPort: '선적지 포트',
+      destinationCountry: '도착지 국가',
+      destinationPort: '도착지 포트',
+      containerSize: 'CNTR Size',
+      containerType: 'CNTR Type',
+      cargoType: 'Cargo Type',
+      oogType: 'OOG Type',
+      fullEmpty: 'Full / Empty',
+      staff: '영업사원',
+      company: '업체',
+      status: '판정 Status',
+      rateSearch: '운임번호 검색',
+      ratePlaceholder: 'Rate no.',
+      reset: 'Reset',
+    },
+    metrics: {
+      activeRates: '기간 유효 운임',
+      lowCases: '저운임 확인 필요',
+      marketLow: 'Market 대비 저운임 건수',
+      averageLow: '기간 AVG 대비 저운임 건수',
+      lowShippers: '저운임 화주수',
+      marketCoverage: 'Market 직접 매핑',
+    },
+    panel: {
+      aggregatedView: 'Aggregated View',
+      lowFreightCases: 'Low Freight Cases',
+      summaryTitle: '집계 분석',
+      detailTitle: '확인 대상 운임',
+      summaryTab: '집계',
+      detailTab: '상세',
+      cases: 'cases',
+    },
+    summary: {
+      origin: '선적지 국가 / 포트',
+      destination: '도착지 국가 / 포트',
+      staff: '영업사원별',
+      company: '업체별 트렌드',
+      drillNote: '국가 행을 클릭하면 포트별 집계가 펼쳐집니다. 포트 행을 클릭하면 해당 조건의 상세 목록으로 이동합니다.',
+      noTrend: '트렌드를 표시할 업체가 없습니다.',
+      trendSelectedSuffix: '주차별 평균 Ocean Freight 추이 · 점선은 동일 구간·CNTR·Cargo 조건의 타 업체 O/F 평균입니다.',
+      topTrendPrefix: '상위',
+      topTrendSuffix: '개 업체의 주차별 평균 Ocean Freight 추이 · 하단 업체를 클릭하면 해당 업체 추이로 변경됩니다.',
+      resetTopTrend: '상위 5개 보기',
+      benchmarkLegend: '동일 구간 타 업체 평균',
+      head: {
+        lowCount: '저운임 건수',
+        lowShipperCount: '저운임 화주수',
+        laneCount: '구간수',
+        rateFileCount: '운임파일수',
+        marketLow: 'Market 저운임 건수',
+        averageLow: '기간 AVG 저운임 건수',
+      },
+      activeRateLabel: '유효운임',
+      expandPrefix: '클릭하여 포트별',
+      collapse: '접기',
+      expand: '보기',
+      detailDrill: '클릭하여 상세 보기',
+      empty: '선택한 조건에서 표시할 집계 데이터가 없습니다.',
+    },
+    detail: {
+      status: 'Status',
+      rateNo: 'Rate No.',
+      lane: 'Lane',
+      cntr: 'CNTR',
+      registered: 'Registered O/F (all-in)',
+      marketRate: 'Market Rate',
+      benchmark: '적용 비교 기준',
+      periodAverage: '조회 기간 Avg',
+      gap: 'Gap (all-in)',
+      salesStaff: 'Sales Staff',
+      company: 'Company',
+      validPeriod: 'Valid Period',
+      directMarket: '직접 Market · O/F (all-in)',
+      averageFallback: '기간 평균 fallback',
+      periodAvgSource: 'valid rates · O/F (all-in)',
+      empty: '선택한 조건에서 확인할 저운임 등록 운임이 없습니다.',
+      selectTitle: '운임파일을 선택해 주세요.',
+      selectHint: '확인 대상 운임 목록에서 행을 클릭하면 charge 상세를 확인할 수 있습니다.',
+      rateDetail: 'Rate Detail',
+      close: 'Close detail',
+      validPeriodShort: 'Valid Period',
+      cargoProfile: 'Cargo / OOG Type / F-E',
+      registeredDetail: 'Registered O/F (all-in)',
+      gapBasis: 'Gap (all-in 기준)',
+      appliedBenchmark: '적용 비교 기준',
+    },
+    charge: {
+      title: 'Charge 항목',
+      freightUnit: 'Freight Unit',
+      payment: 'PP / CC',
+      count: 'Charge Count',
+      basket: 'Charge Basket',
+      dataNote: '현재 CSV에는 charge별 등록 통화가 없어 합계 기준으로 표시합니다. 변경된 SQL로 다시 추출하면 SURCHARGE와 LOCAL CHARGE가 구분됩니다.',
+      note: '적용 방식은 등록 금액 아래에 표시합니다. WAIVE는 금액 없이 상세 조회되며 비교 all-in에는 포함되지 않습니다.',
+      charge: 'Charge',
+      registeredAmount: '등록 금액',
+      usdAmount: 'USD 환산',
+      paymentLocation: '지불지',
+      empty: '표시할 charge 항목이 없습니다.',
+      comparisonAllIn: '비교 ALL-IN RATE',
+      unclassified: '미분류',
+      excluded: '제외',
+      applied: '비교 반영',
+      detailOnly: '상세 조회',
+      originPay: '선적지 지불',
+      destinationPay: '도착지 지불',
+      unknownPay: '미확인',
+    },
+    focus: {
+      eyebrow: 'Focus Lanes',
+      title: '확인 집중 구간',
+      note: '현재 조회 조건의 확인 대상 운임을 Lane별로 묶어 저운임 건수, 저운임 화주수 순으로 정렬한 상위 10개입니다.',
+      marketLow: 'Market 저운임',
+      averageLow: '기간 AVG 저운임',
+      lowShipper: '저운임 화주',
+      directMarket: '직접 Market',
+      empty: '표시할 구간이 없습니다.',
+    },
+    criteria: {
+      eyebrow: 'Criteria',
+      title: '판단 기준',
+      activeRatesTitle: '유효 운임',
+      activeRatesDesc: '선택한 조회 기간과 Effective Start / End가 겹치는 등록 건. 동일 운임은 기간 안에서 한 번만 집계',
+      allInTitle: '비교 기준 (all-in)',
+      allInDesc: '모든 저운임 판정은 all-in 기준으로 비교합니다. Market guideline은 O/F 레벨이므로 해당 건의 서차지·로컬차지(all-in − O/F)를 더해 all-in으로 환산합니다. 표시는 O/F와 괄호 안 all-in을 함께 보여줍니다.',
+      usTitle: 'US향발 PSS/GRI',
+      usDesc: '선적지 또는 도착지가 US인 운임은 PSS와 GRI를 비교 all-in 계산에서 제외합니다. 항목 자체는 운임파일 detail에 표시합니다.',
+      marketTitle: 'Market 저운임',
+      marketDesc: '구간 · CNTR Size에 매핑된 Market Rate(GP · HC · TK, Cargo 00 Non-DG)를 all-in으로 환산한 값보다 등록 all-in이 낮은 건',
+      averageTitle: '기간 Avg 저운임',
+      averageDesc: 'Market Rate가 없는 경우 조회 기간에 유효한 동일 구간 · CNTR Size · CNTR Type · Cargo · OOG Type · Full/Empty 비교군의 all-in 평균보다 등록 all-in이 낮은 건 (최소 3건 이상)',
+      statusTitle: '판정 Status',
+      statusDesc: '직접 Market Rate를 적용하면 Market 저운임, Market 미매핑으로 기간 평균을 적용하면 기간 Avg 저운임. 정상 건은 확인 대상 목록에서 제외',
+      fileStatusTitle: '운임 파일 Status',
+      fileStatusPrefix: '원본 CSV의 APPROVAL_STATUS 코드. 현재 추출본에는',
+      fileStatusSuffix: '포함',
+      noValue: '값 없음',
+      minimumTitle: '평균 최소 표본',
+      minimumSuffix: '건 이상인 비교군만 기간 평균 fallback 적용',
+      footer: '저운임 판정은 all-in 기준입니다. US향발 PSS/GRI는 비교 all-in 계산에서 제외합니다. GP · HC · TK Non-DG는 Market Rate(O/F→all-in 환산)를 우선 적용하고, Market 미매핑 운임은 조회 기간 all-in 평균으로 fallback 합니다. 비정상 유효기간 {count}건은 제외했습니다.',
+    },
+    status: {
+      market: 'Market 저운임',
+      average: '기간 Avg 저운임',
+      all: 'All',
+    },
+    multiSelect: {
+      search: 'Search',
+      all: 'All',
+      close: 'Close',
+      noMatches: 'No matches',
+    },
+  },
+  en: {
+    all: 'All',
+    selectedSuffix: 'selected',
+    dashboardLink: 'Rate Dashboard',
+    languageToggle: 'KO',
+    source: {
+      source: 'Source',
+      role: 'O/F · Origin Sales',
+      records: 'records',
+      updated: 'Updated',
+      cache: 'Cache',
+    },
+    title: 'Rate Application Monitoring',
+    dataQuality: {
+      title: 'Legacy CSV in use',
+      message: 'Charge currency and amount details are unavailable because the latest SQL extract is not connected. Run `npm run data:oracle` to extract the current CSV.',
+    },
+    filter: {
+      title: 'Filters',
+      filters: 'filters',
+      startDate: 'Start',
+      endDate: 'End',
+      originCountry: 'Origin Country',
+      originPort: 'Origin Port',
+      destinationCountry: 'Destination Country',
+      destinationPort: 'Destination Port',
+      containerSize: 'CNTR Size',
+      containerType: 'CNTR Type',
+      cargoType: 'Cargo Type',
+      oogType: 'OOG Type',
+      fullEmpty: 'Full / Empty',
+      staff: 'Sales Staff',
+      company: 'Company',
+      status: 'Judgement Status',
+      rateSearch: 'Rate No. Search',
+      ratePlaceholder: 'Rate no.',
+      reset: 'Reset',
+    },
+    metrics: {
+      activeRates: 'Active Rates',
+      lowCases: 'Low Freight Cases',
+      marketLow: 'Below Market Count',
+      averageLow: 'Below Period AVG Count',
+      lowShippers: 'Low Freight Shippers',
+      marketCoverage: 'Direct Market Match',
+    },
+    panel: {
+      aggregatedView: 'Aggregated View',
+      lowFreightCases: 'Low Freight Cases',
+      summaryTitle: 'Aggregated Analysis',
+      detailTitle: 'Low Freight Cases',
+      summaryTab: 'Summary',
+      detailTab: 'Detail',
+      cases: 'cases',
+    },
+    summary: {
+      origin: 'Origin Country / Port',
+      destination: 'Destination Country / Port',
+      staff: 'By Sales Staff',
+      company: 'Company Trend',
+      drillNote: 'Click a country row to expand port-level totals. Click a port row to open the filtered detail list.',
+      noTrend: 'No companies available for the trend chart.',
+      trendSelectedSuffix: 'weekly average Ocean Freight trend · dotted line is the peer O/F average for the same lane, CNTR, and cargo conditions.',
+      topTrendPrefix: 'Top',
+      topTrendSuffix: 'companies by weekly average Ocean Freight trend · click a company row below to switch to that company.',
+      resetTopTrend: 'Show Top 5',
+      benchmarkLegend: 'Peer average for same lane',
+      head: {
+        lowCount: 'Low Count',
+        lowShipperCount: 'Low Shippers',
+        laneCount: 'Lane Count',
+        rateFileCount: 'Rate Files',
+        marketLow: 'Market Low Count',
+        averageLow: 'Period AVG Low Count',
+      },
+      activeRateLabel: 'active rates',
+      expandPrefix: 'click to',
+      collapse: 'collapse ports',
+      expand: 'show ports',
+      detailDrill: 'click for detail',
+      empty: 'No aggregated data for the selected filters.',
+    },
+    detail: {
+      status: 'Status',
+      rateNo: 'Rate No.',
+      lane: 'Lane',
+      cntr: 'CNTR',
+      registered: 'Registered O/F (all-in)',
+      marketRate: 'Market Rate',
+      benchmark: 'Applied Benchmark',
+      periodAverage: 'Period AVG',
+      gap: 'Gap (all-in)',
+      salesStaff: 'Sales Staff',
+      company: 'Company',
+      validPeriod: 'Valid Period',
+      directMarket: 'Direct Market · O/F (all-in)',
+      averageFallback: 'Period average fallback',
+      periodAvgSource: 'valid rates · O/F (all-in)',
+      empty: 'No low freight cases for the selected filters.',
+      selectTitle: 'Select a rate file.',
+      selectHint: 'Click a row in the low freight case list to review charge details.',
+      rateDetail: 'Rate Detail',
+      close: 'Close detail',
+      validPeriodShort: 'Valid Period',
+      cargoProfile: 'Cargo / OOG Type / F-E',
+      registeredDetail: 'Registered O/F (all-in)',
+      gapBasis: 'Gap (all-in basis)',
+      appliedBenchmark: 'Applied Benchmark',
+    },
+    charge: {
+      title: 'Charge Items',
+      freightUnit: 'Freight Unit',
+      payment: 'PP / CC',
+      count: 'Charge Count',
+      basket: 'Charge Basket',
+      dataNote: 'The current CSV has no charge-level currency, so amounts are shown from summary totals. Re-extract with the updated SQL to separate SURCHARGE and LOCAL CHARGE.',
+      note: 'Application type is shown below the registered amount. WAIVE items are detail-only with no amount and are excluded from comparison all-in.',
+      charge: 'Charge',
+      registeredAmount: 'Registered Amount',
+      usdAmount: 'USD Amount',
+      paymentLocation: 'Payment Location',
+      empty: 'No charge items to display.',
+      comparisonAllIn: 'Comparison ALL-IN RATE',
+      unclassified: 'Unclassified',
+      excluded: 'Excluded',
+      applied: 'Applied to comparison',
+      detailOnly: 'Detail only',
+      originPay: 'Origin Pay',
+      destinationPay: 'Destination Pay',
+      unknownPay: 'Unknown',
+    },
+    focus: {
+      eyebrow: 'Focus Lanes',
+      title: 'Focus Lanes',
+      note: 'Top 10 lanes from the current filters, sorted by low freight count and low freight shipper count.',
+      marketLow: 'Market low',
+      averageLow: 'Period AVG low',
+      lowShipper: 'Low shippers',
+      directMarket: 'Direct Market',
+      empty: 'No lanes to display.',
+    },
+    criteria: {
+      eyebrow: 'Criteria',
+      title: 'Judgement Criteria',
+      activeRatesTitle: 'Active Rates',
+      activeRatesDesc: 'Registered rates whose Effective Start / End overlaps the selected query period. Duplicate rates are counted once within the period.',
+      allInTitle: 'Comparison Basis (all-in)',
+      allInDesc: 'All low-freight judgement uses all-in values. Market guidelines are O/F-level, so the record surcharge/local charge delta (all-in − O/F) is added to convert the benchmark to all-in. The UI shows O/F and all-in in parentheses.',
+      usTitle: 'US-bound/origin PSS/GRI',
+      usDesc: 'For rates where origin or destination country is US, PSS and GRI are excluded from comparison all-in. The charge items remain visible in rate detail.',
+      marketTitle: 'Market Low',
+      marketDesc: 'Cases where registered all-in is lower than a directly mapped Market Rate converted to all-in for the lane and CNTR Size (GP, HC, TK, Cargo 00 Non-DG).',
+      averageTitle: 'Period AVG Low',
+      averageDesc: 'When no Market Rate is mapped, cases where registered all-in is lower than the period average of the same lane, CNTR Size, CNTR Type, Cargo, OOG Type, and Full/Empty group (minimum 3 samples).',
+      statusTitle: 'Judgement Status',
+      statusDesc: 'Direct Market Rate produces Market Low. Market-unmapped fallback produces Period AVG Low. Normal cases are excluded from the review list.',
+      fileStatusTitle: 'Rate File Status',
+      fileStatusPrefix: 'Original CSV APPROVAL_STATUS code. Current extract includes',
+      fileStatusSuffix: '',
+      noValue: 'no values',
+      minimumTitle: 'Minimum Average Sample',
+      minimumSuffix: 'or more samples are required for period-average fallback.',
+      footer: 'Low freight judgement is based on all-in. US-bound/origin PSS and GRI are excluded from comparison all-in. GP, HC, TK Non-DG uses Market Rate first, and unmapped rates fallback to period all-in average. Invalid effective periods excluded: {count}.',
+    },
+    status: {
+      market: 'Market Low',
+      average: 'Period AVG Low',
+      all: 'All',
+    },
+    multiSelect: {
+      search: 'Search',
+      all: 'All',
+      close: 'Close',
+      noMatches: 'No matches',
+    },
+  },
+} as const;
+
 const PAGE_SIZE = 30;
 const configuredDataRefreshSeconds = Number(import.meta.env.VITE_DATA_REFRESH_SECONDS ?? 0);
 const DATA_REFRESH_MS = Number.isFinite(configuredDataRefreshSeconds) && configuredDataRefreshSeconds > 0
@@ -421,14 +783,14 @@ function filterOptionLabel(value: string, options: FilterOption[]) {
   return options.find((option) => option.value === value)?.label ?? value;
 }
 
-function selectedFilterLabel(values: string[], options: FilterOption[]) {
+function selectedFilterLabel(values: string[], options: FilterOption[], language: Language) {
   if (!values.length) {
-    return 'All';
+    return UI_COPY[language].all;
   }
   if (values.length === 1) {
     return filterOptionLabel(values[0], options);
   }
-  return `${values.length} selected`;
+  return `${values.length} ${UI_COPY[language].selectedSuffix}`;
 }
 
 async function fetchGoogleProfile(accessToken: string): Promise<GoogleProfile | null> {
@@ -455,9 +817,9 @@ function isAllowedGoogleProfile(profile: GoogleProfile) {
   return ALLOWED_GOOGLE_DOMAINS.includes(emailDomain) || ALLOWED_GOOGLE_DOMAINS.includes(hostedDomain);
 }
 
-const statusMeta: Record<IssueStatus, { label: string; tone: string }> = {
-  market: { label: 'Market 저운임', tone: 'orange' },
-  average: { label: '기간 Avg 저운임', tone: 'amber' },
+const statusTone: Record<IssueStatus, string> = {
+  market: 'orange',
+  average: 'amber',
 };
 
 const CARGO_TYPE_LABELS: Record<string, string> = {
@@ -486,11 +848,6 @@ const FULL_EMPTY_TYPE_LABELS: Record<string, string> = {
   E: 'Empty',
 };
 
-const PAYMENT_LOCATION_LABELS: Record<string, string> = {
-  P: '선적지 지불',
-  C: '도착지 지불',
-};
-
 function formatCodeLabel(value: string, labels: Record<string, string>) {
   if (!value) {
     return '-';
@@ -510,15 +867,21 @@ function formatFullEmptyType(value: string) {
   return formatCodeLabel(value, FULL_EMPTY_TYPE_LABELS);
 }
 
-function formatPaymentLocation(value: string) {
-  return PAYMENT_LOCATION_LABELS[value] ? `${PAYMENT_LOCATION_LABELS[value]} (${value})` : `미확인 (${value || '-'})`;
+function formatPaymentLocation(value: string, language: Language) {
+  const text = UI_COPY[language].charge;
+  const labels: Record<string, string> = {
+    P: text.originPay,
+    C: text.destinationPay,
+  };
+  return labels[value] ? `${labels[value]} (${value})` : `${text.unknownPay} (${value || '-'})`;
 }
 
-function chargeUsage(item: ChargeItem) {
+function chargeUsage(item: ChargeItem, language: Language) {
+  const text = UI_COPY[language].charge;
   return {
-    label: item.appliedToComparison ? item.applicationType : `${item.applicationType} · 제외`,
+    label: item.appliedToComparison ? item.applicationType : `${item.applicationType} · ${text.excluded}`,
     className: `charge-usage-${item.applicationType.toLowerCase()}`,
-    comparisonLabel: item.appliedToComparison ? '비교 반영' : '상세 조회',
+    comparisonLabel: item.appliedToComparison ? text.applied : text.detailOnly,
   };
 }
 
@@ -812,9 +1175,8 @@ function buildPeriodAnalysis(records: RateRecord[], periodStart: string, periodE
   };
 }
 
-function StatusBadge({ status }: { status: IssueStatus }) {
-  const meta = statusMeta[status];
-  return <span className={`status-badge status-${meta.tone}`}>{meta.label}</span>;
+function StatusBadge({ status, language }: { status: IssueStatus; language: Language }) {
+  return <span className={`status-badge status-${statusTone[status]}`}>{UI_COPY[language].status[status]}</span>;
 }
 
 function GoogleAuthGate({ children }: { children: ReactNode }) {
@@ -1006,12 +1368,14 @@ function MultiSelectFilter({
   options,
   values,
   onChange,
+  language,
   className = '',
 }: {
   label: string;
   options: FilterOption[];
   values: string[];
   onChange: (values: string[]) => void;
+  language: Language;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -1039,12 +1403,13 @@ function MultiSelectFilter({
   const toggleValue = (value: string) => {
     onChange(selectedSet.has(value) ? values.filter((item) => item !== value) : [...values, value]);
   };
+  const text = UI_COPY[language].multiSelect;
 
   return (
     <div className={`filter-field multi-filter ${className}`} ref={rootRef}>
       <span>{label}</span>
       <button className="multi-select-trigger" type="button" onClick={() => setOpen((value) => !value)}>
-        <span>{selectedFilterLabel(values, options)}</span>
+        <span>{selectedFilterLabel(values, options, language)}</span>
         <span className="multi-caret">v</span>
       </button>
       {open && (
@@ -1054,11 +1419,11 @@ function MultiSelectFilter({
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search"
+            placeholder={text.search}
           />
           <div className="multi-actions">
-            <button type="button" onClick={() => onChange([])}>All</button>
-            <button type="button" onClick={() => setOpen(false)}>Close</button>
+            <button type="button" onClick={() => onChange([])}>{text.all}</button>
+            <button type="button" onClick={() => setOpen(false)}>{text.close}</button>
           </div>
           <div className="multi-options">
             {visibleOptions.length ? visibleOptions.map((option) => (
@@ -1070,7 +1435,7 @@ function MultiSelectFilter({
                 />
                 <span>{option.label}</span>
               </label>
-            )) : <div className="multi-empty">No matches</div>}
+            )) : <div className="multi-empty">{text.noMatches}</div>}
           </div>
         </div>
       )}
@@ -1078,14 +1443,14 @@ function MultiSelectFilter({
   );
 }
 
-const chargeCategoryLabel: Record<ChargeCategory, string> = {
-  'OCEAN FREIGHT': 'OCEAN FREIGHT',
-  SURCHARGE: 'SURCHARGE',
-  'LOCAL CHARGE': 'LOCAL CHARGE',
-  UNCLASSIFIED: '미분류',
-};
-
-function RateBreakdown({ detail }: { detail: RateDetail }) {
+function RateBreakdown({ detail, language }: { detail: RateDetail; language: Language }) {
+  const text = UI_COPY[language].charge;
+  const categoryLabel: Record<ChargeCategory, string> = {
+    'OCEAN FREIGHT': 'OCEAN FREIGHT',
+    SURCHARGE: 'SURCHARGE',
+    'LOCAL CHARGE': 'LOCAL CHARGE',
+    UNCLASSIFIED: text.unclassified,
+  };
   const hasUnclassified = detail.chargeItems.some((item) => item.category === 'UNCLASSIFIED');
   const sortedChargeItems = detail.chargeItems
     .map((item, index) => ({ item, index, rank: chargeSortRank(item, index) }))
@@ -1099,47 +1464,47 @@ function RateBreakdown({ detail }: { detail: RateDetail }) {
 
   return (
     <section className="detail-charge-section">
-      <h3>Charge 항목</h3>
+      <h3>{text.title}</h3>
       <div className="detail-meta-grid">
-        <div><span>Freight Unit</span><strong>{detail.freightUnit || '-'}</strong></div>
-        <div><span>PP / CC</span><strong>{detail.prepaidCollect || '-'} / {detail.masterPrepaidCollect || '-'}</strong></div>
-        <div><span>Charge Count</span><strong>{formatNumber(detail.chargeCount)}</strong></div>
-        <div><span>Charge Basket</span><strong>{detail.chargeBasket || '-'}</strong></div>
+        <div><span>{text.freightUnit}</span><strong>{detail.freightUnit || '-'}</strong></div>
+        <div><span>{text.payment}</span><strong>{detail.prepaidCollect || '-'} / {detail.masterPrepaidCollect || '-'}</strong></div>
+        <div><span>{text.count}</span><strong>{formatNumber(detail.chargeCount)}</strong></div>
+        <div><span>{text.basket}</span><strong>{detail.chargeBasket || '-'}</strong></div>
       </div>
       {hasUnclassified && (
         <p className="charge-data-note">
-          현재 CSV에는 charge별 등록 통화가 없어 합계 기준으로 표시합니다. 변경된 SQL로 다시 추출하면 SURCHARGE와 LOCAL CHARGE가 구분됩니다.
+          {text.dataNote}
         </p>
       )}
-      <p>적용 방식은 등록 금액 아래에 표시합니다. WAIVE는 금액 없이 상세 조회되며 비교 all-in에는 포함되지 않습니다.</p>
+      <p>{text.note}</p>
       <div className="detail-charge-table-wrap">
         <table className="detail-rate-table">
           <thead>
-            <tr><th>Charge</th><th>등록 금액</th><th>USD 환산</th><th>지불지</th></tr>
+            <tr><th>{text.charge}</th><th>{text.registeredAmount}</th><th>{text.usdAmount}</th><th>{text.paymentLocation}</th></tr>
           </thead>
           <tbody>
             {sortedChargeItems.length ? sortedChargeItems.map(({ item, index }) => {
-              const usage = chargeUsage(item);
+              const usage = chargeUsage(item, language);
               return (
                 <tr key={`${item.code}-${item.currency}-${index}`}>
                   <td className="charge-code-cell">
                     <strong>{item.code}</strong>
-                    <span className={`charge-category charge-${item.category.toLowerCase().replaceAll(' ', '-')}`}>{chargeCategoryLabel[item.category]}</span>
+                    <span className={`charge-category charge-${item.category.toLowerCase().replaceAll(' ', '-')}`}>{categoryLabel[item.category]}</span>
                   </td>
                   <td className="money-cell registered-amount-cell">
                     <span>{item.currency && item.localAmount !== null ? `${item.currency} ${formatAmount(item.localAmount)}` : '-'}</span>
                     <span className={`charge-usage ${usage.className}`} title={usage.comparisonLabel}>{usage.label}</span>
                   </td>
                   <td className="money-cell">{formatRateMoney(item.usdAmount)}</td>
-                  <td><span className={`payment-location payment-${item.paymentCode.toLowerCase()}`}>{formatPaymentLocation(item.paymentCode)}</span></td>
+                  <td><span className={`payment-location payment-${item.paymentCode.toLowerCase()}`}>{formatPaymentLocation(item.paymentCode, language)}</span></td>
                 </tr>
               );
             }) : (
-              <tr><td className="empty-cell" colSpan={4}>표시할 charge 항목이 없습니다.</td></tr>
+              <tr><td className="empty-cell" colSpan={4}>{text.empty}</td></tr>
             )}
           </tbody>
           <tfoot>
-            <tr><th colSpan={2}>비교 ALL-IN RATE</th><th>{formatRateMoney(detail.allInRate)}</th><th></th></tr>
+            <tr><th colSpan={2}>{text.comparisonAllIn}</th><th>{formatRateMoney(detail.allInRate)}</th><th></th></tr>
           </tfoot>
         </table>
       </div>
@@ -1147,13 +1512,14 @@ function RateBreakdown({ detail }: { detail: RateDetail }) {
   );
 }
 
-function RateDetailPanel({ rate, detail, onClose }: { rate: LowRateCase | null; detail: RateDetail | null; onClose: () => void }) {
+function RateDetailPanel({ rate, detail, language, onClose }: { rate: LowRateCase | null; detail: RateDetail | null; language: Language; onClose: () => void }) {
+  const text = UI_COPY[language].detail;
   if (!rate) {
     return (
       <aside className="detail-panel detail-side-panel detail-panel-empty">
         <FileText size={22} aria-hidden="true" />
-        <strong>운임파일을 선택해 주세요.</strong>
-        <span>확인 대상 운임 목록에서 행을 클릭하면 charge 상세를 확인할 수 있습니다.</span>
+        <strong>{text.selectTitle}</strong>
+        <span>{text.selectHint}</span>
       </aside>
     );
   }
@@ -1162,25 +1528,25 @@ function RateDetailPanel({ rate, detail, onClose }: { rate: LowRateCase | null; 
     <aside className="detail-panel detail-side-panel">
       <div className="panel-head">
         <div>
-          <p>Rate Detail</p>
+          <p>{text.rateDetail}</p>
           <h2>{rate.rateApplicationNo}</h2>
         </div>
-        <button className="square-button" type="button" onClick={onClose} title="Close detail">
+        <button className="square-button" type="button" onClick={onClose} title={text.close}>
           <X size={16} aria-hidden="true" />
         </button>
       </div>
       <div className="detail-grid">
-        <div className="detail-wide"><span>Lane</span><strong>{rate.porPort} {rate.porCountry} → {rate.dlyPort} {rate.dlyCountry}</strong></div>
+        <div className="detail-wide"><span>{text.lane}</span><strong>{rate.porPort} {rate.porCountry} → {rate.dlyPort} {rate.dlyCountry}</strong></div>
         <div><span>CNTR Size / Type</span><strong>{rate.containerSize || '-'} / {rate.containerType || '-'}</strong></div>
-        <div><span>Valid Period</span><strong>{formatDate(rate.effectiveStart)} ~ {formatDate(rate.effectiveEnd)}</strong></div>
-        <div className="detail-wide"><span>Cargo / OOG Type / F-E</span><strong>{formatCargoType(rate.cargoType)} / {formatOogType(rate.specialCargoType)} / {formatFullEmptyType(rate.fullEmptyType)}</strong></div>
-        <div><span>Registered O/F (all-in)</span><strong>{formatMoney(rate.ofRate)} ({formatMoney(rate.allInRate)})</strong></div>
-        <div><span>Gap (all-in 기준)</span><strong>{rate.gapPct ? `${formatSignedPct(rate.gapPct)} / ${formatMoney(rate.gapAmount)}` : '-'}</strong></div>
-        <div><span>적용 비교 기준</span><strong>{formatMoney(rate.benchmarkRate)} / {rate.benchmarkSource === 'market' ? 'Market Rate' : '기간 Avg'}</strong></div>
-        <div><span>Sales Staff</span><strong>{rate.staff}</strong></div>
-        <div className="detail-wide"><span>Company</span><strong>{rate.shipperCode || '-'} / {rate.shipperName || '-'}</strong></div>
+        <div><span>{text.validPeriodShort}</span><strong>{formatDate(rate.effectiveStart)} ~ {formatDate(rate.effectiveEnd)}</strong></div>
+        <div className="detail-wide"><span>{text.cargoProfile}</span><strong>{formatCargoType(rate.cargoType)} / {formatOogType(rate.specialCargoType)} / {formatFullEmptyType(rate.fullEmptyType)}</strong></div>
+        <div><span>{text.registeredDetail}</span><strong>{formatMoney(rate.ofRate)} ({formatMoney(rate.allInRate)})</strong></div>
+        <div><span>{text.gapBasis}</span><strong>{rate.gapPct ? `${formatSignedPct(rate.gapPct)} / ${formatMoney(rate.gapAmount)}` : '-'}</strong></div>
+        <div><span>{text.appliedBenchmark}</span><strong>{formatMoney(rate.benchmarkRate)} / {rate.benchmarkSource === 'market' ? 'Market Rate' : UI_COPY[language].status.average}</strong></div>
+        <div><span>{text.salesStaff}</span><strong>{rate.staff}</strong></div>
+        <div className="detail-wide"><span>{text.company}</span><strong>{rate.shipperCode || '-'} / {rate.shipperName || '-'}</strong></div>
       </div>
-      {detail && <RateBreakdown detail={detail} />}
+      {detail && <RateBreakdown detail={detail} language={language} />}
     </aside>
   );
 }
@@ -1196,6 +1562,14 @@ function AppContent({ data }: { data: MonitoringData }) {
   const [expandedDestinationCountries, setExpandedDestinationCountries] = useState<string[]>([]);
   const [selectedTrendCompany, setSelectedTrendCompany] = useState('');
   const [selectedCase, setSelectedCase] = useState<LowRateCase | null>(null);
+  const [language, setLanguage] = useState<Language>(() => {
+    try {
+      return localStorage.getItem(LANGUAGE_STORAGE_KEY) === 'en' ? 'en' : 'ko';
+    } catch {
+      return 'ko';
+    }
+  });
+  const text = UI_COPY[language];
   const selectedRateDetail = selectedCase ? decodeRateDetail(data.dimensions.rateDetails[selectedCase.rateDetailIndex]) : null;
   const activeFilters = view === 'summary' ? summaryFilters : detailFilters;
   const setActiveFilters = view === 'summary' ? setSummaryFilters : setDetailFilters;
@@ -1300,9 +1674,9 @@ function AppContent({ data }: { data: MonitoringData }) {
   const staffOptions = useMemo(() => unique(records.map((item) => item.staff)), [records]);
   const staffFilterOptions = useMemo(() => toOptions(staffOptions), [staffOptions]);
   const statusFilterOptions = useMemo<FilterOption[]>(() => [
-    { value: 'market', label: statusMeta.market.label },
-    { value: 'average', label: statusMeta.average.label },
-  ], []);
+    { value: 'market', label: text.status.market },
+    { value: 'average', label: text.status.average },
+  ], [text.status.average, text.status.market]);
   const companies = useMemo(
     () => data.dimensions.shippers
       .map(([code, name]) => [code, name, `${code || '-'} / ${name || 'No company name'}`] as const)
@@ -1550,12 +1924,12 @@ function AppContent({ data }: { data: MonitoringData }) {
       : summaryDim === 'staff'
         ? staffSummary
         : companySummary;
-  const summaryHead = summaryDim === 'origin' ? '선적지 국가 / 포트' : summaryDim === 'destination' ? '도착지 국가 / 포트' : summaryDim === 'staff' ? '영업사원' : '업체';
+  const summaryHead = summaryDim === 'origin' ? text.summary.origin : summaryDim === 'destination' ? text.summary.destination : summaryDim === 'staff' ? text.filter.staff : text.filter.company;
   const summaryShowActive = summaryDim === 'origin' || summaryDim === 'destination';
   const summaryCountLabel = summaryDim === 'origin'
-    ? `${formatNumber(originCountrySummary.length)} 국가`
+    ? `${formatNumber(originCountrySummary.length)} ${language === 'ko' ? '국가' : 'countries'}`
     : summaryDim === 'destination'
-      ? `${formatNumber(destinationCountrySummary.length)} 국가`
+      ? `${formatNumber(destinationCountrySummary.length)} ${language === 'ko' ? '국가' : 'countries'}`
       : `${formatNumber(summaryRows.length)} ${summaryHead}`;
 
   const resetScope = () => {
@@ -1569,29 +1943,50 @@ function AppContent({ data }: { data: MonitoringData }) {
       setPage(1);
     }
   };
+  const toggleLanguage = () => {
+    setLanguage((current) => {
+      const next = current === 'ko' ? 'en' : 'ko';
+      try {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, next);
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
+  };
 
   return (
     <div className="app-shell">
       <header className="topbar">
         <div className="topbar-title">
-          <h1>운임파일 등록현황 모니터링</h1>
+          <h1>{text.title}</h1>
           <aside className="source-remark">
             <Database size={14} aria-hidden="true" />
-            <strong>Source</strong>
+            <strong>{text.source.source}</strong>
             <span title={data.metadata.sourceFile}>{data.metadata.sourceFile}</span>
-            <span>O/F · Origin Sales</span>
-            <span>{formatNumber(data.metadata.recordCount)} records</span>
-            <span>Updated {formatDate(data.metadata.latestSourceDate)}</span>
-            <span>Cache {data.metadata.generatedAt.replace('T', ' ')}</span>
+            <span>{text.source.role}</span>
+            <span>{formatNumber(data.metadata.recordCount)} {text.source.records}</span>
+            <span>{text.source.updated} {formatDate(data.metadata.latestSourceDate)}</span>
+            <span>{text.source.cache} {data.metadata.generatedAt.replace('T', ' ')}</span>
           </aside>
+        </div>
+        <div className="topbar-actions">
+          <a className="icon-button" href={RATE_DASHBOARD_URL} target="_blank" rel="noreferrer">
+            <ExternalLink size={15} aria-hidden="true" />
+            {text.dashboardLink}
+          </a>
+          <button className="icon-button language-toggle" type="button" onClick={toggleLanguage} aria-label="Toggle language">
+            <Languages size={15} aria-hidden="true" />
+            {text.languageToggle}
+          </button>
         </div>
       </header>
 
       <main>
         {!data.metadata.chargeDetailAvailable && (
           <aside className="data-quality-warning">
-            <strong>이전 CSV 사용 중</strong>
-            <span>새 SQL 추출본이 연결되지 않아 charge별 통화와 금액을 확인할 수 없습니다. `npm run data:oracle`로 최신 CSV를 추출해 주세요.</span>
+            <strong>{text.dataQuality.title}</strong>
+            <span>{text.dataQuality.message}</span>
           </aside>
         )}
 
@@ -1599,13 +1994,13 @@ function AppContent({ data }: { data: MonitoringData }) {
           <div className="scope-heading">
             <span className="scope-heading-title">
               <Filter size={17} aria-hidden="true" />
-              <strong>조회 조건</strong>
+              <strong>{text.filter.title}</strong>
             </span>
-            <span>{currentFilterCount} filters</span>
+            <span>{currentFilterCount} {text.filter.filters}</span>
           </div>
           <div className="filter-grid active-filter-grid">
             <label className="date-filter">
-              <span>시작일</span>
+              <span>{text.filter.startDate}</span>
               <input
                 type="date"
                 min={data.metadata.availableStartDate}
@@ -1624,7 +2019,7 @@ function AppContent({ data }: { data: MonitoringData }) {
               />
             </label>
             <label className="date-filter">
-              <span>종료일</span>
+              <span>{text.filter.endDate}</span>
               <input
                 type="date"
                 min={activeFilters.periodStart}
@@ -1633,24 +2028,24 @@ function AppContent({ data }: { data: MonitoringData }) {
                 onChange={(event) => event.target.value && setActiveFilters((current) => ({ ...current, periodEnd: event.target.value }))}
               />
             </label>
-            <MultiSelectFilter label="선적지 국가" options={originCountryOptions} values={activeFilters.originCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, originCountry: values, originPort: [] }))} />
-            <MultiSelectFilter label="선적지 포트" options={originPortOptions} values={activeFilters.originPort} onChange={(values) => setActiveFilters((current) => ({ ...current, originPort: values }))} />
-            <MultiSelectFilter label="도착지 국가" options={destinationCountryOptions} values={activeFilters.destinationCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, destinationCountry: values, destinationPort: [] }))} />
-            <MultiSelectFilter label="도착지 포트" options={destinationPortOptions} values={activeFilters.destinationPort} onChange={(values) => setActiveFilters((current) => ({ ...current, destinationPort: values }))} />
-            <MultiSelectFilter label="CNTR Size" options={containerSizeOptions} values={activeFilters.containerSize} onChange={(values) => setActiveFilters((current) => ({ ...current, containerSize: values, containerType: [] }))} />
-            <MultiSelectFilter label="CNTR Type" options={containerTypeOptions} values={activeFilters.containerType} onChange={(values) => setActiveFilters((current) => ({ ...current, containerType: values }))} />
-            <MultiSelectFilter className="cargo-type-filter" label="Cargo Type" options={cargoTypeOptions} values={activeFilters.cargoType} onChange={(values) => setActiveFilters((current) => ({ ...current, cargoType: values, specialCargoType: [] }))} />
-            <MultiSelectFilter className="special-cargo-filter" label="OOG Type" options={specialCargoTypeOptions} values={activeFilters.specialCargoType} onChange={(values) => setActiveFilters((current) => ({ ...current, specialCargoType: values }))} />
-            <MultiSelectFilter className="full-empty-filter" label="Full / Empty" options={fullEmptyTypeOptions} values={activeFilters.fullEmptyType} onChange={(values) => setActiveFilters((current) => ({ ...current, fullEmptyType: values }))} />
-            <MultiSelectFilter label="영업사원" options={staffFilterOptions} values={activeFilters.staff} onChange={(values) => setActiveFilters((current) => ({ ...current, staff: values }))} />
-            <MultiSelectFilter className="company-filter" label="업체" options={companyOptions} values={activeFilters.company} onChange={(values) => setActiveFilters((current) => ({ ...current, company: values }))} />
-            {view === 'detail' && <MultiSelectFilter label="판정 Status" options={statusFilterOptions} values={activeFilters.status} onChange={(values) => setActiveFilters((current) => ({ ...current, status: values as IssueStatus[] }))} />}
+            <MultiSelectFilter language={language} label={text.filter.originCountry} options={originCountryOptions} values={activeFilters.originCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, originCountry: values, originPort: [] }))} />
+            <MultiSelectFilter language={language} label={text.filter.originPort} options={originPortOptions} values={activeFilters.originPort} onChange={(values) => setActiveFilters((current) => ({ ...current, originPort: values }))} />
+            <MultiSelectFilter language={language} label={text.filter.destinationCountry} options={destinationCountryOptions} values={activeFilters.destinationCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, destinationCountry: values, destinationPort: [] }))} />
+            <MultiSelectFilter language={language} label={text.filter.destinationPort} options={destinationPortOptions} values={activeFilters.destinationPort} onChange={(values) => setActiveFilters((current) => ({ ...current, destinationPort: values }))} />
+            <MultiSelectFilter language={language} label={text.filter.containerSize} options={containerSizeOptions} values={activeFilters.containerSize} onChange={(values) => setActiveFilters((current) => ({ ...current, containerSize: values, containerType: [] }))} />
+            <MultiSelectFilter language={language} label={text.filter.containerType} options={containerTypeOptions} values={activeFilters.containerType} onChange={(values) => setActiveFilters((current) => ({ ...current, containerType: values }))} />
+            <MultiSelectFilter language={language} className="cargo-type-filter" label={text.filter.cargoType} options={cargoTypeOptions} values={activeFilters.cargoType} onChange={(values) => setActiveFilters((current) => ({ ...current, cargoType: values, specialCargoType: [] }))} />
+            <MultiSelectFilter language={language} className="special-cargo-filter" label={text.filter.oogType} options={specialCargoTypeOptions} values={activeFilters.specialCargoType} onChange={(values) => setActiveFilters((current) => ({ ...current, specialCargoType: values }))} />
+            <MultiSelectFilter language={language} className="full-empty-filter" label={text.filter.fullEmpty} options={fullEmptyTypeOptions} values={activeFilters.fullEmptyType} onChange={(values) => setActiveFilters((current) => ({ ...current, fullEmptyType: values }))} />
+            <MultiSelectFilter language={language} label={text.filter.staff} options={staffFilterOptions} values={activeFilters.staff} onChange={(values) => setActiveFilters((current) => ({ ...current, staff: values }))} />
+            <MultiSelectFilter language={language} className="company-filter" label={text.filter.company} options={companyOptions} values={activeFilters.company} onChange={(values) => setActiveFilters((current) => ({ ...current, company: values }))} />
+            {view === 'detail' && <MultiSelectFilter language={language} label={text.filter.status} options={statusFilterOptions} values={activeFilters.status} onChange={(values) => setActiveFilters((current) => ({ ...current, status: values as IssueStatus[] }))} />}
             {view === 'detail' && (
               <label className="query-filter">
-                <span>운임번호 검색</span>
+                <span>{text.filter.rateSearch}</span>
                 <div>
                   <Search size={14} aria-hidden="true" />
-                  <input value={activeFilters.query} onChange={(event) => setActiveFilters((current) => ({ ...current, query: event.target.value }))} placeholder="Rate no." />
+                  <input value={activeFilters.query} onChange={(event) => setActiveFilters((current) => ({ ...current, query: event.target.value }))} placeholder={text.filter.ratePlaceholder} />
                 </div>
               </label>
             )}
@@ -1771,39 +2166,39 @@ function AppContent({ data }: { data: MonitoringData }) {
           </div>
           <button className="reset-button" type="button" onClick={resetScope}>
             <X size={15} aria-hidden="true" />
-            Reset
+            {text.filter.reset}
           </button>
         </section>
 
         <section className="metric-strip">
           <div>
             <CalendarDays size={18} aria-hidden="true" />
-            <span>기간 유효 운임</span>
+            <span>{text.metrics.activeRates}</span>
             <strong>{formatNumber(currentRates.length)}</strong>
           </div>
           <div>
             <AlertTriangle size={18} aria-hidden="true" />
-            <span>저운임 확인 필요</span>
+            <span>{text.metrics.lowCases}</span>
             <strong>{formatNumber(currentCases.length)}</strong>
           </div>
           <div>
             <CircleDollarSign size={18} aria-hidden="true" />
-            <span>Market 대비 저운임 건수</span>
+            <span>{text.metrics.marketLow}</span>
             <strong>{formatNumber(marketLowCount)}</strong>
           </div>
           <div>
             <BarChart3 size={18} aria-hidden="true" />
-            <span>기간 AVG 대비 저운임 건수</span>
+            <span>{text.metrics.averageLow}</span>
             <strong>{formatNumber(averageLowCount)}</strong>
           </div>
           <div>
             <Users size={18} aria-hidden="true" />
-            <span>저운임 화주수</span>
+            <span>{text.metrics.lowShippers}</span>
             <strong>{formatNumber(lowShipperCount)}</strong>
           </div>
           <div>
             <Route size={18} aria-hidden="true" />
-            <span>Market 직접 매핑</span>
+            <span>{text.metrics.marketCoverage}</span>
             <strong>{formatPct(currentRates.length ? marketCoverageCount / currentRates.length : 0)}</strong>
           </div>
         </section>
@@ -1812,24 +2207,24 @@ function AppContent({ data }: { data: MonitoringData }) {
           <section className="results-panel">
             <div className="panel-head">
               <div>
-                <p>{view === 'summary' ? 'Aggregated View' : 'Low Freight Cases'}</p>
-                <h2>{view === 'summary' ? '집계 분석' : '확인 대상 운임'}</h2>
+                <p>{view === 'summary' ? text.panel.aggregatedView : text.panel.lowFreightCases}</p>
+                <h2>{view === 'summary' ? text.panel.summaryTitle : text.panel.detailTitle}</h2>
               </div>
-              <strong>{view === 'summary' ? summaryCountLabel : `${formatNumber(filteredCases.length)} cases`}</strong>
+              <strong>{view === 'summary' ? summaryCountLabel : `${formatNumber(filteredCases.length)} ${text.panel.cases}`}</strong>
             </div>
             <div className="view-tabs">
-              <button className={view === 'summary' ? 'active' : ''} type="button" onClick={() => setView('summary')}>집계</button>
-              <button className={view === 'detail' ? 'active' : ''} type="button" onClick={() => setView('detail')}>상세</button>
+              <button className={view === 'summary' ? 'active' : ''} type="button" onClick={() => setView('summary')}>{text.panel.summaryTab}</button>
+              <button className={view === 'detail' ? 'active' : ''} type="button" onClick={() => setView('detail')}>{text.panel.detailTab}</button>
             </div>
 
             {view === 'summary' ? (
               <>
                 <div className="segmented-control summary-dims">
                   {([
-                    ['origin', '선적지 국가 / 포트', Ship],
-                    ['destination', '도착지 국가 / 포트', Anchor],
-                    ['staff', '영업사원별', Users],
-                    ['company', '업체별 트렌드', TrendingUp],
+                    ['origin', text.summary.origin, Ship],
+                    ['destination', text.summary.destination, Anchor],
+                    ['staff', text.summary.staff, Users],
+                    ['company', text.summary.company, TrendingUp],
                   ] as const).map(([value, label, Icon]) => (
                     <button
                       className={summaryDim === value ? 'active' : ''}
@@ -1844,7 +2239,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                 </div>
 
                 {(summaryDim === 'origin' || summaryDim === 'destination') && (
-                  <p className="summary-drill-note">국가 행을 클릭하면 포트별 집계가 펼쳐집니다. 포트 행을 클릭하면 해당 조건의 상세 목록으로 이동합니다.</p>
+                  <p className="summary-drill-note">{text.summary.drillNote}</p>
                 )}
 
                 {summaryDim === 'company' && (
@@ -1873,7 +2268,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                             <Line
                               type="monotone"
                               dataKey={TREND_BENCHMARK_DATA_KEY}
-                              name="동일 구간 타 업체 평균"
+                              name={text.summary.benchmarkLegend}
                               stroke="#687580"
                               strokeDasharray="7 5"
                               strokeWidth={2}
@@ -1884,17 +2279,17 @@ function AppContent({ data }: { data: MonitoringData }) {
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <span className="muted">트렌드를 표시할 업체가 없습니다.</span>
+                      <span className="muted">{text.summary.noTrend}</span>
                     )}
                     <div className="trend-note-row">
                       <p className="trend-note">
                         {selectedTrendCompanyRow
-                          ? `${selectedTrendCompanyRow.label} 주차별 평균 Ocean Freight 추이 · 점선은 동일 구간·CNTR·Cargo 조건의 타 업체 O/F 평균입니다.`
-                          : `상위 ${companyTrend.series.length}개 업체의 주차별 평균 Ocean Freight 추이 · 하단 업체를 클릭하면 해당 업체 추이로 변경됩니다.`}
+                          ? `${selectedTrendCompanyRow.label} ${text.summary.trendSelectedSuffix}`
+                          : `${text.summary.topTrendPrefix} ${companyTrend.series.length} ${text.summary.topTrendSuffix}`}
                       </p>
                       {selectedTrendCompanyRow && (
                         <button className="trend-reset-button" type="button" onClick={() => setSelectedTrendCompany('')}>
-                          상위 5개 보기
+                          {text.summary.resetTopTrend}
                         </button>
                       )}
                     </div>
@@ -1906,15 +2301,15 @@ function AppContent({ data }: { data: MonitoringData }) {
                     <thead>
                       <tr>
                         <th>{summaryHead}</th>
-                        <th>저운임 건수</th>
+                        <th>{text.summary.head.lowCount}</th>
                         {summaryDim === 'company' ? (
                           <>
-                            <th>구간수</th>
-                            <th>운임파일수</th>
+                            <th>{text.summary.head.laneCount}</th>
+                            <th>{text.summary.head.rateFileCount}</th>
                           </>
-                        ) : <th>저운임 화주수</th>}
-                        <th>Market 저운임 건수</th>
-                        <th>기간 AVG 저운임 건수</th>
+                        ) : <th>{text.summary.head.lowShipperCount}</th>}
+                        <th>{text.summary.head.marketLow}</th>
+                        <th>{text.summary.head.averageLow}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1936,8 +2331,8 @@ function AppContent({ data }: { data: MonitoringData }) {
                             ) : <strong>{row.label}</strong>}
                             {summaryShowActive && (
                               <span>
-                                {formatNumber(row.activeCount)} 유효운임
-                                {row.level === 'country' ? ` · 클릭하여 포트별 ${row.expanded ? '접기' : '보기'}` : ' · 클릭하여 상세 보기'}
+                                {formatNumber(row.activeCount)} {text.summary.activeRateLabel}
+                                {row.level === 'country' ? ` · ${text.summary.expandPrefix} ${row.expanded ? text.summary.collapse : text.summary.expand}` : ` · ${text.summary.detailDrill}`}
                               </span>
                             )}
                           </td>
@@ -1953,7 +2348,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                         </tr>
                       )) : (
                         <tr>
-                          <td colSpan={summaryDim === 'company' ? 6 : 5} className="empty-cell">선택한 조건에서 표시할 집계 데이터가 없습니다.</td>
+                          <td colSpan={summaryDim === 'company' ? 6 : 5} className="empty-cell">{text.summary.empty}</td>
                         </tr>
                       )}
                     </tbody>
@@ -1964,9 +2359,9 @@ function AppContent({ data }: { data: MonitoringData }) {
               <>
                 <div className="segmented-control">
                   {[
-                    ['all', 'All'],
-                    ['market', 'Market 저운임'],
-                    ['average', '기간 Avg 저운임'],
+                    ['all', text.status.all],
+                    ['market', text.status.market],
+                    ['average', text.status.average],
                   ].map(([value, label]) => (
                     <button
                       className={statusFilter === value ? 'active' : ''}
@@ -1982,36 +2377,36 @@ function AppContent({ data }: { data: MonitoringData }) {
                   <table>
                     <thead>
                       <tr>
-                        <th>Status</th>
-                        <th>Rate No.</th>
-                        <th>Lane</th>
-                        <th>CNTR</th>
-                        <th>Registered O/F (all-in)</th>
-                        <th>Market Rate</th>
-                        <th>적용 비교 기준</th>
-                        <th>조회 기간 Avg</th>
-                        <th>Gap (all-in)</th>
-                        <th>Sales Staff</th>
-                        <th>Company</th>
-                        <th>Valid Period</th>
+                        <th>{text.detail.status}</th>
+                        <th>{text.detail.rateNo}</th>
+                        <th>{text.detail.lane}</th>
+                        <th>{text.detail.cntr}</th>
+                        <th>{text.detail.registered}</th>
+                        <th>{text.detail.marketRate}</th>
+                        <th>{text.detail.benchmark}</th>
+                        <th>{text.detail.periodAverage}</th>
+                        <th>{text.detail.gap}</th>
+                        <th>{text.detail.salesStaff}</th>
+                        <th>{text.detail.company}</th>
+                        <th>{text.detail.validPeriod}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {visibleCases.length ? visibleCases.map((item) => (
                         <tr className={selectedCase?.id === item.id ? 'detail-selected-row' : undefined} key={item.id} onClick={() => setSelectedCase(item)}>
-                          <td><StatusBadge status={item.status} /></td>
+                          <td><StatusBadge status={item.status} language={language} /></td>
                           <td><button className="rate-link" type="button">{item.rateApplicationNo}</button></td>
                           <td><strong>{item.porPort} {item.porCountry} → {item.dlyPort} {item.dlyCountry}</strong></td>
                           <td>{item.container}<span>{formatCargoProfile(item.cargoProfile)}</span></td>
                           <td className="money-cell">{formatMoney(item.ofRate)}<span>all-in {formatMoney(item.allInRate)}</span></td>
                           <td className="money-cell">
                             {item.marketRate !== null ? `${formatMoney(item.marketRate)} (${formatMoney(item.marketRateAllIn as number)})` : '-'}
-                            <span>{item.marketRate !== null ? '직접 Market · O/F (all-in)' : '기간 평균 fallback'}</span>
+                            <span>{item.marketRate !== null ? text.detail.directMarket : text.detail.averageFallback}</span>
                           </td>
-                          <td className="money-cell">{formatMoney(item.benchmarkRateOf)} ({formatMoney(item.benchmarkRate)})<span>{item.benchmarkSource === 'market' ? 'Market Rate · O/F (all-in)' : '기간 Avg · O/F (all-in)'}</span></td>
+                          <td className="money-cell">{formatMoney(item.benchmarkRateOf)} ({formatMoney(item.benchmarkRate)})<span>{item.benchmarkSource === 'market' ? 'Market Rate · O/F (all-in)' : `${text.status.average} · O/F (all-in)`}</span></td>
                           <td className="money-cell">
                             {formatMoney(item.periodAverage)} ({formatMoney(item.periodAverageAllIn)})
-                            <span>{item.benchmarkSampleCount} valid rates · O/F (all-in)</span>
+                            <span>{item.benchmarkSampleCount} {text.detail.periodAvgSource}</span>
                           </td>
                           <td className="gap-cell">
                             <strong>{formatSignedPct(item.gapPct)}</strong>
@@ -2023,7 +2418,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                         </tr>
                       )) : (
                         <tr>
-                          <td colSpan={12} className="empty-cell">선택한 조건에서 확인할 저운임 등록 운임이 없습니다.</td>
+                          <td colSpan={12} className="empty-cell">{text.detail.empty}</td>
                         </tr>
                       )}
                     </tbody>
@@ -2049,11 +2444,11 @@ function AppContent({ data }: { data: MonitoringData }) {
               <section>
                 <div className="panel-head compact">
                   <div>
-                    <p>Focus Lanes</p>
-                    <h2>확인 집중 구간</h2>
+                    <p>{text.focus.eyebrow}</p>
+                    <h2>{text.focus.title}</h2>
                   </div>
                 </div>
-                <p className="focus-note">현재 조회 조건의 확인 대상 운임을 Lane별로 묶어 저운임 건수, 저운임 화주수 순으로 정렬한 상위 10개입니다.</p>
+                <p className="focus-note">{text.focus.note}</p>
                 <div className="lane-list">
                   {laneSummary.length ? laneSummary.map((lane) => (
                     <article key={lane.lane}>
@@ -2061,67 +2456,67 @@ function AppContent({ data }: { data: MonitoringData }) {
                         <strong>{lane.lane}</strong>
                         <strong className="lane-count">{formatNumber(lane.count)}</strong>
                       </div>
-                      <span>Market 저운임 {lane.marketLow}건 · 기간 AVG 저운임 {lane.averageLow}건</span>
-                      <span>저운임 화주 {lane.lowShipperCount} · 직접 Market {lane.marketMapped}/{lane.activeCount}</span>
+                      <span>{text.focus.marketLow} {lane.marketLow}{language === 'ko' ? '건' : ''} · {text.focus.averageLow} {lane.averageLow}{language === 'ko' ? '건' : ''}</span>
+                      <span>{text.focus.lowShipper} {lane.lowShipperCount} · {text.focus.directMarket} {lane.marketMapped}/{lane.activeCount}</span>
                     </article>
-                  )) : <span className="muted">표시할 구간이 없습니다.</span>}
+                  )) : <span className="muted">{text.focus.empty}</span>}
                 </div>
               </section>
             </aside>
           )}
 
           {view === 'detail' && (
-            <RateDetailPanel rate={selectedCase} detail={selectedRateDetail} onClose={() => setSelectedCase(null)} />
+            <RateDetailPanel rate={selectedCase} detail={selectedRateDetail} language={language} onClose={() => setSelectedCase(null)} />
           )}
         </section>
 
         <section className="criteria-panel criteria-section">
           <div className="panel-head compact">
             <div>
-              <p>Criteria</p>
-              <h2>판단 기준</h2>
+              <p>{text.criteria.eyebrow}</p>
+              <h2>{text.criteria.title}</h2>
             </div>
             <Info size={17} aria-hidden="true" />
           </div>
           <dl>
             <div>
-              <dt>유효 운임</dt>
-              <dd>선택한 조회 기간과 Effective Start / End가 겹치는 등록 건. 동일 운임은 기간 안에서 한 번만 집계</dd>
+              <dt>{text.criteria.activeRatesTitle}</dt>
+              <dd>{text.criteria.activeRatesDesc}</dd>
             </div>
             <div>
-              <dt>비교 기준 (all-in)</dt>
-              <dd>모든 저운임 판정은 all-in 기준으로 비교합니다. Market guideline은 O/F 레벨이므로 해당 건의 서차지·로컬차지(all-in − O/F)를 더해 all-in으로 환산합니다. 표시는 O/F와 괄호 안 all-in을 함께 보여줍니다.</dd>
+              <dt>{text.criteria.allInTitle}</dt>
+              <dd>{text.criteria.allInDesc}</dd>
             </div>
             <div>
-              <dt>US향발 PSS/GRI</dt>
-              <dd>선적지 또는 도착지가 US인 운임은 PSS와 GRI를 비교 all-in 계산에서 제외합니다. 항목 자체는 운임파일 detail에 표시합니다.</dd>
+              <dt>{text.criteria.usTitle}</dt>
+              <dd>{text.criteria.usDesc}</dd>
             </div>
             <div>
-              <dt>Market 저운임</dt>
-              <dd>구간 · CNTR Size에 매핑된 Market Rate(GP · HC · TK, Cargo 00 Non-DG)를 all-in으로 환산한 값보다 등록 all-in이 낮은 건</dd>
+              <dt>{text.criteria.marketTitle}</dt>
+              <dd>{text.criteria.marketDesc}</dd>
             </div>
             <div>
-              <dt>기간 Avg 저운임</dt>
-              <dd>Market Rate가 없는 경우 조회 기간에 유효한 동일 구간 · CNTR Size · CNTR Type · Cargo · OOG Type · Full/Empty 비교군의 all-in 평균보다 등록 all-in이 낮은 건 (최소 3건 이상)</dd>
+              <dt>{text.criteria.averageTitle}</dt>
+              <dd>{text.criteria.averageDesc}</dd>
             </div>
             <div>
-              <dt>판정 Status</dt>
-              <dd>직접 Market Rate를 적용하면 Market 저운임, Market 미매핑으로 기간 평균을 적용하면 기간 Avg 저운임. 정상 건은 확인 대상 목록에서 제외</dd>
+              <dt>{text.criteria.statusTitle}</dt>
+              <dd>{text.criteria.statusDesc}</dd>
             </div>
             <div>
-              <dt>운임 파일 Status</dt>
-              <dd>원본 CSV의 APPROVAL_STATUS 코드. 현재 추출본에는 {approvalStatuses.map(formatApprovalStatus).join(', ') || '값 없음'} 포함</dd>
+              <dt>{text.criteria.fileStatusTitle}</dt>
+              <dd>{text.criteria.fileStatusPrefix} {approvalStatuses.map(formatApprovalStatus).join(', ') || text.criteria.noValue} {text.criteria.fileStatusSuffix}</dd>
             </div>
             <div>
-              <dt>평균 최소 표본</dt>
-              <dd>{data.metadata.marketAverageFallbackMinimumSamples}건 이상인 비교군만 기간 평균 fallback 적용</dd>
+              <dt>{text.criteria.minimumTitle}</dt>
+              <dd>{data.metadata.marketAverageFallbackMinimumSamples}{language === 'ko' ? '건 ' : ' '}{text.criteria.minimumSuffix}</dd>
             </div>
           </dl>
         </section>
 
         <aside className="data-note">
           <FileText size={14} aria-hidden="true" />
-          <span>저운임 판정은 all-in 기준입니다. US향발 PSS/GRI는 비교 all-in 계산에서 제외합니다. GP · HC · TK Non-DG는 Market Rate(O/F→all-in 환산)를 우선 적용하고, Market 미매핑 운임은 조회 기간 all-in 평균으로 fallback 합니다. 비정상 유효기간 {formatNumber(data.metadata.skippedInvalidDateRows)}건은 제외했습니다.</span>
+          <span>{text.criteria.footer.replace('{count}', formatNumber(data.metadata.skippedInvalidDateRows))}</span>
         </aside>
       </main>
     </div>

@@ -82,7 +82,14 @@ button {
 }
 
 .topbar-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
+}
+
+.language-toggle {
+  min-width: 72px;
+  font-weight: 800;
 }
 
 .icon-button,
