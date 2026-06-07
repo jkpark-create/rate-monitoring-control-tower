@@ -3,6 +3,7 @@ import {
   Anchor,
   AlertTriangle,
   BarChart3,
+  BookOpen,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -604,6 +605,107 @@ const UI_COPY = {
       close: 'Close',
       noMatches: 'No matches',
     },
+  },
+} as const;
+
+const USER_GUIDE_COPY = {
+  ko: {
+    button: '사용자 가이드',
+    eyebrow: 'User Guide',
+    title: '사용자 가이드',
+    subtitle: '운임파일 등록현황 모니터링을 업무 흐름 기준으로 빠르게 확인할 수 있도록 정리했습니다.',
+    close: '가이드 닫기',
+    sections: [
+      {
+        title: '1. 조회 조건 사용',
+        items: [
+          '기본 기간은 실행일 기준 금주 일요일부터 토요일까지입니다.',
+          '조회 조건은 집계와 상세가 분리되어 있어, 상세에서 조건을 바꿔도 집계 탭의 조건은 유지됩니다.',
+          '국가, 포트, CNTR, Cargo, OOG, 업체 필터는 검색 후 여러 값을 선택할 수 있습니다.',
+        ],
+      },
+      {
+        title: '2. 집계 분석 보기',
+        items: [
+          '선적지/도착지는 국가 단위로 먼저 보여주고, 국가 행을 클릭하면 포트 단위로 확장됩니다.',
+          '포트 행을 클릭하면 해당 조건이 상세 탭에 적용되어 확인 대상 운임 목록으로 이동합니다.',
+          '확인 집중 구간은 현재 집계 조건에서 저운임 건수와 저운임 화주수가 큰 Lane 상위 10개를 보여줍니다.',
+        ],
+      },
+      {
+        title: '3. 상세 검토',
+        items: [
+          '확인 대상 운임 행을 선택하면 오른쪽에서 운임파일 상세와 Charge 항목을 볼 수 있습니다.',
+          'Charge는 O/F, Surcharge, Local Charge로 구분하며 선적지 지불(P), 도착지 지불(C)을 함께 표시합니다.',
+          'AMOUNT, TARIFF, WAIVE, PERCENT 적용 방식은 등록 금액 아래에 표시됩니다. WAIVE는 비교 all-in에서 제외됩니다.',
+        ],
+      },
+      {
+        title: '4. 저운임 판단 기준',
+        items: [
+          '모든 저운임 판정은 O/F 단독이 아니라 all-in 기준으로 비교합니다.',
+          'Market Rate가 직접 매핑되면 Market 저운임으로 판단하고, 없으면 동일 조건의 기간 AVG로 fallback 합니다.',
+          'US 향발 운임은 PSS와 GRI를 비교 all-in 계산에서 제외하지만, 상세 Charge에는 표시합니다.',
+        ],
+      },
+      {
+        title: '5. 데이터 갱신과 확인',
+        items: [
+          '자동 갱신은 하루 2회, 06:30과 12:00 KST에 실행됩니다.',
+          '화면 상단의 Cache 시각으로 현재 화면이 읽고 있는 JSON 생성 시간을 확인할 수 있습니다.',
+          '상세 운영/배포 문서는 저장소의 docs/rate-monitoring-guide.md에 정리되어 있습니다.',
+        ],
+      },
+    ],
+  },
+  en: {
+    button: 'User Guide',
+    eyebrow: 'User Guide',
+    title: 'User Guide',
+    subtitle: 'A quick workflow guide for using the Rate Application Monitoring dashboard.',
+    close: 'Close guide',
+    sections: [
+      {
+        title: '1. Use Filters',
+        items: [
+          'The default period is the current week from Sunday to Saturday.',
+          'Summary and detail filters are separated, so changing detail filters does not overwrite the summary view.',
+          'Country, port, CNTR, Cargo, OOG, and company filters support search and multi-select.',
+        ],
+      },
+      {
+        title: '2. Review Aggregates',
+        items: [
+          'Origin and destination views start at country level. Click a country row to expand ports.',
+          'Click a port row to move to the detail tab with that condition applied.',
+          'Focus Lanes shows the top 10 lanes by low freight count and low freight shipper count under the current summary filters.',
+        ],
+      },
+      {
+        title: '3. Review Details',
+        items: [
+          'Select a low freight case row to open the rate detail and charge items on the right.',
+          'Charges are grouped as O/F, Surcharge, or Local Charge, with Origin Pay (P) and Destination Pay (C).',
+          'Application type is shown below the registered amount. WAIVE items are excluded from comparison all-in.',
+        ],
+      },
+      {
+        title: '4. Judgement Logic',
+        items: [
+          'Low freight judgement compares all-in values, not only O/F.',
+          'Direct Market matches are judged as Market Low. Unmapped cases fallback to Period AVG for the same condition group.',
+          'For US-bound/origin rates, PSS and GRI are excluded from comparison all-in but remain visible in charge detail.',
+        ],
+      },
+      {
+        title: '5. Data Refresh',
+        items: [
+          'The automated refresh runs twice a day at 06:30 and 12:00 KST.',
+          'Use the Cache timestamp in the header to check which generated JSON the screen is reading.',
+          'The detailed operation/deployment guide is stored at docs/rate-monitoring-guide.md in the repository.',
+        ],
+      },
+    ],
   },
 } as const;
 
@@ -1551,6 +1653,53 @@ function RateDetailPanel({ rate, detail, language, onClose }: { rate: LowRateCas
   );
 }
 
+function UserGuideModal({ language, onClose }: { language: Language; onClose: () => void }) {
+  const guide = USER_GUIDE_COPY[language];
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div className="guide-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="guide-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-guide-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="guide-modal-head">
+          <div>
+            <p>{guide.eyebrow}</p>
+            <h2 id="user-guide-title">{guide.title}</h2>
+            <span>{guide.subtitle}</span>
+          </div>
+          <button className="square-button" type="button" onClick={onClose} title={guide.close}>
+            <X size={16} aria-hidden="true" />
+          </button>
+        </div>
+        <div className="guide-section-list">
+          {guide.sections.map((section) => (
+            <article key={section.title}>
+              <h3>{section.title}</h3>
+              <ul>
+                {section.items.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function AppContent({ data }: { data: MonitoringData }) {
   const records = useMemo(() => decodeRecords(data), [data]);
   const [summaryFilters, setSummaryFilters] = useState<FilterState>(() => createDefaultFilters(data));
@@ -1562,6 +1711,7 @@ function AppContent({ data }: { data: MonitoringData }) {
   const [expandedDestinationCountries, setExpandedDestinationCountries] = useState<string[]>([]);
   const [selectedTrendCompany, setSelectedTrendCompany] = useState('');
   const [selectedCase, setSelectedCase] = useState<LowRateCase | null>(null);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [language, setLanguage] = useState<Language>(() => {
     try {
       return localStorage.getItem(LANGUAGE_STORAGE_KEY) === 'en' ? 'en' : 'ko';
@@ -1971,6 +2121,10 @@ function AppContent({ data }: { data: MonitoringData }) {
           </aside>
         </div>
         <div className="topbar-actions">
+          <button className="icon-button" type="button" onClick={() => setIsGuideOpen(true)}>
+            <BookOpen size={15} aria-hidden="true" />
+            {USER_GUIDE_COPY[language].button}
+          </button>
           <a className="icon-button" href={RATE_DASHBOARD_URL} target="_blank" rel="noreferrer">
             <ExternalLink size={15} aria-hidden="true" />
             {text.dashboardLink}
@@ -1981,6 +2135,7 @@ function AppContent({ data }: { data: MonitoringData }) {
           </button>
         </div>
       </header>
+      {isGuideOpen && <UserGuideModal language={language} onClose={() => setIsGuideOpen(false)} />}
 
       <main>
         {!data.metadata.chargeDetailAvailable && (

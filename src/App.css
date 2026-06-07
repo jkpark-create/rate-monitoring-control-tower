@@ -971,6 +971,92 @@ table.summary-company-table td:not(:first-child) {
   grid-column: 1 / -1;
 }
 
+.guide-backdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(32, 39, 46, 0.32);
+}
+
+.guide-modal {
+  width: min(880px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  overflow: auto;
+  border: 1px solid #dce3e0;
+  border-radius: 10px;
+  background: #fbfcfb;
+  box-shadow: 0 22px 70px rgba(32, 39, 46, 0.22);
+}
+
+.guide-modal-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #dce3e0;
+  background: rgba(251, 252, 251, 0.96);
+  backdrop-filter: blur(12px);
+}
+
+.guide-modal-head p {
+  margin: 0 0 4px;
+  color: #687580;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guide-modal-head h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.guide-modal-head span {
+  display: block;
+  margin-top: 7px;
+  color: #6b7780;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.guide-section-list {
+  display: grid;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.guide-section-list article {
+  padding: 14px;
+  border: 1px solid #e2e8e5;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.guide-section-list h3 {
+  margin: 0 0 9px;
+  color: #26323a;
+  font-size: 14px;
+}
+
+.guide-section-list ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: #4d5a63;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .detail-charge-section {
   min-width: 0;
   margin-top: 14px;
@@ -1301,6 +1387,22 @@ table.summary-company-table td:not(:first-child) {
 
   .scope-bar {
     top: 0;
+  }
+
+  .guide-backdrop {
+    padding: 10px;
+  }
+
+  .guide-modal {
+    max-height: calc(100vh - 20px);
+  }
+
+  .guide-modal-head {
+    padding: 14px;
+  }
+
+  .guide-section-list {
+    padding: 12px 14px 14px;
   }
 
   main {
