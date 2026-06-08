@@ -220,10 +220,15 @@ def refresh(args):
         raise FileNotFoundError(f"Rate-base CSV does not exist: {source_file}")
 
     if not args.skip_guideline:
-        command = [sys.executable, str(ROOT / "scripts" / "sync-sea-guideline.py")]
-        if args.refresh_guideline:
-            command.append("--refresh")
-        run(command)
+        guideline_scripts = [
+            ROOT / "scripts" / "sync-china-guideline.py",
+            ROOT / "scripts" / "sync-sea-guideline.py",
+        ]
+        for index, script in enumerate(guideline_scripts):
+            command = [sys.executable, str(script)]
+            if args.refresh_guideline and index == 0:
+                command.append("--refresh")
+            run(command)
 
     build_env = os.environ.copy()
     if source_file.exists():

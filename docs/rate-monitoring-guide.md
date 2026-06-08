@@ -11,7 +11,7 @@
 - Rate Base: `scripts/extract-rate-base.sql`
 - Basic Tariff: `scripts/extract-basic-tariff.sql`
 - Route: `scripts/extract-rate-route.sql`
-- CN/HK Market Rate guideline
+- CN/HK Market Rate guideline: `scripts/sync-china-guideline.py`
 - SEA/ETC working-rate guideline: `scripts/sync-sea-guideline.py`
 - JSON 생성: `scripts/build-weekly-data.py`
 
@@ -38,7 +38,7 @@ Market guideline / SEA guideline 동기화
 - 유효 운임: 조회 기간과 `EFFECTIVE_START_DATE` / `EFFECTIVE_END_DATE`가 겹치는 운임.
 - 비교 대상: O/F가 등록된 `Origin Sales` 운임 행.
 - 비교 기준: 모든 저운임 판정은 all-in 기준입니다.
-- Market 저운임: 구간, CNTR Size 기준 Market Rate가 직접 매핑되면 Market O/F를 all-in으로 환산해 등록 all-in과 비교합니다.
+- Market 저운임: 구간, CNTR Size 기준 Market Rate가 직접 매핑되면 Market O/F를 all-in으로 환산해 등록 all-in과 비교합니다. CN/HK는 Rate Dashboard와 동일하게 CD tier를 우선 적용합니다.
 - 기간 Avg 저운임: Market Rate가 없으면 동일 구간, CNTR Size, CNTR Type, Cargo Type, OOG Type, Full/Empty의 기간 평균 all-in으로 fallback 합니다.
 - 기간 평균 fallback은 비교군이 최소 3건 이상일 때만 적용합니다.
 - US 향발 운임은 PSS와 GRI를 비교 all-in 계산에서 제외합니다. 단, 상세 항목에는 표시합니다.
@@ -70,6 +70,16 @@ Lane
 3. Market Rate가 직접 매핑되면 Market Rate를 우선 사용합니다.
 4. Market Rate가 없으면 같은 비교키의 기간 평균 all-in을 사용합니다.
 5. 등록 all-in이 기준 all-in보다 낮으면 확인 대상 저운임으로 표시합니다.
+
+### CN/HK Market Rate 매핑
+
+CN/HK Market Rate는 기존 `kmtc-rate-dashboard`와 같은 원천 엑셀을 사용합니다. 화면에서 사용자가 보는 기준과 다르지 않도록 CD tier를 우선 적용하고, 동일 주차에 같은 구간이 복수 행으로 존재하면 Rate Dashboard와 동일하게 평균값을 사용합니다.
+
+포트 매핑도 Market Rate 시트 기준으로 정규화합니다.
+
+- `SHK`, `YTN` 출발은 `SZP` Market Rate를 사용합니다.
+- `NNS` 출발은 `CAN` Market Rate를 사용합니다.
+- 예: `SHK -> BKK 20GP`는 `SZP -> BKK 20'` 기준을 사용하고, `40GP/40HC`는 `SZP -> BKK 40'` 기준을 사용합니다.
 
 ### Market Rate를 all-in으로 환산하는 이유
 

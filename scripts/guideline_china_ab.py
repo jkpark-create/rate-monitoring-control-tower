@@ -1,4 +1,4 @@
-"""CN/HK AB Customer guideline rates captured from the Drive guideline sheet.
+"""CN/HK market-rate guideline rates captured from the Drive guideline sheet.
 
 The Google Sheet is the source of truth. This compact table keeps the static
 dashboard build deployable on GitHub Pages without publishing the workbook.
@@ -7,6 +7,11 @@ Rates are O/F-style 20' and 40' guideline amounts by origin sheet and POD.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
+
+DATA_FILE = Path(__file__).with_name("guideline_china_hk.json")
 
 ORIGIN_TO_SHEET = {
     "SHA": "SHA",
@@ -14,16 +19,18 @@ ORIGIN_TO_SHEET = {
     "TAO": "TAO",
     "HKG": "HKG",
     "XGG": "XGG",
-    "SHK": "XGG",
-    "NNS": "XGG",
-    "SZP": "XGG",
-    "YTN": "XGG",
+    "SHK": "SZP",
+    "NNS": "CAN",
+    "SZP": "SZP",
+    "YTN": "SZP",
+    "CAN": "CAN",
     "DLC": "DLC",
     "DCB": "DLC",
     "XMN": "XMN",
     "FQG": "XMN",
     "NKG": "NKG",
     "LYG": "NKG",
+    "MX": "MX",
 }
 
 CN_HK_COUNTRIES = {"CN", "HK"}
@@ -263,6 +270,21 @@ def normalize_port(value):
     return "".join(ch for ch in (value or "").upper().strip() if ch.isalnum())
 
 
+def _load_generated_guideline():
+    if not DATA_FILE.exists():
+        return {}, {}
+    payload = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+    aliases = {
+        normalize_port(origin): normalize_port(sheet)
+        for origin, sheet in payload.get("originAliases", {}).items()
+    }
+    return payload.get("routes", {}), aliases
+
+
+GENERATED_ROUTES, GENERATED_ALIASES = _load_generated_guideline()
+ORIGIN_TO_SHEET.update(GENERATED_ALIASES)
+
+
 def is_china_hk_origin(por_port, por_country):
     port = normalize_port(por_port)
     country = normalize_port(por_country)
@@ -282,6 +304,17 @@ def guideline_rate_for(por_port, dly_port, container_size, container_type=""):
     if not size_key:
         return None
 
+    route = GENERATED_ROUTES.get(f"{sheet}|{destination}")
+    if route is not None and route.get(size_key) is not None:
+        week = route.get(f"{size_key}Week")
+        return {
+            "amount": float(route[size_key]),
+            "originSheet": route.get("sheet", sheet),
+            "destination": destination,
+            "size": size_key,
+            "source": f"{route.get('sheet', sheet)} CD Customer {size_key}'" + (f" {week}" if week else ""),
+        }
+
     rates = GUIDELINE_RATES.get(sheet, {}).get(destination)
     if rates is None:
         return None
@@ -292,13 +325,13 @@ def guideline_rate_for(por_port, dly_port, container_size, container_type=""):
         "originSheet": sheet,
         "destination": destination,
         "size": size_key,
-        "source": f"{sheet} AB Customer {size_key}'",
+        "source": f"{sheet} legacy market {size_key}'",
     }
 
 
 GUIDELINE_SOURCE_SUMMARY = {
     "sheet": "[CN/HK] Market Rate",
-    "customerBasis": "AB Customer",
+    "customerBasis": "CD Customer",
     "comparisonRate": "OF_RATE",
     "originSheets": sorted(GUIDELINE_RATES),
 }

@@ -438,6 +438,7 @@
         <div class="mini-card">
           <h3>Market 저운임</h3>
           <p>구간과 CNTR Size 기준 Market Rate가 직접 매핑되는 경우 사용합니다. Market guideline은 O/F 레벨이므로, 해당 운임의 surcharge/local charge 차이를 더해 all-in 기준으로 환산한 뒤 등록 all-in과 비교합니다. 이 기준은 명확한 외부/가이드 기준이 있으므로 확인 우선순위가 높습니다.</p>
+          <p>CN/HK Market Rate는 Rate Dashboard와 동일한 CD tier를 우선 적용합니다. 동일 주차·동일 구간에 복수 행이 있으면 Rate Dashboard처럼 평균값을 사용합니다. 포트 매핑은 Market Rate 시트 기준으로 `SHK/YTN → SZP`, `NNS → CAN`을 적용합니다. 예를 들어 `SHK → BKK 20GP`는 `SZP → BKK 20'`, `40GP/40HC`는 `SZP → BKK 40'` 기준과 비교합니다.</p>
         </div>
         <div class="mini-card">
           <h3>기간 AVG 저운임</h3>
@@ -486,6 +487,7 @@
         <div class="mini-card">
           <h3>Market Low</h3>
           <p>Used when Market Rate is directly mapped by lane and CNTR Size. Because Market guideline is O/F-level, the record's surcharge/local charge delta is added to convert it to all-in before comparison. This is generally the higher-priority case because the benchmark is explicit.</p>
+          <p>CN/HK Market Rate follows the same CD tier basis as the Rate Dashboard. If multiple rows exist for the same route in the same latest week, their values are averaged just like the Rate Dashboard. Port mapping follows the market sheet basis: `SHK/YTN → SZP`, `NNS → CAN`. For example, `SHK → BKK 20GP` is compared with `SZP → BKK 20'`, and `40GP/40HC` with `SZP → BKK 40'`.</p>
         </div>
         <div class="mini-card">
           <h3>Period AVG Low</h3>
