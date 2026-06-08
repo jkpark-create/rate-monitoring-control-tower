@@ -206,6 +206,8 @@ type LaneBenchmark = {
 };
 
 type IssueStatus = 'market' | 'average';
+type DetailStatus = IssueStatus | 'normal';
+type BenchmarkSource = IssueStatus | 'none';
 
 type LowRateCase = RateRecord & {
   status: IssueStatus;
@@ -218,6 +220,20 @@ type LowRateCase = RateRecord & {
   benchmarkSampleCount: number;
   gapAmount: number;              // all-in 기준 gap
   gapPct: number;                 // all-in 기준 gap
+};
+
+type DetailRateRow = RateRecord & {
+  status: DetailStatus;
+  benchmarkRate: number | null;
+  benchmarkRateOf: number;
+  benchmarkSource: BenchmarkSource;
+  periodAverage: number;
+  periodAverageAllIn: number;
+  marketRateAllIn: number | null;
+  benchmarkSampleCount: number;
+  gapAmount: number | null;
+  gapPct: number | null;
+  isLow: boolean;
 };
 
 type ScopeFilters = {
@@ -422,6 +438,7 @@ const UI_COPY = {
     status: {
       market: 'Market 저운임',
       average: '기간 Avg 저운임',
+      normal: '정상',
       all: 'All',
     },
     multiSelect: {
@@ -598,6 +615,7 @@ const UI_COPY = {
     status: {
       market: 'Market Low',
       average: 'Period AVG Low',
+      normal: 'Normal',
       all: 'All',
     },
     multiSelect: {
@@ -828,9 +846,10 @@ function isAllowedGoogleProfile(profile: GoogleProfile) {
   return ALLOWED_GOOGLE_DOMAINS.includes(emailDomain) || ALLOWED_GOOGLE_DOMAINS.includes(hostedDomain);
 }
 
-const statusTone: Record<IssueStatus, string> = {
+const statusTone: Record<DetailStatus, string> = {
   market: 'orange',
   average: 'amber',
+  normal: 'neutral',
 };
 
 const CARGO_TYPE_LABELS: Record<string, string> = {
@@ -1177,16 +1196,65 @@ function buildCases(activeRates: RateRecord[], minimumSamples: number) {
   return cases.sort((a, b) => b.gapPct - a.gapPct || b.gapAmount - a.gapAmount);
 }
 
+function buildDetailRows(activeRates: RateRecord[], minimumSamples: number) {
+  // Search rows include every active rate file; low-freight judgement stays all-in based.
+  const ofBenchmarks = new Map<string, LaneBenchmark>();
+  const allInBenchmarks = new Map<string, LaneBenchmark>();
+  for (const rate of activeRates) {
+    const ofBench = ofBenchmarks.get(rate.comparisonKey) ?? { sum: 0, count: 0 };
+    ofBench.sum += rate.ofRate;
+    ofBench.count += 1;
+    ofBenchmarks.set(rate.comparisonKey, ofBench);
+    const allInBench = allInBenchmarks.get(rate.comparisonKey) ?? { sum: 0, count: 0 };
+    allInBench.sum += rate.allInRate;
+    allInBench.count += 1;
+    allInBenchmarks.set(rate.comparisonKey, allInBench);
+  }
+
+  return activeRates.map<DetailRateRow>((rate) => {
+    const ofBench = ofBenchmarks.get(rate.comparisonKey) ?? { sum: 0, count: 0 };
+    const allInBench = allInBenchmarks.get(rate.comparisonKey) ?? { sum: 0, count: 0 };
+    const periodAverage = ofBench.count ? ofBench.sum / ofBench.count : 0;
+    const periodAverageAllIn = allInBench.count ? allInBench.sum / allInBench.count : 0;
+    const surchargeDelta = rate.allInRate - rate.ofRate;
+    const hasMarket = rate.marketRate !== null;
+    const marketRateAllIn = hasMarket ? (rate.marketRate as number) + surchargeDelta : null;
+    const benchmarkRateOf = hasMarket ? (rate.marketRate as number) : periodAverage;
+    const benchmarkRate = hasMarket
+      ? (marketRateAllIn as number)
+      : (allInBench.count >= minimumSamples ? periodAverageAllIn : null);
+    const isLow = benchmarkRate !== null && rate.allInRate < benchmarkRate;
+    const gapAmount = benchmarkRate === null ? null : benchmarkRate - rate.allInRate;
+    const gapPct = benchmarkRate ? (gapAmount as number) / benchmarkRate : null;
+
+    return {
+      ...rate,
+      status: isLow ? (hasMarket ? 'market' : 'average') : 'normal',
+      benchmarkRate,
+      benchmarkRateOf,
+      benchmarkSource: benchmarkRate === null ? 'none' : hasMarket ? 'market' : 'average',
+      periodAverage,
+      periodAverageAllIn,
+      marketRateAllIn,
+      benchmarkSampleCount: ofBench.count,
+      gapAmount,
+      gapPct,
+      isLow,
+    };
+  });
+}
+
 function buildPeriodAnalysis(records: RateRecord[], periodStart: string, periodEnd: string, minimumSamples: number) {
   const activeRates = records.filter((record) => overlapsRange(record, periodStart, periodEnd));
 
   return {
     activeRates,
+    rows: buildDetailRows(activeRates, minimumSamples),
     cases: buildCases(activeRates, minimumSamples),
   };
 }
 
-function StatusBadge({ status, language }: { status: IssueStatus; language: Language }) {
+function StatusBadge({ status, language }: { status: DetailStatus; language: Language }) {
   return <span className={`status-badge status-${statusTone[status]}`}>{UI_COPY[language].status[status]}</span>;
 }
 
@@ -1526,7 +1594,7 @@ function RateBreakdown({ detail, language }: { detail: RateDetail; language: Lan
   );
 }
 
-function RateDetailPanel({ rate, detail, language, onClose }: { rate: LowRateCase | null; detail: RateDetail | null; language: Language; onClose: () => void }) {
+function RateDetailPanel({ rate, detail, language, onClose }: { rate: DetailRateRow | null; detail: RateDetail | null; language: Language; onClose: () => void }) {
   const text = UI_COPY[language].detail;
   if (!rate) {
     return (
@@ -1555,8 +1623,8 @@ function RateDetailPanel({ rate, detail, language, onClose }: { rate: LowRateCas
         <div><span>{text.validPeriodShort}</span><strong>{formatDate(rate.effectiveStart)} ~ {formatDate(rate.effectiveEnd)}</strong></div>
         <div className="detail-wide"><span>{text.cargoProfile}</span><strong>{formatCargoType(rate.cargoType)} / {formatOogType(rate.specialCargoType)} / {formatFullEmptyType(rate.fullEmptyType)}</strong></div>
         <div><span>{text.registeredDetail}</span><strong>{formatMoney(rate.ofRate)} ({formatMoney(rate.allInRate)})</strong></div>
-        <div><span>{text.gapBasis}</span><strong>{rate.gapPct ? `${formatSignedPct(rate.gapPct)} / ${formatMoney(rate.gapAmount)}` : '-'}</strong></div>
-        <div><span>{text.appliedBenchmark}</span><strong>{formatMoney(rate.benchmarkRate)} / {rate.benchmarkSource === 'market' ? 'Market Rate' : UI_COPY[language].status.average}</strong></div>
+        <div><span>{text.gapBasis}</span><strong>{rate.isLow && rate.gapPct !== null && rate.gapAmount !== null ? `${formatSignedPct(rate.gapPct)} / ${formatMoney(rate.gapAmount)}` : '-'}</strong></div>
+        <div><span>{text.appliedBenchmark}</span><strong>{rate.benchmarkRate !== null ? `${formatMoney(rate.benchmarkRate)} / ${rate.benchmarkSource === 'market' ? 'Market Rate' : UI_COPY[language].status.average}` : '-'}</strong></div>
         <div><span>{text.salesStaff}</span><strong>{rate.staff}</strong></div>
         <div className="detail-wide"><span>{text.company}</span><strong>{rate.shipperCode || '-'} / {rate.shipperName || '-'}</strong></div>
       </div>
@@ -1575,7 +1643,7 @@ function AppContent({ data }: { data: MonitoringData }) {
   const [expandedOriginCountries, setExpandedOriginCountries] = useState<string[]>([]);
   const [expandedDestinationCountries, setExpandedDestinationCountries] = useState<string[]>([]);
   const [selectedTrendCompany, setSelectedTrendCompany] = useState('');
-  const [selectedCase, setSelectedCase] = useState<LowRateCase | null>(null);
+  const [selectedCase, setSelectedCase] = useState<DetailRateRow | null>(null);
   const [language, setLanguage] = useState<Language>(() => {
     try {
       return localStorage.getItem(LANGUAGE_STORAGE_KEY) === 'en' ? 'en' : 'ko';
@@ -1612,10 +1680,16 @@ function AppContent({ data }: { data: MonitoringData }) {
   const summaryCases = useMemo(() => summaryPeriodAnalysis.cases.filter((item) => matchesScope(item, summaryScope)), [summaryPeriodAnalysis.cases, summaryScope]);
   const detailRates = useMemo(() => detailPeriodAnalysis.activeRates.filter((rate) => matchesScope(rate, detailScope)), [detailPeriodAnalysis.activeRates, detailScope]);
   const detailCases = useMemo(() => detailPeriodAnalysis.cases.filter((item) => matchesScope(item, detailScope)), [detailPeriodAnalysis.cases, detailScope]);
+  const detailRows = useMemo(() => detailPeriodAnalysis.rows.filter((item) => matchesScope(item, detailScope)), [detailPeriodAnalysis.rows, detailScope]);
   const filteredCases = useMemo(() => {
     const normalizedQuery = detailFilters.query.trim().toLowerCase();
-    return detailCases.filter((item) => {
-      if (detailFilters.status.length && !detailFilters.status.includes(item.status)) {
+    const sourceRows: DetailRateRow[] = normalizedQuery ? detailRows : detailCases.map((item) => ({
+      ...item,
+      isLow: true,
+    }));
+
+    return sourceRows.filter((item) => {
+      if (detailFilters.status.length && (item.status === 'normal' || !detailFilters.status.includes(item.status))) {
         return false;
       }
       if (!normalizedQuery) {
@@ -1638,17 +1712,18 @@ function AppContent({ data }: { data: MonitoringData }) {
         .toLowerCase()
         .includes(normalizedQuery);
     });
-  }, [detailCases, detailFilters.query, detailFilters.status]);
+  }, [detailCases, detailFilters.query, detailFilters.status, detailRows]);
 
   useEffect(() => {
     setPage(1);
   }, [detailFilters]);
 
+  const filteredLowCases = useMemo(() => filteredCases.filter((item) => item.isLow), [filteredCases]);
   const pageCount = Math.max(1, Math.ceil(filteredCases.length / PAGE_SIZE));
   const visibleCases = filteredCases.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const currentFilterCount = activeFilterCount(activeFilters);
   const currentRates = view === 'summary' ? summaryRates : detailRates;
-  const currentCases = view === 'summary' ? summaryCases : filteredCases;
+  const currentCases = view === 'summary' ? summaryCases : filteredLowCases;
   const toOptions = (values: string[], labelFn: (value: string) => string = (value) => value): FilterOption[] => values.map((value) => ({ value, label: labelFn(value) }));
   const originCountries = useMemo(() => unique(records.map((item) => item.porCountry)), [records]);
   const originCountryOptions = useMemo(() => toOptions(originCountries), [originCountries]);
@@ -2040,15 +2115,6 @@ function AppContent({ data }: { data: MonitoringData }) {
                 onChange={(event) => event.target.value && setActiveFilters((current) => ({ ...current, periodEnd: event.target.value }))}
               />
             </label>
-            {view === 'detail' && (
-              <label className="query-filter">
-                <span>{text.filter.rateSearch}</span>
-                <div>
-                  <Search size={14} aria-hidden="true" />
-                  <input value={activeFilters.query} onChange={(event) => setActiveFilters((current) => ({ ...current, query: event.target.value }))} placeholder={text.filter.ratePlaceholder} />
-                </div>
-              </label>
-            )}
             <MultiSelectFilter language={language} label={text.filter.originCountry} options={originCountryOptions} values={activeFilters.originCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, originCountry: values, originPort: [] }))} />
             <MultiSelectFilter language={language} label={text.filter.originPort} options={originPortOptions} values={activeFilters.originPort} onChange={(values) => setActiveFilters((current) => ({ ...current, originPort: values }))} />
             <MultiSelectFilter language={language} label={text.filter.destinationCountry} options={destinationCountryOptions} values={activeFilters.destinationCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, destinationCountry: values, destinationPort: [] }))} />
@@ -2060,6 +2126,15 @@ function AppContent({ data }: { data: MonitoringData }) {
             <MultiSelectFilter language={language} className="full-empty-filter" label={text.filter.fullEmpty} options={fullEmptyTypeOptions} values={activeFilters.fullEmptyType} onChange={(values) => setActiveFilters((current) => ({ ...current, fullEmptyType: values }))} />
             <MultiSelectFilter language={language} label={text.filter.staff} options={staffFilterOptions} values={activeFilters.staff} onChange={(values) => setActiveFilters((current) => ({ ...current, staff: values }))} />
             <MultiSelectFilter language={language} className="company-filter" label={text.filter.company} options={companyOptions} values={activeFilters.company} onChange={(values) => setActiveFilters((current) => ({ ...current, company: values }))} />
+            {view === 'detail' && (
+              <label className="query-filter">
+                <span>{text.filter.rateSearch}</span>
+                <div>
+                  <Search size={14} aria-hidden="true" />
+                  <input value={activeFilters.query} onChange={(event) => setActiveFilters((current) => ({ ...current, query: event.target.value }))} placeholder={text.filter.ratePlaceholder} />
+                </div>
+              </label>
+            )}
           </div>
           <div className="filter-grid legacy-filter-grid" aria-hidden="true">
             <label className="date-filter">
@@ -2411,14 +2486,23 @@ function AppContent({ data }: { data: MonitoringData }) {
                             {item.marketRate !== null ? `${formatMoney(item.marketRate)} (${formatMoney(item.marketRateAllIn as number)})` : '-'}
                             <span>{item.marketRate !== null ? text.detail.directMarket : text.detail.averageFallback}</span>
                           </td>
-                          <td className="money-cell">{formatMoney(item.benchmarkRateOf)} ({formatMoney(item.benchmarkRate)})<span>{item.benchmarkSource === 'market' ? 'Market Rate · O/F (all-in)' : `${text.status.average} · O/F (all-in)`}</span></td>
+                          <td className="money-cell">
+                            {item.benchmarkRate !== null ? `${formatMoney(item.benchmarkRateOf)} (${formatMoney(item.benchmarkRate)})` : '-'}
+                            <span>{item.benchmarkSource === 'market' ? 'Market Rate · O/F (all-in)' : item.benchmarkSource === 'average' ? `${text.status.average} · O/F (all-in)` : '-'}</span>
+                          </td>
                           <td className="money-cell">
                             {formatMoney(item.periodAverage)} ({formatMoney(item.periodAverageAllIn)})
                             <span>{item.benchmarkSampleCount} {text.detail.periodAvgSource}</span>
                           </td>
                           <td className="gap-cell">
-                            <strong>{formatSignedPct(item.gapPct)}</strong>
-                            <span>{formatMoney(item.gapAmount)}</span>
+                            {item.isLow && item.gapPct !== null && item.gapAmount !== null ? (
+                              <>
+                                <strong>{formatSignedPct(item.gapPct)}</strong>
+                                <span>{formatMoney(item.gapAmount)}</span>
+                              </>
+                            ) : (
+                              <span>-</span>
+                            )}
                           </td>
                           <td>{item.staff}</td>
                           <td><strong>{item.shipperCode || '-'}</strong><span>{item.shipperName || 'No company name'}</span></td>

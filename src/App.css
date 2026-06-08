@@ -844,6 +844,11 @@ table.summary-company-table td:not(:first-child) {
   color: #806316;
 }
 
+.status-neutral {
+  background: #edf1f2;
+  color: #52646f;
+}
+
 .empty-cell {
   padding: 44px 16px;
   color: #6b7780;

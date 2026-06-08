@@ -20,6 +20,7 @@ BASIC_TARIFF_FILE = ROOT / "data" / "basic-tariff-latest.csv"
 RATE_ROUTE_FILE = ROOT / "data" / "rate-route-latest.csv"
 OUTPUT_FILE = ROOT / "public" / "data" / "weekly-monitoring.json"
 RECENT_WEEK_COUNT = 32
+FUTURE_WINDOW_DAYS = 395
 HQ_ROUTE_TEAMS = ("OBT", "EST", "IST", "JBT")
 MARKET_CONTAINER_TYPES = ("GP", "HC", "TK")
 MARKET_NON_DG_CARGO_TYPE = "00"
@@ -744,7 +745,8 @@ while cursor <= default_week:
     cursor += timedelta(days=7)
 
 window_end = default_week + timedelta(days=6)
-records = [record for record in records if record[1] <= iso_date(window_end) and record[2] >= iso_date(first_week)]
+data_window_end = window_end + timedelta(days=FUTURE_WINDOW_DAYS)
+records = [record for record in records if record[1] <= iso_date(data_window_end) and record[2] >= iso_date(first_week)]
 
 payload = {
     "metadata": {
@@ -755,7 +757,7 @@ payload = {
         "latestSourceDate": iso_date(latest_source_date),
         "defaultWeek": iso_date(default_week),
         "availableStartDate": iso_date(first_week),
-        "availableEndDate": iso_date(window_end),
+        "availableEndDate": iso_date(data_window_end),
         "approvalStatusLabels": APPROVAL_STATUS_LABELS,
         "comparisonRate": "ALL_IN_RATE",
         "marketComparisonRate": "OF_RATE guideline -> all-in (guideline O/F + record surcharge delta)",
@@ -831,6 +833,7 @@ replace_file(output_temp, OUTPUT_FILE)
 print(f"Wrote {OUTPUT_FILE.relative_to(ROOT)}")
 print(f"Focused O/F records: {len(records):,}")
 print(f"Weeks: {weeks[0]['value']} ~ {weeks[-1]['value']}")
+print(f"Data window: {iso_date(first_week)} ~ {iso_date(data_window_end)}")
 print(f"Skipped invalid-date rows: {skipped_invalid_date_rows:,}")
 if not charge_detail_available:
     print("WARNING: Source CSV has no CHARGE_DETAIL_LIST column. Charge rows remain legacy summaries.")
