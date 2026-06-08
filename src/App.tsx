@@ -1437,16 +1437,19 @@ function MultiSelectFilter({
             <button type="button" onClick={() => setOpen(false)}>{text.close}</button>
           </div>
           <div className="multi-options">
-            {visibleOptions.length ? visibleOptions.map((option) => (
-              <label className="multi-option" key={option.value}>
-                <input
-                  checked={selectedSet.has(option.value)}
-                  type="checkbox"
-                  onChange={() => toggleValue(option.value)}
-                />
-                <span>{option.label}</span>
-              </label>
-            )) : <div className="multi-empty">{text.noMatches}</div>}
+            {visibleOptions.length ? visibleOptions.map((option) => {
+              const selected = selectedSet.has(option.value);
+              return (
+                <label className={`multi-option${selected ? ' selected' : ''}`} key={option.value}>
+                  <input
+                    checked={selected}
+                    type="checkbox"
+                    onChange={() => toggleValue(option.value)}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              );
+            }) : <div className="multi-empty">{text.noMatches}</div>}
           </div>
         </div>
       )}
