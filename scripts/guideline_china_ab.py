@@ -312,7 +312,7 @@ def guideline_rate_for(por_port, dly_port, container_size, container_type=""):
             "originSheet": route.get("sheet", sheet),
             "destination": destination,
             "size": size_key,
-            "source": f"{route.get('sheet', sheet)} CD Customer {size_key}'" + (f" {week}" if week else ""),
+            "source": f"{route.get('sheet', sheet)} AB Customer {size_key}'" + (f" {week}" if week else ""),
         }
 
     rates = GUIDELINE_RATES.get(sheet, {}).get(destination)
@@ -331,7 +331,7 @@ def guideline_rate_for(por_port, dly_port, container_size, container_type=""):
 
 GUIDELINE_SOURCE_SUMMARY = {
     "sheet": "[CN/HK] Market Rate",
-    "customerBasis": "CD Customer",
+    "customerBasis": "AB Customer",
     "comparisonRate": "OF_RATE",
     "originSheets": sorted(GUIDELINE_RATES),
 }

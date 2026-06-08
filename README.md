@@ -118,5 +118,5 @@ npm run build
 ```
 
 최신 CN/HK 및 SEA/ETC Google Drive 파일까지 다시 받은 뒤 데이터를 만들려면 `npm run data:fresh`를 실행합니다.
-CN/HK 동기화는 `organizing rate file` 프로젝트의 parser를 재사용하며, Rate Dashboard와 동일하게 CD tier를 우선 적용하고 동일 주차에 복수 행이 있으면 평균값을 사용합니다. 포트 매핑은 `SHK/YTN -> SZP`, `NNS -> CAN`처럼 현재 Market Rate 시트 기준으로 정규화합니다.
+CN/HK 동기화는 `organizing rate file` 프로젝트의 parser를 재사용하며, AB Customer tier를 적용하고 동일 주차에 복수 행이 있으면 평균값을 사용합니다. 포트 매핑은 `SHK/YTN -> SZP`, `NNS -> CAN`처럼 현재 Market Rate 시트 기준으로 정규화합니다.
 SEA/ETC 동기화는 `organizing rate file` 프로젝트의 parser를 재사용하며, 복수 POL/POD를 Route별로 펼치고 `LKB = LCH + $100/$150` 규칙을 반영합니다.

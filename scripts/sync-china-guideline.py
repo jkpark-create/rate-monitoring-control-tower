@@ -42,16 +42,17 @@ def destination_ports(pod_port):
     return (normalized,) if re.fullmatch(r"[A-Z0-9]{2,5}", normalized) else ()
 
 
-def filter_cd_only(rates):
-    cd_routes = {
+def filter_ab_customer(rates):
+    ab_routes = {
         (row.get("src"), row.get("pol"), row.get("pod_port"))
         for row in rates
-        if row.get("tier") == "CD"
+        if row.get("tier") == "AB"
     }
     return [
         row
         for row in rates
-        if not (row.get("tier") == "AB" and (row.get("src"), row.get("pol"), row.get("pod_port")) in cd_routes)
+        if row.get("tier") == "AB"
+        or ((row.get("src"), row.get("pol"), row.get("pod_port")) not in ab_routes and row.get("tier") != "CD")
     ]
 
 
@@ -79,7 +80,7 @@ def dashboard_round(value):
 
 def build_routes(rates):
     buckets = {}
-    for row in filter_cd_only(rates):
+    for row in filter_ab_customer(rates):
         if row.get("src") != "CN_HK":
             continue
         origin = normalize_code(row.get("pol"))
@@ -130,7 +131,7 @@ def main():
     rates = organizing_parser.clean_rates(organizing_parser.parse_file2())
     routes = build_routes(rates)
     payload = {
-        "basis": "Latest visible CN/HK Market Rate CD tier by route and container size",
+        "basis": "Latest visible CN/HK Market Rate AB Customer tier by route and container size",
         "generatedAt": datetime.now().isoformat(timespec="seconds"),
         "routes": routes,
         "originAliases": {
