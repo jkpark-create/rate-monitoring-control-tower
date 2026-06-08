@@ -91,10 +91,8 @@ def build_routes(rates):
 
 
 def refresh_source(source):
-    updater = source / "update_rates.py"
-    if not updater.exists():
-        raise FileNotFoundError(f"Missing organizing rate updater: {updater}")
-    subprocess.run([sys.executable, str(updater), "--dry-run"], cwd=source, check=True)
+    downloader = ROOT / "scripts" / "download-market-guidelines.py"
+    subprocess.run([sys.executable, str(downloader), "--source-dir", str(source)], cwd=ROOT, check=True)
 
 
 def main():

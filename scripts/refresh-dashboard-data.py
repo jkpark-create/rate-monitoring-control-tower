@@ -259,7 +259,7 @@ def parse_args():
     )
     parser.add_argument("--fetch-size", type=int, default=5000, help="Oracle fetch batch size")
     parser.add_argument("--skip-guideline", action="store_true", help="Skip SEA/ETC guideline synchronization")
-    parser.add_argument("--refresh-guideline", action="store_true", help="Download SEA/ETC source files before syncing")
+    parser.add_argument("--refresh-guideline", action="store_true", help="Download market-rate source files before syncing")
     parser.add_argument("--build", action="store_true", help="Run the Vite build after data refresh")
     parser.add_argument("--watch-seconds", type=int, default=0, help="Repeat refresh at this interval; 0 runs once")
     return parser.parse_args()

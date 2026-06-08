@@ -2018,7 +2018,6 @@ function AppContent({ data }: { data: MonitoringData }) {
               <input
                 type="date"
                 min={data.metadata.availableStartDate}
-                max={activeFilters.periodEnd}
                 value={activeFilters.periodStart}
                 onChange={(event) => {
                   const nextStart = event.target.value;
@@ -2037,7 +2036,6 @@ function AppContent({ data }: { data: MonitoringData }) {
               <input
                 type="date"
                 min={activeFilters.periodStart}
-                max={data.metadata.availableEndDate}
                 value={activeFilters.periodEnd}
                 onChange={(event) => event.target.value && setActiveFilters((current) => ({ ...current, periodEnd: event.target.value }))}
               />
@@ -2069,7 +2067,6 @@ function AppContent({ data }: { data: MonitoringData }) {
               <input
                 type="date"
                 min={data.metadata.availableStartDate}
-                max={periodEnd}
                 value={periodStart}
                 onChange={(event) => event.target.value && setPeriodStart(event.target.value)}
               />
@@ -2079,7 +2076,6 @@ function AppContent({ data }: { data: MonitoringData }) {
               <input
                 type="date"
                 min={periodStart}
-                max={data.metadata.availableEndDate}
                 value={periodEnd}
                 onChange={(event) => event.target.value && setPeriodEnd(event.target.value)}
               />
@@ -2177,9 +2173,8 @@ function AppContent({ data }: { data: MonitoringData }) {
               </div>
             </label>
           </div>
-          <button className="reset-button" type="button" onClick={resetScope}>
+          <button className="reset-button" type="button" onClick={resetScope} title={text.filter.reset} aria-label={text.filter.reset}>
             <X size={15} aria-hidden="true" />
-            {text.filter.reset}
           </button>
         </section>
 
@@ -2370,7 +2365,7 @@ function AppContent({ data }: { data: MonitoringData }) {
               </>
             ) : (
               <>
-                <div className="segmented-control">
+                <div className="segmented-control detail-status-control">
                   {[
                     ['all', text.status.all],
                     ['market', text.status.market],

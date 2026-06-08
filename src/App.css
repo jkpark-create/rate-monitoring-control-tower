@@ -175,7 +175,7 @@ main {
   top: 76px;
   z-index: 18;
   min-width: 0;
-  gap: 10px;
+  gap: 8px;
   align-items: flex-start;
   padding: 8px 10px;
   border: 1px solid #dce3e0;
@@ -213,7 +213,7 @@ main {
   min-width: 0;
   flex: 1 1 auto;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 5px;
   overflow: visible;
   padding-bottom: 2px;
 }
@@ -235,7 +235,7 @@ main {
 }
 
 .filter-grid .company-filter {
-  flex-basis: 130px;
+  flex-basis: 106px;
 }
 
 .filter-grid .cargo-type-filter,
@@ -435,8 +435,9 @@ select:disabled {
 }
 
 .reset-button {
-  flex: 0 0 auto;
-  padding: 0 9px;
+  width: 34px;
+  flex: 0 0 34px;
+  padding: 0;
   font-size: 12px;
 }
 
@@ -499,19 +500,26 @@ td span,
 
 .content-grid-detail .results-panel,
 .content-grid-detail .detail-side-panel {
-  min-height: 720px;
+  min-height: max(760px, calc(100vh - 230px));
 }
 
 .content-grid-detail .results-panel {
   display: flex;
   flex-direction: column;
-  height: 720px;
+  height: auto;
 }
 
 .content-grid-detail .table-wrap {
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
+}
+
+.content-grid-detail .panel-head,
+.content-grid-detail .view-tabs,
+.content-grid-detail .segmented-control,
+.content-grid-detail .pagination {
+  flex: 0 0 auto;
 }
 
 .results-panel,
@@ -568,6 +576,22 @@ td span,
   background: #e9f0f2;
   color: #315866;
   font-weight: 800;
+}
+
+.detail-status-control {
+  position: relative;
+  z-index: 4;
+  min-height: 42px;
+  align-items: center;
+  padding: 2px 16px 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #ffffff;
+}
+
+.detail-status-control button {
+  height: 30px;
+  flex: 0 0 auto;
 }
 
 .view-tabs {
@@ -934,9 +958,8 @@ table.summary-company-table td:not(:first-child) {
 }
 
 .detail-side-panel {
-  position: sticky;
-  top: 78px;
-  align-self: start;
+  position: static;
+  align-self: stretch;
   max-height: none;
   overflow: visible;
 }
