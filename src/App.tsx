@@ -250,11 +250,14 @@ type ScopeFilters = {
   company: string[];
 };
 
+type DetailScope = 'target' | 'all';
+
 type FilterState = ScopeFilters & {
   periodStart: string;
   periodEnd: string;
   status: IssueStatus[];
   query: string;
+  scope: DetailScope;
 };
 
 type DrillFilters = Partial<Record<keyof ScopeFilters, string>>;
@@ -322,9 +325,12 @@ const UI_COPY = {
       lowFreightCases: 'Low Freight Cases',
       summaryTitle: '집계 분석',
       detailTitle: '확인 대상 운임',
+      detailTitleAll: '전체 운임',
       summaryTab: '집계',
       detailTab: '상세',
       cases: 'cases',
+      scopeTarget: '확인대상',
+      scopeAll: 'All',
     },
     summary: {
       origin: '선적지 국가 / 포트',
@@ -499,9 +505,12 @@ const UI_COPY = {
       lowFreightCases: 'Low Freight Cases',
       summaryTitle: 'Aggregated Analysis',
       detailTitle: 'Low Freight Cases',
+      detailTitleAll: 'All Rates',
       summaryTab: 'Summary',
       detailTab: 'Detail',
       cases: 'cases',
+      scopeTarget: 'Check Targets',
+      scopeAll: 'All',
     },
     summary: {
       origin: 'Origin Country / Port',
@@ -767,6 +776,7 @@ function createDefaultFilters(data: MonitoringData): FilterState {
     company: [],
     status: [],
     query: '',
+    scope: 'target',
   };
 }
 
@@ -1683,10 +1693,10 @@ function AppContent({ data }: { data: MonitoringData }) {
   const detailRows = useMemo(() => detailPeriodAnalysis.rows.filter((item) => matchesScope(item, detailScope)), [detailPeriodAnalysis.rows, detailScope]);
   const filteredCases = useMemo(() => {
     const normalizedQuery = detailFilters.query.trim().toLowerCase();
-    const sourceRows: DetailRateRow[] = normalizedQuery ? detailRows : detailCases.map((item) => ({
-      ...item,
-      isLow: true,
-    }));
+    // 확인대상(target): 저운임 확인 대상만. All: 전체 운임 조회.
+    const sourceRows: DetailRateRow[] = detailFilters.scope === 'all'
+      ? detailRows
+      : detailCases.map((item) => ({ ...item, isLow: true }));
 
     return sourceRows.filter((item) => {
       if (detailFilters.status.length && (item.status === 'normal' || !detailFilters.status.includes(item.status))) {
@@ -1712,7 +1722,7 @@ function AppContent({ data }: { data: MonitoringData }) {
         .toLowerCase()
         .includes(normalizedQuery);
     });
-  }, [detailCases, detailFilters.query, detailFilters.status, detailRows]);
+  }, [detailCases, detailFilters.query, detailFilters.scope, detailFilters.status, detailRows]);
 
   useEffect(() => {
     setPage(1);
@@ -1788,6 +1798,8 @@ function AppContent({ data }: { data: MonitoringData }) {
   const company = activeFilters.company[0] ?? '';
   const query = activeFilters.query;
   const statusFilter: 'all' | IssueStatus = activeFilters.status.length === 1 ? activeFilters.status[0] : 'all';
+  const detailScopeMode = detailFilters.scope;
+  const setDetailScope = (value: DetailScope) => setDetailFilters((current) => ({ ...current, scope: value }));
   const setPeriodStart = (value: string) => setActiveFilters((current) => ({ ...current, periodStart: value }));
   const setPeriodEnd = (value: string) => setActiveFilters((current) => ({ ...current, periodEnd: value }));
   const setOriginCountry = (value: string) => setActiveFilters((current) => ({ ...current, originCountry: value ? [value] : [] }));
@@ -1972,6 +1984,7 @@ function AppContent({ data }: { data: MonitoringData }) {
       company: drill.company !== undefined ? [drill.company] : summaryFilters.company,
       status: [],
       query: '',
+      scope: 'target',
     });
     setPage(1);
     setSelectedCase(null);
@@ -2291,7 +2304,7 @@ function AppContent({ data }: { data: MonitoringData }) {
             <div className="panel-head">
               <div>
                 <p>{view === 'summary' ? text.panel.aggregatedView : text.panel.lowFreightCases}</p>
-                <h2>{view === 'summary' ? text.panel.summaryTitle : text.panel.detailTitle}</h2>
+                <h2>{view === 'summary' ? text.panel.summaryTitle : (detailScopeMode === 'all' ? text.panel.detailTitleAll : text.panel.detailTitle)}</h2>
               </div>
               <strong>{view === 'summary' ? summaryCountLabel : `${formatNumber(filteredCases.length)} ${text.panel.cases}`}</strong>
             </div>
@@ -2440,6 +2453,21 @@ function AppContent({ data }: { data: MonitoringData }) {
               </>
             ) : (
               <>
+                <div className="segmented-control detail-scope-control">
+                  {([
+                    ['target', text.panel.scopeTarget],
+                    ['all', text.panel.scopeAll],
+                  ] as const).map(([value, label]) => (
+                    <button
+                      className={detailScopeMode === value ? 'active' : ''}
+                      key={value}
+                      type="button"
+                      onClick={() => setDetailScope(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
                 <div className="segmented-control detail-status-control">
                   {[
                     ['all', text.status.all],

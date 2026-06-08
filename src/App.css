@@ -594,6 +594,22 @@ td span,
   flex: 0 0 auto;
 }
 
+.detail-scope-control {
+  padding: 2px 16px 8px;
+}
+
+.detail-scope-control button {
+  height: 30px;
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
+.detail-scope-control button.active {
+  border-color: #1f7a5a;
+  background: #1f7a5a;
+  color: #ffffff;
+}
+
 .view-tabs {
   display: flex;
   gap: 6px;

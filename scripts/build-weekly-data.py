@@ -25,6 +25,8 @@ HQ_ROUTE_TEAMS = ("OBT", "EST", "IST", "JBT")
 MARKET_CONTAINER_TYPES = ("GP", "HC", "TK")
 MARKET_NON_DG_CARGO_TYPE = "00"
 US_COMPARISON_EXCLUDED_CHARGES = ("PSS", "GRI")
+# 통화와 무관하게 항상 LOCAL CHARGE로 분류하는 charge 코드
+LOCAL_CHARGE_CODES = ("THC", "SEC")
 APPROVAL_STATUS_LABELS = {"03": "Accepted"}
 FALLBACK_CHARGE_COLUMNS = (
     ("O/F", "OF_RATE"),
@@ -204,8 +206,11 @@ def cargo_label(row):
 
 
 def charge_category(code, currency):
-    if code == "O/F":
+    normalized = normalized_text(code).upper()
+    if normalized == "O/F":
         return "OCEAN FREIGHT"
+    if normalized in LOCAL_CHARGE_CODES:
+        return "LOCAL CHARGE"
     return "SURCHARGE" if currency.upper() == "USD" else "LOCAL CHARGE"
 
 
