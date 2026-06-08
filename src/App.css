@@ -494,6 +494,24 @@ td span,
 
 .content-grid-detail {
   grid-template-columns: minmax(0, 1fr) 440px;
+  align-items: stretch;
+}
+
+.content-grid-detail .results-panel,
+.content-grid-detail .detail-side-panel {
+  min-height: 720px;
+}
+
+.content-grid-detail .results-panel {
+  display: flex;
+  flex-direction: column;
+  height: 720px;
+}
+
+.content-grid-detail .table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
 }
 
 .results-panel,
@@ -918,8 +936,9 @@ table.summary-company-table td:not(:first-child) {
 .detail-side-panel {
   position: sticky;
   top: 78px;
-  max-height: calc(100vh - 92px);
-  overflow: auto;
+  align-self: start;
+  max-height: none;
+  overflow: visible;
 }
 
 .detail-panel-empty {
@@ -1296,6 +1315,16 @@ table.summary-company-table td:not(:first-child) {
 @media (max-width: 1180px) {
   .content-grid-detail {
     grid-template-columns: 1fr;
+  }
+
+  .content-grid-detail .results-panel {
+    display: block;
+    height: auto;
+  }
+
+  .content-grid-detail .results-panel,
+  .content-grid-detail .detail-side-panel {
+    min-height: 0;
   }
 
   .detail-side-panel {
