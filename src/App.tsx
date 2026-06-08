@@ -1799,7 +1799,15 @@ function AppContent({ data }: { data: MonitoringData }) {
   const query = activeFilters.query;
   const statusFilter: 'all' | IssueStatus = activeFilters.status.length === 1 ? activeFilters.status[0] : 'all';
   const detailScopeMode = detailFilters.scope;
-  const setDetailScope = (value: DetailScope) => setDetailFilters((current) => ({ ...current, scope: value }));
+  // 단일 토글: All(전체) | 확인대상 | Market 저운임 | 기간 Avg 저운임
+  const detailMode: 'all' | 'target' | IssueStatus = detailScopeMode === 'all'
+    ? 'all'
+    : (statusFilter === 'market' || statusFilter === 'average' ? statusFilter : 'target');
+  const setDetailMode = (mode: 'all' | 'target' | IssueStatus) => setDetailFilters((current) => {
+    if (mode === 'all') return { ...current, scope: 'all', status: [] };
+    if (mode === 'target') return { ...current, scope: 'target', status: [] };
+    return { ...current, scope: 'target', status: [mode] };
+  });
   const setPeriodStart = (value: string) => setActiveFilters((current) => ({ ...current, periodStart: value }));
   const setPeriodEnd = (value: string) => setActiveFilters((current) => ({ ...current, periodEnd: value }));
   const setOriginCountry = (value: string) => setActiveFilters((current) => ({ ...current, originCountry: value ? [value] : [] }));
@@ -2453,32 +2461,18 @@ function AppContent({ data }: { data: MonitoringData }) {
               </>
             ) : (
               <>
-                <div className="segmented-control detail-scope-control">
-                  {([
-                    ['target', text.panel.scopeTarget],
-                    ['all', text.panel.scopeAll],
-                  ] as const).map(([value, label]) => (
-                    <button
-                      className={detailScopeMode === value ? 'active' : ''}
-                      key={value}
-                      type="button"
-                      onClick={() => setDetailScope(value)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
                 <div className="segmented-control detail-status-control">
-                  {[
-                    ['all', text.status.all],
+                  {([
+                    ['all', text.panel.scopeAll],
+                    ['target', text.panel.scopeTarget],
                     ['market', text.status.market],
                     ['average', text.status.average],
-                  ].map(([value, label]) => (
+                  ] as const).map(([value, label]) => (
                     <button
-                      className={statusFilter === value ? 'active' : ''}
+                      className={detailMode === value ? 'active' : ''}
                       key={value}
                       type="button"
-                      onClick={() => setStatusFilter(value as 'all' | IssueStatus)}
+                      onClick={() => setDetailMode(value)}
                     >
                       {label}
                     </button>
