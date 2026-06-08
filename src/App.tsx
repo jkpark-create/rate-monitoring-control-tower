@@ -1687,10 +1687,6 @@ function AppContent({ data }: { data: MonitoringData }) {
   const formatApprovalStatus = (value: string) => data.metadata.approvalStatusLabels[value] ? `${data.metadata.approvalStatusLabels[value]} (${value})` : value;
   const staffOptions = useMemo(() => unique(records.map((item) => item.staff)), [records]);
   const staffFilterOptions = useMemo(() => toOptions(staffOptions), [staffOptions]);
-  const statusFilterOptions = useMemo<FilterOption[]>(() => [
-    { value: 'market', label: text.status.market },
-    { value: 'average', label: text.status.average },
-  ], [text.status.average, text.status.market]);
   const companies = useMemo(
     () => data.dimensions.shippers
       .map(([code, name]) => [code, name, `${code || '-'} / ${name || 'No company name'}`] as const)
@@ -2046,6 +2042,15 @@ function AppContent({ data }: { data: MonitoringData }) {
                 onChange={(event) => event.target.value && setActiveFilters((current) => ({ ...current, periodEnd: event.target.value }))}
               />
             </label>
+            {view === 'detail' && (
+              <label className="query-filter">
+                <span>{text.filter.rateSearch}</span>
+                <div>
+                  <Search size={14} aria-hidden="true" />
+                  <input value={activeFilters.query} onChange={(event) => setActiveFilters((current) => ({ ...current, query: event.target.value }))} placeholder={text.filter.ratePlaceholder} />
+                </div>
+              </label>
+            )}
             <MultiSelectFilter language={language} label={text.filter.originCountry} options={originCountryOptions} values={activeFilters.originCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, originCountry: values, originPort: [] }))} />
             <MultiSelectFilter language={language} label={text.filter.originPort} options={originPortOptions} values={activeFilters.originPort} onChange={(values) => setActiveFilters((current) => ({ ...current, originPort: values }))} />
             <MultiSelectFilter language={language} label={text.filter.destinationCountry} options={destinationCountryOptions} values={activeFilters.destinationCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, destinationCountry: values, destinationPort: [] }))} />
@@ -2057,16 +2062,6 @@ function AppContent({ data }: { data: MonitoringData }) {
             <MultiSelectFilter language={language} className="full-empty-filter" label={text.filter.fullEmpty} options={fullEmptyTypeOptions} values={activeFilters.fullEmptyType} onChange={(values) => setActiveFilters((current) => ({ ...current, fullEmptyType: values }))} />
             <MultiSelectFilter language={language} label={text.filter.staff} options={staffFilterOptions} values={activeFilters.staff} onChange={(values) => setActiveFilters((current) => ({ ...current, staff: values }))} />
             <MultiSelectFilter language={language} className="company-filter" label={text.filter.company} options={companyOptions} values={activeFilters.company} onChange={(values) => setActiveFilters((current) => ({ ...current, company: values }))} />
-            {view === 'detail' && <MultiSelectFilter language={language} label={text.filter.status} options={statusFilterOptions} values={activeFilters.status} onChange={(values) => setActiveFilters((current) => ({ ...current, status: values as IssueStatus[] }))} />}
-            {view === 'detail' && (
-              <label className="query-filter">
-                <span>{text.filter.rateSearch}</span>
-                <div>
-                  <Search size={14} aria-hidden="true" />
-                  <input value={activeFilters.query} onChange={(event) => setActiveFilters((current) => ({ ...current, query: event.target.value }))} placeholder={text.filter.ratePlaceholder} />
-                </div>
-              </label>
-            )}
           </div>
           <div className="filter-grid legacy-filter-grid" aria-hidden="true">
             <label className="date-filter">
