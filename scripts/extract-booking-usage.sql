@@ -15,7 +15,9 @@
 -- Sources (confirmed from the existing booking pipeline / Script-2 weekly query)
 -- ---------------------------------------------------------------------------
 --   DW_SALES.SP002S  booking container snapshot (latest revision per CLOS_DTM)
---   ODS_ICC.CS004R   booking -> B/L mapping
+--   ODS_ICC.CS004R   issued booking -> B/L mapping (historical)
+--   ODS_ICC.M_SA003I B/L assignment snapshot behind KMTC's Lifting Detail
+--                    (current/planned B/Ls, latest BASC_DT partition)
 --
 -- The earlier manual DBeaver export also carried financial columns
 -- (CM1_*, *_FRT_AMT, ACTUAL_OF_RATE/ALL_IN_RATE, ACTUAL_CHARGE_BASKET, ...).
@@ -80,11 +82,22 @@ BOOKING_AGG AS (
 
 BKG_BL AS (
     -- Distinct B/L numbers per booking (a booking can split into several B/Ls).
-    SELECT DISTINCT
-        M.BKG_NO,
-        M.BL_NO
-    FROM ODS_ICC.CS004R M
-    WHERE M.BL_NO IS NOT NULL
+    -- CS004R holds historically issued B/Ls (large, covers past sailings).
+    -- M_SA003I is the snapshot behind KMTC's Lifting Detail and carries the
+    -- current B/L assignment per booking -- including B/Ls created before
+    -- sailing that CS004R does not yet contain. Union both so the dashboard
+    -- matches the booking screen for upcoming sailings without losing
+    -- past-shipment B/Ls; M_SA003I is pinned to its latest snapshot (one
+    -- partition) and excludes cancelled B/Ls.
+    SELECT DISTINCT BKG_NO, BL_NO
+    FROM ODS_ICC.CS004R
+    WHERE BL_NO IS NOT NULL
+    UNION
+    SELECT DISTINCT BKG_NO, BL_NO
+    FROM ODS_ICC.M_SA003I
+    WHERE BL_NO IS NOT NULL
+      AND CNCL_DT IS NULL
+      AND BASC_DT = (SELECT MAX(BASC_DT) FROM ODS_ICC.M_SA003I)
 )
 
 SELECT
