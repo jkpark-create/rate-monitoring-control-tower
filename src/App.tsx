@@ -31,6 +31,8 @@ import {
   LineChart,
   ReferenceLine,
   ResponsiveContainer,
+  Scatter,
+  ScatterChart,
   Tooltip,
   XAxis,
   YAxis,
@@ -344,9 +346,6 @@ const UI_COPY = {
       rateBandNote: '막대를 클릭하면 해당 운임대로 더 세분화되고, 아래 표의 행을 클릭하면 그 운임대에 속한 운임 목록이 펼쳐집니다. 운임번호를 클릭하면 상세로 이동합니다. 상단 필터를 적용하면 분포가 다시 계산됩니다.',
       rateBandMetricOf: 'O/F 운임',
       rateBandMetricAllIn: 'All-in',
-      rateBandSplitNone: '구분 없음',
-      rateBandSplitSize: 'CNTR Size',
-      rateBandSplitType: 'CNTR Type',
       rateBandCount: '운임수',
       rateBandLow: '저운임',
       rateBandShare: '비중',
@@ -358,6 +357,15 @@ const UI_COPY = {
       rateBandMarketLine: 'Market',
       rateBandBenchmarkLine: '구간 평균',
       rateBandEmpty: '표시할 운임이 없습니다.',
+      rateBandModeHistogram: '전체 분포',
+      rateBandModeScatter: '사이즈·타입별',
+      rateBandAxisOrigin: '선적지',
+      rateBandAxisDestination: '도착지',
+      rateBandContainer: '컨테이너',
+      rateBandScatterNote: '점 하나가 운임 한 건입니다. 가로로 흩뿌려 같은 구간 안의 분포(편중)를 보여주고, 색은 저운임 판정을 나타냅니다. 점을 클릭하면 상세로 이동합니다.',
+      rateBandScatterAvg: '전체 평균',
+      rateBandMoreLanes: (n: number) => `상위 30개 구간만 표시 (외 ${n}개 생략)`,
+      rateBandNormal: '정상',
       drillNote: '국가 행을 클릭하면 포트별 집계가 펼쳐집니다. 포트 행을 클릭하면 해당 조건의 상세 목록으로 이동합니다.',
       noTrend: '트렌드를 표시할 업체가 없습니다.',
       trendSelectedSuffix: '주차별 평균 Ocean Freight 추이 · 점선은 동일 구간·CNTR·Cargo 조건의 타 업체 O/F 평균입니다.',
@@ -542,9 +550,6 @@ const UI_COPY = {
       rateBandNote: 'Click a bar to subdivide that rate band; click a table row to expand the rates within it, and click a rate number to open its detail. Applying the top filters recalculates the distribution.',
       rateBandMetricOf: 'O/F Rate',
       rateBandMetricAllIn: 'All-in',
-      rateBandSplitNone: 'No split',
-      rateBandSplitSize: 'CNTR Size',
-      rateBandSplitType: 'CNTR Type',
       rateBandCount: 'Rate count',
       rateBandLow: 'Low',
       rateBandShare: 'Share',
@@ -556,6 +561,15 @@ const UI_COPY = {
       rateBandMarketLine: 'Market',
       rateBandBenchmarkLine: 'Lane avg',
       rateBandEmpty: 'No rates to display.',
+      rateBandModeHistogram: 'Distribution',
+      rateBandModeScatter: 'By Size·Type',
+      rateBandAxisOrigin: 'Origin',
+      rateBandAxisDestination: 'Destination',
+      rateBandContainer: 'Container',
+      rateBandScatterNote: 'Each dot is one rate. Dots are jittered horizontally to show the spread (concentration) within a lane; colour marks the low-freight judgement. Click a dot to open its detail.',
+      rateBandScatterAvg: 'Overall avg',
+      rateBandMoreLanes: (n: number) => `Showing top 30 lanes (${n} more hidden)`,
+      rateBandNormal: 'Normal',
       drillNote: 'Click a country row to expand port-level totals. Click a port row to open the filtered detail list.',
       noTrend: 'No companies available for the trend chart.',
       trendSelectedSuffix: 'weekly average Ocean Freight trend · dotted line is the peer O/F average for the same lane, CNTR, and cargo conditions.',
@@ -1035,8 +1049,6 @@ function shipperKey(record: RateRecord) {
 
 const TREND_COLORS = ['#1f7a5a', '#2563eb', '#d97706', '#9333ea', '#dc2626'];
 const TREND_BENCHMARK_DATA_KEY = 'benchmark';
-const SEGMENT_COLORS = ['#1f7a5a', '#2563eb', '#d97706', '#9333ea', '#dc2626', '#0891b2', '#64748b'];
-const OTHER_SEGMENT_KEY = '__other__';
 
 type GroupRow = {
   key: string;
@@ -1703,7 +1715,241 @@ function RateDetailPanel({ rate, detail, language, onClose }: { rate: DetailRate
 }
 
 type RateBandMetric = 'of' | 'allin';
-type RateBandSplit = 'none' | 'size' | 'type';
+type RateBandChartMode = 'histogram' | 'scatter';
+type RateScatterAxis = 'origin' | 'destination';
+
+const SCATTER_MAX_LANES = 30;
+const SCATTER_STATUS_ORDER: DetailStatus[] = ['normal', 'average', 'market'];
+const SCATTER_STATUS_COLORS: Record<DetailStatus, string> = {
+  normal: '#1f7a5a',
+  average: '#d97706',
+  market: '#ea580c',
+};
+
+// Deterministic horizontal jitter in [-0.35, 0.35] so overlapping dots in the
+// same lane spread out into a strip, and they don't jump between renders.
+function scatterJitter(id: string) {
+  let hash = 0;
+  for (let index = 0; index < id.length; index += 1) {
+    hash = (hash * 31 + id.charCodeAt(index)) >>> 0;
+  }
+  return ((hash % 1000) / 1000 - 0.5) * 0.7;
+}
+
+function RateLaneScatter({
+  rates,
+  cases,
+  metric,
+  language,
+  onInspectRate,
+}: {
+  rates: RateRecord[];
+  cases: LowRateCase[];
+  metric: RateBandMetric;
+  language: Language;
+  onInspectRate: (rate: RateRecord) => void;
+}) {
+  const text = UI_COPY[language].summary;
+  const statusText = UI_COPY[language].status;
+  const [axis, setAxis] = useState<RateScatterAxis>('origin');
+  const [containerCombo, setContainerCombo] = useState('40|HC');
+
+  const valueOf = (record: RateRecord) => (metric === 'of' ? record.ofRate : record.allInRate);
+
+  const comboOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const record of rates) {
+      const key = `${record.containerSize}|${record.containerType}`;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([key, count]) => {
+        const [size, type] = key.split('|');
+        return { key, label: `${size || '-'}'${type || '-'}`, count };
+      })
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  }, [rates]);
+
+  // Keep the selected container valid as the filtered data changes; fall back to
+  // 40'HC when present, otherwise the busiest combo.
+  useEffect(() => {
+    if (comboOptions.some((option) => option.key === containerCombo)) {
+      return;
+    }
+    const fallback = comboOptions.find((option) => option.key === '40|HC') ?? comboOptions[0];
+    if (fallback) {
+      setContainerCombo(fallback.key);
+    }
+  }, [comboOptions, containerCombo]);
+
+  const caseStatusById = useMemo(() => {
+    const map = new Map<string, IssueStatus>();
+    for (const item of cases) {
+      map.set(item.id, item.status);
+    }
+    return map;
+  }, [cases]);
+
+  const model = useMemo(() => {
+    const comboRates = rates.filter((record) => `${record.containerSize}|${record.containerType}` === containerCombo);
+    const laneKeyOf = (record: RateRecord) => (axis === 'origin'
+      ? (record.porPort || record.porCountry)
+      : (record.dlyPort || record.dlyCountry));
+    const laneCountryOf = (record: RateRecord) => (axis === 'origin' ? record.porCountry : record.dlyCountry);
+
+    const counts = new Map<string, { key: string; country: string; count: number }>();
+    for (const record of comboRates) {
+      const key = laneKeyOf(record);
+      if (!key) {
+        continue;
+      }
+      const current = counts.get(key) ?? { key, country: laneCountryOf(record), count: 0 };
+      current.count += 1;
+      counts.set(key, current);
+    }
+    const sortedLanes = Array.from(counts.values()).sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
+    const lanes = sortedLanes.slice(0, SCATTER_MAX_LANES);
+    const hiddenLanes = sortedLanes.length - lanes.length;
+    const laneIndex = new Map(lanes.map((lane, index) => [lane.key, index]));
+
+    const pointsByStatus = new Map<DetailStatus, { x: number; y: number; rate: RateRecord; status: DetailStatus }[]>();
+    let valueSum = 0;
+    let valueCount = 0;
+    for (const record of comboRates) {
+      const key = laneKeyOf(record);
+      const index = laneIndex.get(key);
+      if (index === undefined) {
+        continue;
+      }
+      const value = valueOf(record);
+      if (!Number.isFinite(value)) {
+        continue;
+      }
+      const status: DetailStatus = caseStatusById.get(record.id) ?? 'normal';
+      const point = { x: index + scatterJitter(record.id), y: value, rate: record, status };
+      const bucket = pointsByStatus.get(status) ?? [];
+      bucket.push(point);
+      pointsByStatus.set(status, bucket);
+      valueSum += value;
+      valueCount += 1;
+    }
+
+    return {
+      lanes,
+      hiddenLanes,
+      pointsByStatus,
+      pointCount: valueCount,
+      averageValue: valueCount ? valueSum / valueCount : null,
+    };
+  }, [rates, containerCombo, axis, metric, caseStatusById]);
+
+  const laneTick = (value: number) => model.lanes[value]?.key ?? '';
+
+  return (
+    <div className="rate-scatter">
+      <div className="rate-scatter-controls">
+        <div className="segmented-control rate-band-segmented">
+          {([
+            ['origin', text.rateBandAxisOrigin],
+            ['destination', text.rateBandAxisDestination],
+          ] as const).map(([value, label]) => (
+            <button className={axis === value ? 'active' : ''} key={value} type="button" onClick={() => setAxis(value)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <label className="rate-scatter-combo">
+          <span>{text.rateBandContainer}</span>
+          <select value={containerCombo} onChange={(event) => setContainerCombo(event.target.value)}>
+            {comboOptions.map((option) => (
+              <option key={option.key} value={option.key}>{option.label} ({formatNumber(option.count)})</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <p className="summary-drill-note">{text.rateBandScatterNote}</p>
+
+      {model.pointCount ? (
+        <div className="rate-band-chart">
+          <ResponsiveContainer width="100%" height={340}>
+            <ScatterChart margin={{ top: 12, right: 20, bottom: 28, left: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#eef1f0" />
+              <XAxis
+                type="number"
+                dataKey="x"
+                domain={[-0.6, model.lanes.length - 0.4]}
+                ticks={model.lanes.map((_, index) => index)}
+                tickFormatter={laneTick}
+                interval={0}
+                angle={-35}
+                textAnchor="end"
+                height={48}
+                tick={{ fontSize: 10 }}
+              />
+              <YAxis
+                type="number"
+                dataKey="y"
+                tick={{ fontSize: 11 }}
+                width={52}
+                tickFormatter={(value) => formatBandMoney(Number(value))}
+              />
+              <Tooltip
+                cursor={{ strokeDasharray: '3 3' }}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) {
+                    return null;
+                  }
+                  const point = payload[0].payload as { rate: RateRecord; status: DetailStatus };
+                  const rate = point.rate;
+                  return (
+                    <div className="rate-scatter-tip">
+                      <strong>{rate.rateApplicationNo}</strong>
+                      <span>{rate.porPort} {rate.porCountry} → {rate.dlyPort} {rate.dlyCountry}</span>
+                      <span>{formatMoney(valueOf(rate))} · {statusText[point.status]}</span>
+                      <span>{rate.shipperCode || '-'} / {rate.shipperName || 'No company name'} · {rate.staff || '-'}</span>
+                    </div>
+                  );
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              {model.averageValue !== null && (
+                <ReferenceLine
+                  y={model.averageValue}
+                  stroke="#687580"
+                  strokeDasharray="5 4"
+                  strokeWidth={1.5}
+                  label={{ value: `${text.rateBandScatterAvg} ${formatMoney(model.averageValue)}`, position: 'insideTopRight', fontSize: 10, fill: '#54616b' }}
+                />
+              )}
+              {SCATTER_STATUS_ORDER.filter((status) => model.pointsByStatus.get(status)?.length).map((status) => (
+                <Scatter
+                  key={status}
+                  name={statusText[status]}
+                  data={model.pointsByStatus.get(status)}
+                  fill={SCATTER_STATUS_COLORS[status]}
+                  fillOpacity={0.78}
+                  cursor="pointer"
+                  onClick={(node) => {
+                    const rate = (node as { payload?: { rate?: RateRecord } }).payload?.rate;
+                    if (rate) {
+                      onInspectRate(rate);
+                    }
+                  }}
+                />
+              ))}
+            </ScatterChart>
+          </ResponsiveContainer>
+          {model.hiddenLanes > 0 && (
+            <p className="rate-scatter-foot">{text.rateBandMoreLanes(model.hiddenLanes)}</p>
+          )}
+        </div>
+      ) : (
+        <p className="rate-band-empty">{text.rateBandEmpty}</p>
+      )}
+    </div>
+  );
+}
 
 function RateBandPanel({
   rates,
@@ -1719,7 +1965,7 @@ function RateBandPanel({
   const text = UI_COPY[language].summary;
   const detailText = UI_COPY[language].detail;
   const [metric, setMetric] = useState<RateBandMetric>('of');
-  const [split, setSplit] = useState<RateBandSplit>('none');
+  const [chartMode, setChartMode] = useState<RateBandChartMode>('histogram');
   const [zoomStack, setZoomStack] = useState<{ min: number; max: number }[]>([]);
   const [expandedBand, setExpandedBand] = useState<number | null>(null);
 
@@ -1736,7 +1982,7 @@ function RateBandPanel({
   // Collapse any open band list when the distribution itself changes.
   useEffect(() => {
     setExpandedBand(null);
-  }, [zoom, split, rates, metric]);
+  }, [zoom, rates, metric]);
 
   const caseStatusById = useMemo(() => {
     const map = new Map<string, IssueStatus>();
@@ -1747,12 +1993,6 @@ function RateBandPanel({
   }, [cases]);
 
   const model = useMemo(() => {
-    const splitOf = split === 'size'
-      ? (record: RateRecord) => record.containerSize || '-'
-      : split === 'type'
-        ? (record: RateRecord) => record.containerType || '-'
-        : null;
-
     let lo = Infinity;
     let hi = -Infinity;
     for (const record of rates) {
@@ -1786,29 +2026,21 @@ function RateBandPanel({
     // 밴드끼리 라벨이 겹치지 않도록 정확한 금액($12,020)으로 표시한다.
     const labelOf = (value: number) => (step >= 1000 ? formatBandMoney(value) : `$${Math.round(value).toLocaleString('en-US')}`);
 
-    type Bucket = { min: number; max: number; count: number; low: number; seg: Map<string, number> };
+    type Bucket = { min: number; max: number; count: number; low: number };
     const buckets: Bucket[] = Array.from({ length: bucketCount }, (_, index) => ({
       min: start + index * step,
       max: start + (index + 1) * step,
       count: 0,
       low: 0,
-      seg: new Map<string, number>(),
     }));
     const inRange = (value: number) => Number.isFinite(value) && (!zoom || (value >= zoom.min && value < zoom.max));
 
-    const segTotals = new Map<string, number>();
     for (const record of rates) {
       const value = valueOf(record);
       if (!inRange(value)) {
         continue;
       }
-      const bucket = buckets[idxFor(value)];
-      bucket.count += 1;
-      if (splitOf) {
-        const key = splitOf(record);
-        bucket.seg.set(key, (bucket.seg.get(key) ?? 0) + 1);
-        segTotals.set(key, (segTotals.get(key) ?? 0) + 1);
-      }
+      buckets[idxFor(value)].count += 1;
     }
     for (const item of cases) {
       const value = valueOf(item);
@@ -1818,42 +2050,13 @@ function RateBandPanel({
       buckets[idxFor(value)].low += 1;
     }
 
-    const topSegments = Array.from(segTotals.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, SEGMENT_COLORS.length - 1)
-      .map(([key]) => key);
-    const topSet = new Set(topSegments);
-    const hasOther = Array.from(segTotals.keys()).some((key) => !topSet.has(key));
-    const segmentKeys = splitOf ? [...topSegments, ...(hasOther ? [OTHER_SEGMENT_KEY] : [])] : [];
-
-    const chartData = buckets.map((bucket) => {
-      const row: Record<string, number | string> = {
-        band: labelOf(bucket.min),
-        bandMin: bucket.min,
-        bandMax: bucket.max,
-        count: bucket.count,
-        low: bucket.low,
-      };
-      if (splitOf) {
-        let other = 0;
-        for (const [key, value] of bucket.seg) {
-          if (topSet.has(key)) {
-            row[key] = value;
-          } else {
-            other += value;
-          }
-        }
-        for (const key of topSegments) {
-          if (!(key in row)) {
-            row[key] = 0;
-          }
-        }
-        if (hasOther) {
-          row[OTHER_SEGMENT_KEY] = other;
-        }
-      }
-      return row;
-    });
+    const chartData = buckets.map((bucket) => ({
+      band: labelOf(bucket.min),
+      bandMin: bucket.min,
+      bandMax: bucket.max,
+      count: bucket.count,
+      low: bucket.low,
+    }));
 
     const total = buckets.reduce((sum, bucket) => sum + bucket.count, 0);
 
@@ -1892,7 +2095,6 @@ function RateBandPanel({
     return {
       buckets,
       chartData,
-      segmentKeys,
       total,
       labelOf,
       marketRef,
@@ -1900,9 +2102,8 @@ function RateBandPanel({
       marketBand: bandLabelFor(marketRef),
       benchmarkBand: bandLabelFor(benchmarkRef),
     };
-  }, [rates, cases, metric, split, zoom]);
+  }, [rates, cases, metric, zoom]);
 
-  const segmentLabel = (key: string) => (key === OTHER_SEGMENT_KEY ? text.rateBandOther : key);
   const zoomInto = (min: number, max: number) => {
     if (!(max - min > 10)) {
       return;
@@ -1925,17 +2126,26 @@ function RateBandPanel({
         </div>
         <div className="segmented-control rate-band-segmented">
           {([
-            ['none', text.rateBandSplitNone],
-            ['size', text.rateBandSplitSize],
-            ['type', text.rateBandSplitType],
+            ['histogram', text.rateBandModeHistogram],
+            ['scatter', text.rateBandModeScatter],
           ] as const).map(([value, label]) => (
-            <button className={split === value ? 'active' : ''} key={value} type="button" onClick={() => setSplit(value)}>
+            <button className={chartMode === value ? 'active' : ''} key={value} type="button" onClick={() => setChartMode(value)}>
               {label}
             </button>
           ))}
         </div>
       </div>
 
+      {chartMode === 'scatter' ? (
+        <RateLaneScatter
+          rates={rates}
+          cases={cases}
+          metric={metric}
+          language={language}
+          onInspectRate={onInspectRate}
+        />
+      ) : (
+      <>
       <div className="rate-band-breadcrumb">
         <button
           type="button"
@@ -1975,7 +2185,7 @@ function RateBandPanel({
                 <XAxis dataKey="band" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
                 <YAxis tick={{ fontSize: 11 }} width={42} allowDecimals={false} />
                 <Tooltip
-                  formatter={(value, name) => [formatNumber(Number(value)), name === 'count' ? text.rateBandCount : name === 'low' ? text.rateBandLow : segmentLabel(String(name))]}
+                  formatter={(value, name) => [formatNumber(Number(value)), name === 'count' ? text.rateBandCount : text.rateBandLow]}
                   labelFormatter={(label, payload) => {
                     const point = payload?.[0]?.payload as { bandMin?: number; bandMax?: number } | undefined;
                     return point ? `${formatMoney(point.bandMin ?? 0)} – ${formatMoney(point.bandMax ?? 0)}` : String(label);
@@ -1998,39 +2208,17 @@ function RateBandPanel({
                     label={{ value: `${text.rateBandMarketLine} ${formatMoney(model.marketRef)}`, position: 'insideTopRight', fontSize: 10, fill: '#c2410c' }}
                   />
                 )}
-                {split === 'none' ? (
-                  <>
-                    <Bar
-                      dataKey="count"
-                      name={text.rateBandCount}
-                      fill="#9fc3b6"
-                      cursor="pointer"
-                      onClick={(entry) => {
-                        const point = (entry as { payload?: { bandMin?: number; bandMax?: number } }).payload;
-                        zoomInto(point?.bandMin ?? 0, point?.bandMax ?? 0);
-                      }}
-                    />
-                    <Bar dataKey="low" name={text.rateBandLow} fill="#dc7a4f" />
-                  </>
-                ) : (
-                  <>
-                    <Legend wrapperStyle={{ fontSize: 11 }} formatter={(value) => segmentLabel(String(value))} />
-                    {model.segmentKeys.map((key, index) => (
-                      <Bar
-                        key={key}
-                        dataKey={key}
-                        name={key}
-                        stackId="seg"
-                        fill={SEGMENT_COLORS[index % SEGMENT_COLORS.length]}
-                        cursor="pointer"
-                        onClick={(entry) => {
-                          const point = (entry as { payload?: { bandMin?: number; bandMax?: number } }).payload;
-                          zoomInto(point?.bandMin ?? 0, point?.bandMax ?? 0);
-                        }}
-                      />
-                    ))}
-                  </>
-                )}
+                <Bar
+                  dataKey="count"
+                  name={text.rateBandCount}
+                  fill="#9fc3b6"
+                  cursor="pointer"
+                  onClick={(entry) => {
+                    const point = (entry as { payload?: { bandMin?: number; bandMax?: number } }).payload;
+                    zoomInto(point?.bandMin ?? 0, point?.bandMax ?? 0);
+                  }}
+                />
+                <Bar dataKey="low" name={text.rateBandLow} fill="#dc7a4f" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -2121,6 +2309,8 @@ function RateBandPanel({
         </>
       ) : (
         <p className="rate-band-empty">{text.rateBandEmpty}</p>
+      )}
+      </>
       )}
     </div>
   );
