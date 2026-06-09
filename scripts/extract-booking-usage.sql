@@ -1,0 +1,107 @@
+-- Booking usage extract for the rate-monitoring dashboard (사용 실적).
+--
+-- Purpose
+-- -------
+-- Produces actual booking / B/L usage per rate application + container, so the
+-- dashboard can show "부킹 N건 · TEU · BL N건 · TEU" instead of "미사용".
+-- build-weekly-data.py (build_booking_usage) joins this on
+--     (RATE_APPLICATION_NO, CONTAINER_SIZE, CONTAINER_TYPE)
+-- and reads ONLY these columns:
+--     RATE_APPLICATION_NO, BOOKING_NO, BL_NO,
+--     CONTAINER_SIZE, CONTAINER_TYPE, TOTAL_TEU, HAS_BL_FLAG
+-- TOTAL_TEU is collapsed per distinct BOOKING_NO (max, then summed) on the build
+-- side, so emitting the same booking-level TEU across a booking's B/L rows is safe.
+--
+-- Sources (confirmed from the existing booking pipeline / Script-2 weekly query)
+-- ---------------------------------------------------------------------------
+--   DW_SALES.SP002S  booking container snapshot (latest revision per CLOS_DTM)
+--   ODS_ICC.CS004R   booking -> B/L mapping
+--
+-- The earlier manual DBeaver export also carried financial columns
+-- (CM1_*, *_FRT_AMT, ACTUAL_OF_RATE/ALL_IN_RATE, ACTUAL_CHARGE_BASKET, ...).
+-- They are intentionally omitted here: the live dashboard build never reads them,
+-- and their settlement/CM1 source tables are not confirmed in this repo. If those
+-- columns are needed again, add the revenue source as a separate CTE and SELECT.
+--
+-- Window: bookings departing within the last 7 months (covers all rate
+-- applications currently in dashboard scope; matches the ~6-month span of the
+-- original 2026-05-27 export with margin).
+
+WITH BOOKING_LATEST AS (
+    -- Keep the most recent snapshot row per booking container leg.
+    -- Mirrors the proven dedup in the weekly booking query (Script-2).
+    SELECT
+        A.FRT_APP_NO,
+        A.BKG_NO,
+        A.BKG_STS_CD,
+        A.BKG_SHPR_CST_NO,
+        A.CNTR_SZ_CD,
+        A.CNTR_TYP_CD,
+        A.CNTR_QTY,
+        A.RVSD_DPO_DT,
+        ROW_NUMBER() OVER (
+            PARTITION BY A.BKG_NO, A.CNTR_SEQ, A.LEG_SEQ
+            ORDER BY A.CLOS_DTM DESC
+        ) AS RN
+    FROM DW_SALES.SP002S A
+    WHERE A.LEG_SEQ = 1
+      AND A.FRT_APP_NO IS NOT NULL
+      AND A.BKG_STS_CD IN ('01', '04')   -- confirmed / on-board; excludes cancelled bookings
+      AND A.RVSD_DPO_DT >= TO_CHAR(ADD_MONTHS(SYSDATE, -7), 'YYYYMMDD')
+),
+
+BOOKING_AGG AS (
+    -- One row per (rate application, booking, container size/type).
+    SELECT
+        B.FRT_APP_NO,
+        B.BKG_NO,
+        MAX(B.BKG_STS_CD)       AS BKG_STS_CD,
+        MAX(B.BKG_SHPR_CST_NO)  AS BKG_SHPR_CST_NO,
+        MAX(B.RVSD_DPO_DT)      AS RVSD_DPO_DT,
+        B.CNTR_SZ_CD,
+        B.CNTR_TYP_CD,
+        SUM(NVL(B.CNTR_QTY, 0)) AS CNTR_QTY,
+        -- TEU: 20' = qty x1, 40'/45' = qty x2 (same rule as the weekly booking query).
+        SUM(CASE WHEN B.CNTR_SZ_CD = '20'           THEN NVL(B.CNTR_QTY, 0) * 1
+                 WHEN B.CNTR_SZ_CD IN ('40', '45')  THEN NVL(B.CNTR_QTY, 0) * 2
+                 ELSE 0 END)    AS TOTAL_TEU,
+        SUM(CASE WHEN B.CNTR_SZ_CD = '20'           THEN NVL(B.CNTR_QTY, 0) * 1 ELSE 0 END) AS TEU_20,
+        SUM(CASE WHEN B.CNTR_SZ_CD IN ('40', '45')  THEN NVL(B.CNTR_QTY, 0) * 2 ELSE 0 END) AS TEU_40,
+        -- Informational: high-cube subset (overlaps TEU_40); TOTAL_TEU stays authoritative.
+        SUM(CASE WHEN B.CNTR_TYP_CD = 'HC'          THEN NVL(B.CNTR_QTY, 0) * 2 ELSE 0 END) AS TEU_HC
+    FROM BOOKING_LATEST B
+    WHERE B.RN = 1
+    GROUP BY
+        B.FRT_APP_NO,
+        B.BKG_NO,
+        B.CNTR_SZ_CD,
+        B.CNTR_TYP_CD
+),
+
+BKG_BL AS (
+    -- Distinct B/L numbers per booking (a booking can split into several B/Ls).
+    SELECT DISTINCT
+        M.BKG_NO,
+        M.BL_NO
+    FROM ODS_ICC.CS004R M
+    WHERE M.BL_NO IS NOT NULL
+)
+
+SELECT
+    B.FRT_APP_NO          AS RATE_APPLICATION_NO,
+    B.BKG_NO              AS BOOKING_NO,
+    L.BL_NO               AS BL_NO,
+    B.BKG_STS_CD          AS BOOKING_STATUS_CODE,
+    B.BKG_SHPR_CST_NO     AS BOOKING_SHIPPER_CODE,
+    B.RVSD_DPO_DT         AS DEPARTURE_DATE,
+    B.CNTR_SZ_CD          AS CONTAINER_SIZE,
+    B.CNTR_TYP_CD         AS CONTAINER_TYPE,
+    B.CNTR_QTY            AS CNTR_QTY,
+    B.TEU_20              AS TEU_20,
+    B.TEU_40              AS TEU_40,
+    B.TEU_HC              AS TEU_HC,
+    B.TOTAL_TEU           AS TOTAL_TEU,
+    CASE WHEN L.BL_NO IS NOT NULL THEN 'Y' ELSE 'N' END AS HAS_BL_FLAG
+FROM BOOKING_AGG B
+LEFT JOIN BKG_BL L
+    ON L.BKG_NO = B.BKG_NO;

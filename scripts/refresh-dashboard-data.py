@@ -14,9 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 SQL_FILE = ROOT / "scripts" / "extract-rate-base.sql"
 BASIC_TARIFF_SQL_FILE = ROOT / "scripts" / "extract-basic-tariff.sql"
 RATE_ROUTE_SQL_FILE = ROOT / "scripts" / "extract-rate-route.sql"
+BOOKING_USAGE_SQL_FILE = ROOT / "scripts" / "extract-booking-usage.sql"
 CANONICAL_RATE_FILE = ROOT / "data" / "rate-base-latest.csv"
 CANONICAL_BASIC_TARIFF_FILE = ROOT / "data" / "basic-tariff-latest.csv"
 CANONICAL_RATE_ROUTE_FILE = ROOT / "data" / "rate-route-latest.csv"
+CANONICAL_BOOKING_USAGE_FILE = ROOT / "data" / "booking-usage-latest.csv"
 PUBLIC_DATA_FILE = ROOT / "public" / "data" / "weekly-monitoring.json"
 DIST_DATA_FILE = ROOT / "dist" / "data" / "weekly-monitoring.json"
 REQUIRED_ORACLE_COLUMNS = {"RATE_ROW_TYPE", "CHARGE_DETAIL_LIST"}
@@ -30,6 +32,18 @@ REFERENCE_EXTRACTS = (
         RATE_ROUTE_SQL_FILE,
         CANONICAL_RATE_ROUTE_FILE,
         {"FRT_APP_NO", "POL_CTR_CD", "POL_PORT_CD", "POD_CTR_CD", "POD_PORT_CD"},
+    ),
+    (
+        BOOKING_USAGE_SQL_FILE,
+        CANONICAL_BOOKING_USAGE_FILE,
+        {
+            "RATE_APPLICATION_NO",
+            "BOOKING_NO",
+            "CONTAINER_SIZE",
+            "CONTAINER_TYPE",
+            "TOTAL_TEU",
+            "HAS_BL_FLAG",
+        },
     ),
 )
 DEFAULT_DBEAVER_DATA_SOURCES = (
