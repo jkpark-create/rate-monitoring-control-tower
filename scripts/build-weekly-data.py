@@ -268,6 +268,23 @@ def charge_basket_from_items(items):
     return "+".join(codes), len(codes)
 
 
+def dedupe_basket(basket):
+    """Collapse a '+'-joined charge basket to distinct codes, preserving order.
+
+    The basket arrives as a raw LISTAGG (no DISTINCT, so a code charged in two
+    currencies or PP/CC splits repeats) and is then concatenated across rate
+    components (so shared codes like DCF repeat again). Both produce the
+    duplicated 'O/F+CAC+CAC+...+DCF+DCF+DCF' seen in the detail panel.
+    """
+    codes = []
+    seen = set()
+    for code in basket.split("+"):
+        if code and code not in seen:
+            seen.add(code)
+            codes.append(code)
+    return "+".join(codes)
+
+
 def fallback_charge_items(row):
     items = []
     summarized_codes = set()
@@ -348,12 +365,13 @@ def charge_items(row):
 
 
 def rate_detail(row):
+    basket = dedupe_basket(row.get("CHARGE_BASKET", ""))
     return (
         row.get("FREIGHT_UNIT", ""),
         row.get("PREPAID_COLLECT", ""),
         row.get("MASTER_PREPAID_COLLECT", ""),
-        row.get("CHARGE_BASKET", ""),
-        int(number(row.get("CHARGE_COUNT"))),
+        basket,
+        len(basket.split("+")) if basket else 0,
         number(row.get("THC_RATE")),
         number(row.get("LSS_RATE")),
         number(row.get("FAF_RATE")),
