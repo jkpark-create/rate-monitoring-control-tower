@@ -261,6 +261,7 @@ type ScopeFilters = {
   cargoType: string[];
   specialCargoType: string[];
   fullEmptyType: string[];
+  usagePresence: string[];
   staff: string[];
   company: string[];
 };
@@ -320,6 +321,9 @@ const UI_COPY = {
       cargoType: 'Cargo Type',
       oogType: 'OOG Type',
       fullEmpty: 'Full / Empty',
+      usagePresence: '사용 실적',
+      usageUsed: '실적 있음',
+      usageUnused: '실적 없음',
       staff: '영업사원',
       company: '업체',
       status: '판정 Status',
@@ -528,6 +532,9 @@ const UI_COPY = {
       cargoType: 'Cargo Type',
       oogType: 'OOG Type',
       fullEmpty: 'Full / Empty',
+      usagePresence: 'Usage',
+      usageUsed: 'Has usage',
+      usageUnused: 'No usage',
       staff: 'Sales Staff',
       company: 'Company',
       status: 'Judgement Status',
@@ -861,6 +868,7 @@ function createDefaultFilters(data: MonitoringData): FilterState {
     cargoType: [],
     specialCargoType: [],
     fullEmptyType: [],
+    usagePresence: [],
     staff: [],
     company: [],
     status: [],
@@ -880,6 +888,7 @@ function filterScope(filters: FilterState): ScopeFilters {
     cargoType: filters.cargoType,
     specialCargoType: filters.specialCargoType,
     fullEmptyType: filters.fullEmptyType,
+    usagePresence: filters.usagePresence,
     staff: filters.staff,
     company: filters.company,
   };
@@ -887,6 +896,15 @@ function filterScope(filters: FilterState): ScopeFilters {
 
 function hasSelection(selected: string[], value: string) {
   return !selected.length || selected.includes(value);
+}
+
+// 사용 실적 유무: 부킹 또는 B/L 실적이 있으면 'used', 없으면 'unused'.
+function recordHasUsage(record: RateRecord) {
+  return (record.bookingCount ?? 0) > 0 || (record.blCount ?? 0) > 0;
+}
+
+function hasUsageSelection(selected: string[], record: RateRecord) {
+  return !selected.length || selected.includes(recordHasUsage(record) ? 'used' : 'unused');
 }
 
 function activeFilterCount(filters: FilterState) {
@@ -900,6 +918,7 @@ function activeFilterCount(filters: FilterState) {
     (filters.cargoType.length ? 1 : 0) +
     (filters.specialCargoType.length ? 1 : 0) +
     (filters.fullEmptyType.length ? 1 : 0) +
+    (filters.usagePresence.length ? 1 : 0) +
     (filters.staff.length ? 1 : 0) +
     (filters.company.length ? 1 : 0) +
     (filters.status.length ? 1 : 0) +
@@ -1052,6 +1071,7 @@ function matchesScope(record: RateRecord, filters: ScopeFilters) {
     hasSelection(filters.cargoType, record.cargoType) &&
     hasSelection(filters.specialCargoType, record.specialCargoType) &&
     hasSelection(filters.fullEmptyType, record.fullEmptyType) &&
+    hasUsageSelection(filters.usagePresence, record) &&
     hasSelection(filters.staff, record.staff) &&
     hasSelection(filters.company, shipperKey(record))
   );
@@ -2503,9 +2523,14 @@ function AppContent({ data }: { data: MonitoringData }) {
     ]),
     [activeFilters.cargoType, records],
   );
-  const specialCargoTypeOptions = useMemo(() => toOptions(specialCargoTypes, formatOogType), [specialCargoTypes]);
   const fullEmptyTypes = useMemo(() => unique(records.map((item) => item.fullEmptyType)), [records]);
-  const fullEmptyTypeOptions = useMemo(() => toOptions(fullEmptyTypes, formatFullEmptyType), [fullEmptyTypes]);
+  const usagePresenceOptions = useMemo<FilterOption[]>(
+    () => [
+      { value: 'used', label: text.filter.usageUsed },
+      { value: 'unused', label: text.filter.usageUnused },
+    ],
+    [text],
+  );
   const approvalStatuses = useMemo(() => unique(records.map((item) => item.approvalStatus)), [records]);
   const formatApprovalStatus = (value: string) => data.metadata.approvalStatusLabels[value] ? `${data.metadata.approvalStatusLabels[value]} (${value})` : value;
   const staffOptions = useMemo(() => unique(records.map((item) => item.staff)), [records]);
@@ -2907,8 +2932,7 @@ function AppContent({ data }: { data: MonitoringData }) {
             <MultiSelectFilter language={language} label={text.filter.containerSize} options={containerSizeOptions} values={activeFilters.containerSize} onChange={(values) => setActiveFilters((current) => ({ ...current, containerSize: values, containerType: [] }))} />
             <MultiSelectFilter language={language} label={text.filter.containerType} options={containerTypeOptions} values={activeFilters.containerType} onChange={(values) => setActiveFilters((current) => ({ ...current, containerType: values }))} />
             <MultiSelectFilter language={language} className="cargo-type-filter" label={text.filter.cargoType} options={cargoTypeOptions} values={activeFilters.cargoType} onChange={(values) => setActiveFilters((current) => ({ ...current, cargoType: values, specialCargoType: [] }))} />
-            <MultiSelectFilter language={language} className="special-cargo-filter" label={text.filter.oogType} options={specialCargoTypeOptions} values={activeFilters.specialCargoType} onChange={(values) => setActiveFilters((current) => ({ ...current, specialCargoType: values }))} />
-            <MultiSelectFilter language={language} className="full-empty-filter" label={text.filter.fullEmpty} options={fullEmptyTypeOptions} values={activeFilters.fullEmptyType} onChange={(values) => setActiveFilters((current) => ({ ...current, fullEmptyType: values }))} />
+            <MultiSelectFilter language={language} className="usage-presence-filter" label={text.filter.usagePresence} options={usagePresenceOptions} values={activeFilters.usagePresence} onChange={(values) => setActiveFilters((current) => ({ ...current, usagePresence: values }))} />
             <MultiSelectFilter language={language} label={text.filter.staff} options={staffFilterOptions} values={activeFilters.staff} onChange={(values) => setActiveFilters((current) => ({ ...current, staff: values }))} />
             <MultiSelectFilter language={language} className="company-filter" label={text.filter.company} options={companyOptions} values={activeFilters.company} onChange={(values) => setActiveFilters((current) => ({ ...current, company: values }))} />
             {view === 'detail' && (

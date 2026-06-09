@@ -247,6 +247,10 @@ main {
   flex-basis: 94px;
 }
 
+.filter-grid .usage-presence-filter {
+  flex-basis: 104px;
+}
+
 .filter-grid .query-filter {
   flex-basis: 148px;
 }
