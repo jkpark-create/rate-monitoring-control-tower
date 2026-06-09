@@ -58,6 +58,9 @@ type RawRecord = [
   specialCargoTypeIndex: number,
   fullEmptyTypeIndex: number,
   approvalStatusIndex: number,
+  blCount?: number,
+  bookingCount?: number,
+  teu?: number,
 ];
 
 type RawRateDetail = [
@@ -100,6 +103,8 @@ type MonitoringData = {
     sourceFile: string;
     sourceMode: 'canonical' | 'legacy-fallback';
     chargeDetailAvailable: boolean;
+    usageAvailable?: boolean;
+    usageSourceFile?: string;
     latestSourceDate: string;
     defaultWeek: string;
     availableStartDate: string;
@@ -203,6 +208,9 @@ type RateRecord = {
   marketSource: string;
   comparisonKey: string;
   rateDetailIndex: number;
+  blCount: number | null;
+  bookingCount: number | null;
+  teu: number | null;
 };
 
 type LaneBenchmark = {
@@ -414,6 +422,10 @@ const UI_COPY = {
       registeredDetail: 'Registered O/F (all-in)',
       gapBasis: 'Gap (all-in 기준)',
       appliedBenchmark: '적용 비교 기준',
+      usage: '사용 실적 (BL / 물량)',
+      usageValue: 'BL {bl}건 · 예약 {bkg}건 · {teu} TEU',
+      usageNone: '미사용 (BL·예약 없음)',
+      usageUnavailable: '데이터 갱신 후 표시',
     },
     charge: {
       title: 'Charge 항목',
@@ -618,6 +630,10 @@ const UI_COPY = {
       registeredDetail: 'Registered O/F (all-in)',
       gapBasis: 'Gap (all-in basis)',
       appliedBenchmark: 'Applied Benchmark',
+      usage: 'Usage (B/L / Volume)',
+      usageValue: 'B/L {bl} · Bookings {bkg} · {teu} TEU',
+      usageNone: 'Unused (no B/L or booking)',
+      usageUnavailable: 'Available after next data refresh',
     },
     charge: {
       title: 'Charge Items',
@@ -1216,6 +1232,9 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
       marketSource: data.dimensions.marketSources[record[10]],
       comparisonKey: `${record[3]}|${record[13]}|${record[14]}|${record[15]}|${record[16]}|${record[17]}`,
       rateDetailIndex: record[12],
+      blCount: typeof record[19] === 'number' ? record[19] : null,
+      bookingCount: typeof record[20] === 'number' ? record[20] : null,
+      teu: typeof record[21] === 'number' ? record[21] : null,
     };
   });
 }
@@ -1631,7 +1650,6 @@ function RateBreakdown({ detail, language }: { detail: RateDetail; language: Lan
       <div className="detail-meta-grid">
         <div><span>{text.freightUnit}</span><strong>{detail.freightUnit || '-'}</strong></div>
         <div><span>{text.payment}</span><strong>{detail.prepaidCollect || '-'} / {detail.masterPrepaidCollect || '-'}</strong></div>
-        <div><span>{text.count}</span><strong>{formatNumber(detail.chargeCount)}</strong></div>
         <div><span>{text.basket}</span><strong>{detail.chargeBasket || '-'}</strong></div>
       </div>
       {hasUnclassified && (
@@ -1687,6 +1705,18 @@ function RateDetailPanel({ rate, detail, language, onClose }: { rate: DetailRate
     );
   }
 
+  const usageUnavailable = rate.blCount === null;
+  const usageUnused = !usageUnavailable && (rate.blCount ?? 0) === 0 && (rate.bookingCount ?? 0) === 0;
+  const usageLabel = usageUnavailable
+    ? text.usageUnavailable
+    : usageUnused
+      ? text.usageNone
+      : text.usageValue
+        .replace('{bl}', formatNumber(rate.blCount ?? 0))
+        .replace('{bkg}', formatNumber(rate.bookingCount ?? 0))
+        .replace('{teu}', formatNumber(rate.teu ?? 0));
+  const usageClass = usageUnavailable ? 'usage-na' : usageUnused ? 'usage-none' : 'usage-used';
+
   return (
     <aside className="detail-panel detail-side-panel">
       <div className="panel-head">
@@ -1708,6 +1738,7 @@ function RateDetailPanel({ rate, detail, language, onClose }: { rate: DetailRate
         <div><span>{text.appliedBenchmark}</span><strong>{rate.benchmarkRate !== null ? `${formatMoney(rate.benchmarkRate)} / ${rate.benchmarkSource === 'market' ? 'Market Rate' : UI_COPY[language].status.average}` : '-'}</strong></div>
         <div><span>{text.salesStaff}</span><strong>{rate.staff}</strong></div>
         <div className="detail-wide"><span>{text.company}</span><strong>{rate.shipperCode || '-'} / {rate.shipperName || '-'}</strong></div>
+        <div className="detail-wide"><span>{text.usage}</span><strong className={`usage-value ${usageClass}`}>{usageLabel}</strong></div>
       </div>
       {detail && <RateBreakdown detail={detail} language={language} />}
     </aside>

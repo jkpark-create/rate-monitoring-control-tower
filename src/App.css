@@ -1012,6 +1012,19 @@ tr.rate-band-case:hover td {
   font-size: 12px;
 }
 
+.usage-value.usage-used {
+  color: #1f6a51;
+}
+
+.usage-value.usage-none {
+  color: #b54708;
+}
+
+.usage-value.usage-na {
+  color: #98a2ac;
+  font-weight: 600;
+}
+
 .summary-selected-row td {
   background: #eef8f4;
 }

@@ -19,6 +19,25 @@ CANONICAL_RATE_FILE = ROOT / "data" / "rate-base-latest.csv"
 BASIC_TARIFF_FILE = ROOT / "data" / "basic-tariff-latest.csv"
 RATE_ROUTE_FILE = ROOT / "data" / "rate-route-latest.csv"
 OUTPUT_FILE = ROOT / "public" / "data" / "weekly-monitoring.json"
+
+
+def find_booking_usage_file():
+    """Locate the booking-usage extract (BL/TEU per rate application).
+
+    The file is an optional manual extract; usage stays empty when it is absent
+    so the rest of the build keeps working without it.
+    """
+    for base in (ROOT / "data", ROOT):
+        candidate = base / "booking-usage-latest.csv"
+        if candidate.exists():
+            return candidate
+        matches = sorted(base.glob("_WITH_BOOKING_USAGE_AS_SELECT_*.csv"))
+        if matches:
+            return matches[-1]
+    return None
+
+
+BOOKING_USAGE_FILE = find_booking_usage_file()
 RECENT_WEEK_COUNT = 32
 FUTURE_WINDOW_DAYS = 395
 HQ_ROUTE_TEAMS = ("OBT", "EST", "IST", "JBT")
@@ -619,6 +638,63 @@ def dashboard_rows(path, columns):
                 yield merge_charge_components(row, lookup, detail_lookup, detail_only_lookup, dynamic_tariffs)
 
 
+def booking_usage_key(application_no, container_size, container_type):
+    return (
+        (application_no or "").strip(),
+        (container_size or "").strip(),
+        (container_type or "").strip(),
+    )
+
+
+def build_booking_usage(path):
+    """Aggregate actual usage per (rate application, CNTR size, CNTR type).
+
+    The extract repeats a booking across several rows (joins fan out up to ~12x),
+    so TOTAL_TEU is collapsed per distinct BOOKING_NO before summing — otherwise
+    volume is multiplied by the duplicate-row count. blCount/teu come only from
+    bookings that produced a B/L (HAS_BL_FLAG='Y'), i.e. actually shipped volume;
+    bookingCount counts every distinct booking that referenced the rate.
+    """
+    if path is None:
+        return {}, False
+
+    aggregates = {}
+    with path.open("r", encoding="utf-8-sig", newline="") as source:
+        for row in csv.DictReader(source):
+            booking_no = (row.get("BOOKING_NO", "") or "").strip()
+            if not booking_no:
+                continue
+            key = booking_usage_key(
+                row.get("RATE_APPLICATION_NO", ""),
+                row.get("CONTAINER_SIZE", ""),
+                row.get("CONTAINER_TYPE", ""),
+            )
+            entry = aggregates.get(key)
+            if entry is None:
+                entry = {"bookings": {}, "bls": set()}
+                aggregates[key] = entry
+            has_bl = row.get("HAS_BL_FLAG", "") == "Y"
+            booking = entry["bookings"].get(booking_no)
+            if booking is None:
+                booking = {"teu": 0.0, "hasBL": False}
+                entry["bookings"][booking_no] = booking
+            # Duplicate rows carry the same booking-level TOTAL_TEU; take the max
+            # (not the sum) so a fanned-out join does not inflate the volume.
+            booking["teu"] = max(booking["teu"], number(row.get("TOTAL_TEU")))
+            booking["hasBL"] = booking["hasBL"] or has_bl
+            bl_no = (row.get("BL_NO", "") or "").strip()
+            if has_bl and bl_no:
+                entry["bls"].add(bl_no)
+
+    usage_map = {}
+    for key, entry in aggregates.items():
+        shipped_teu = sum(b["teu"] for b in entry["bookings"].values() if b["hasBL"])
+        usage_map[key] = (len(entry["bls"]), len(entry["bookings"]), round(shipped_teu, 1))
+    return usage_map, True
+
+
+booking_usage_map, booking_usage_available = build_booking_usage(BOOKING_USAGE_FILE)
+
 dimensions = {
     "lanes": [],
     "shippers": [],
@@ -689,6 +765,15 @@ for row in dashboard_rows(RATE_FILE, rate_source_columns):
         market_source = guideline["source"] if market_rate is not None else ""
         detail = rate_detail(row)
 
+        bl_count, booking_count, teu = booking_usage_map.get(
+            booking_usage_key(
+                row.get("RATE_APPLICATION_NO", ""),
+                row.get("CONTAINER_SIZE", ""),
+                row.get("CONTAINER_TYPE", ""),
+            ),
+            (0, 0, 0.0),
+        )
+
         record_key = (
             row.get("RATE_APPLICATION_NO", ""),
             effective_start,
@@ -730,6 +815,9 @@ for row in dashboard_rows(RATE_FILE, rate_source_columns):
                 dimension_index(dimensions["specialCargoTypes"], dimension_maps["specialCargoTypes"], special_cargo_type),
                 dimension_index(dimensions["fullEmptyTypes"], dimension_maps["fullEmptyTypes"], full_empty_type),
                 dimension_index(dimensions["approvalStatuses"], dimension_maps["approvalStatuses"], approval_status),
+                bl_count,
+                booking_count,
+                teu,
             ]
         )
 
@@ -759,6 +847,8 @@ payload = {
         "sourceFile": RATE_FILE.name,
         "sourceMode": "canonical" if RATE_FILE.resolve() == CANONICAL_RATE_FILE.resolve() else "legacy-fallback",
         "chargeDetailAvailable": charge_detail_available,
+        "usageAvailable": booking_usage_available,
+        "usageSourceFile": BOOKING_USAGE_FILE.name if BOOKING_USAGE_FILE else "",
         "latestSourceDate": iso_date(latest_source_date),
         "defaultWeek": iso_date(default_week),
         "availableStartDate": iso_date(first_week),
@@ -806,6 +896,9 @@ payload = {
             "specialCargoTypeIndex",
             "fullEmptyTypeIndex",
             "approvalStatusIndex",
+            "blCount",
+            "bookingCount",
+            "teu",
         ],
         "rateDetailSchema": [
             "freightUnit",
