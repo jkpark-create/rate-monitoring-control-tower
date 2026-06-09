@@ -29,6 +29,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -354,6 +355,8 @@ const UI_COPY = {
       rateBandBack: '뒤로',
       rateBandOther: '기타',
       rateBandUnit: '운임',
+      rateBandMarketLine: 'Market',
+      rateBandBenchmarkLine: '구간 평균',
       rateBandEmpty: '표시할 운임이 없습니다.',
       drillNote: '국가 행을 클릭하면 포트별 집계가 펼쳐집니다. 포트 행을 클릭하면 해당 조건의 상세 목록으로 이동합니다.',
       noTrend: '트렌드를 표시할 업체가 없습니다.',
@@ -550,6 +553,8 @@ const UI_COPY = {
       rateBandBack: 'Back',
       rateBandOther: 'Other',
       rateBandUnit: 'rates',
+      rateBandMarketLine: 'Market',
+      rateBandBenchmarkLine: 'Lane avg',
       rateBandEmpty: 'No rates to display.',
       drillNote: 'Click a country row to expand port-level totals. Click a port row to open the filtered detail list.',
       noTrend: 'No companies available for the trend chart.',
@@ -1830,7 +1835,49 @@ function RateBandPanel({
     });
 
     const total = buckets.reduce((sum, bucket) => sum + bucket.count, 0);
-    return { buckets, chartData, segmentKeys, total };
+
+    // 기준선: 하나의 구간으로 좁혀졌을 때만 Market·구간 평균 기준선을 그린다.
+    // (여러 구간이 섞이면 평균값이 의미가 없으므로 표시하지 않는다.)
+    const lanes = new Set<string>();
+    let marketSum = 0;
+    let marketCount = 0;
+    let valueSum = 0;
+    let valueCount = 0;
+    for (const record of rates) {
+      lanes.add(`${record.porPort}|${record.dlyPort}`);
+      const value = valueOf(record);
+      if (Number.isFinite(value)) {
+        valueSum += value;
+        valueCount += 1;
+      }
+      if (record.marketRate !== null) {
+        const market = metric === 'of'
+          ? (record.marketRate as number)
+          : (record.marketRate as number) + (record.allInRate - record.ofRate);
+        marketSum += market;
+        marketCount += 1;
+      }
+    }
+    const laneSelected = lanes.size === 1;
+    const bandLabelFor = (value: number | null) => {
+      if (value === null || value < start || value >= end) {
+        return null;
+      }
+      return formatBandMoney(buckets[idxFor(value)].min);
+    };
+    const marketRef = laneSelected && marketCount ? marketSum / marketCount : null;
+    const benchmarkRef = laneSelected && valueCount ? valueSum / valueCount : null;
+
+    return {
+      buckets,
+      chartData,
+      segmentKeys,
+      total,
+      marketRef,
+      benchmarkRef,
+      marketBand: bandLabelFor(marketRef),
+      benchmarkBand: bandLabelFor(benchmarkRef),
+    };
   }, [rates, cases, metric, split, zoom]);
 
   const segmentLabel = (key: string) => (key === OTHER_SEGMENT_KEY ? text.rateBandOther : key);
@@ -1912,6 +1959,23 @@ function RateBandPanel({
                     return point ? `${formatBandMoney(point.bandMin ?? 0)} – ${formatBandMoney(point.bandMax ?? 0)}` : String(label);
                   }}
                 />
+                {model.benchmarkBand !== null && model.benchmarkRef !== null && (
+                  <ReferenceLine
+                    x={model.benchmarkBand}
+                    stroke="#687580"
+                    strokeDasharray="5 4"
+                    strokeWidth={1.5}
+                    label={{ value: `${text.rateBandBenchmarkLine} ${formatMoney(model.benchmarkRef)}`, position: 'insideTopLeft', fontSize: 10, fill: '#54616b' }}
+                  />
+                )}
+                {model.marketBand !== null && model.marketRef !== null && (
+                  <ReferenceLine
+                    x={model.marketBand}
+                    stroke="#c2410c"
+                    strokeWidth={1.5}
+                    label={{ value: `${text.rateBandMarketLine} ${formatMoney(model.marketRef)}`, position: 'insideTopRight', fontSize: 10, fill: '#c2410c' }}
+                  />
+                )}
                 {split === 'none' ? (
                   <>
                     <Bar
