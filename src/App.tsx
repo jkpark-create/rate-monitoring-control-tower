@@ -23,6 +23,8 @@ import {
   X,
 } from 'lucide-react';
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
   Legend,
   Line,
@@ -337,6 +339,22 @@ const UI_COPY = {
       destination: '도착지 국가 / 포트',
       staff: '영업사원별',
       company: '업체별 트렌드',
+      rateBand: '운임대별',
+      rateBandNote: '막대 또는 행을 클릭하면 해당 운임대를 더 세분화합니다. 상단 필터를 적용하면 분포가 다시 계산됩니다.',
+      rateBandMetricOf: 'O/F 운임',
+      rateBandMetricAllIn: 'All-in',
+      rateBandSplitNone: '구분 없음',
+      rateBandSplitSize: 'CNTR Size',
+      rateBandSplitType: 'CNTR Type',
+      rateBandCount: '운임수',
+      rateBandLow: '저운임',
+      rateBandShare: '비중',
+      rateBandRangeAll: '전체 범위',
+      rateBandReset: '전체 보기',
+      rateBandBack: '뒤로',
+      rateBandOther: '기타',
+      rateBandUnit: '운임',
+      rateBandEmpty: '표시할 운임이 없습니다.',
       drillNote: '국가 행을 클릭하면 포트별 집계가 펼쳐집니다. 포트 행을 클릭하면 해당 조건의 상세 목록으로 이동합니다.',
       noTrend: '트렌드를 표시할 업체가 없습니다.',
       trendSelectedSuffix: '주차별 평균 Ocean Freight 추이 · 점선은 동일 구간·CNTR·Cargo 조건의 타 업체 O/F 평균입니다.',
@@ -517,6 +535,22 @@ const UI_COPY = {
       destination: 'Destination Country / Port',
       staff: 'By Sales Staff',
       company: 'Company Trend',
+      rateBand: 'Rate Band',
+      rateBandNote: 'Click a bar or row to subdivide that rate band. Applying the top filters recalculates the distribution.',
+      rateBandMetricOf: 'O/F Rate',
+      rateBandMetricAllIn: 'All-in',
+      rateBandSplitNone: 'No split',
+      rateBandSplitSize: 'CNTR Size',
+      rateBandSplitType: 'CNTR Type',
+      rateBandCount: 'Rate count',
+      rateBandLow: 'Low',
+      rateBandShare: 'Share',
+      rateBandRangeAll: 'Full range',
+      rateBandReset: 'Reset',
+      rateBandBack: 'Back',
+      rateBandOther: 'Other',
+      rateBandUnit: 'rates',
+      rateBandEmpty: 'No rates to display.',
       drillNote: 'Click a country row to expand port-level totals. Click a port row to open the filtered detail list.',
       noTrend: 'No companies available for the trend chart.',
       trendSelectedSuffix: 'weekly average Ocean Freight trend · dotted line is the peer O/F average for the same lane, CNTR, and cargo conditions.',
@@ -749,6 +783,24 @@ const formatRateMoney = (value: number | null) => value === null ? '-' : `${valu
 const formatPct = (value: number) => `${(value * 100).toFixed(1)}%`;
 const formatSignedPct = (value: number) => `${value > 0 ? '-' : ''}${Math.abs(value * 100).toFixed(1)}%`;
 const formatDate = (value: string) => value.replaceAll('-', '.');
+const formatBandMoney = (value: number) => {
+  const abs = Math.abs(value);
+  if (abs >= 1000) {
+    return `$${(value / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`;
+  }
+  return `$${Math.round(value)}`;
+};
+// Round a rough bucket width up to a "nice" 1/2/2.5/5/10 × 10ⁿ value so band
+// boundaries land on readable numbers as the user drills in.
+const niceStep = (rough: number) => {
+  if (!Number.isFinite(rough) || rough <= 0) {
+    return 1;
+  }
+  const pow = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough / pow;
+  const nice = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
+  return nice * pow;
+};
 const formatAmount = (value: number | null) => value === null ? '-' : new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
 const addDays = (value: string, days: number) => {
   const date = new Date(`${value}T00:00:00Z`);
@@ -978,6 +1030,8 @@ function shipperKey(record: RateRecord) {
 
 const TREND_COLORS = ['#1f7a5a', '#2563eb', '#d97706', '#9333ea', '#dc2626'];
 const TREND_BENCHMARK_DATA_KEY = 'benchmark';
+const SEGMENT_COLORS = ['#1f7a5a', '#2563eb', '#d97706', '#9333ea', '#dc2626', '#0891b2', '#64748b'];
+const OTHER_SEGMENT_KEY = '__other__';
 
 type GroupRow = {
   key: string;
@@ -1643,13 +1697,304 @@ function RateDetailPanel({ rate, detail, language, onClose }: { rate: DetailRate
   );
 }
 
+type RateBandMetric = 'of' | 'allin';
+type RateBandSplit = 'none' | 'size' | 'type';
+
+function RateBandPanel({
+  rates,
+  cases,
+  language,
+}: {
+  rates: RateRecord[];
+  cases: LowRateCase[];
+  language: Language;
+}) {
+  const text = UI_COPY[language].summary;
+  const [metric, setMetric] = useState<RateBandMetric>('of');
+  const [split, setSplit] = useState<RateBandSplit>('none');
+  const [zoomStack, setZoomStack] = useState<{ min: number; max: number }[]>([]);
+
+  // Changing the data set (top filters) or the banding metric invalidates the
+  // drill range, so collapse back to the full distribution.
+  useEffect(() => {
+    setZoomStack([]);
+  }, [rates, metric]);
+
+  const zoom = zoomStack.length ? zoomStack[zoomStack.length - 1] : null;
+
+  const model = useMemo(() => {
+    const valueOf = (record: RateRecord) => (metric === 'of' ? record.ofRate : record.allInRate);
+    const splitOf = split === 'size'
+      ? (record: RateRecord) => record.containerSize || '-'
+      : split === 'type'
+        ? (record: RateRecord) => record.containerType || '-'
+        : null;
+
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (const record of rates) {
+      const value = valueOf(record);
+      if (!Number.isFinite(value)) {
+        continue;
+      }
+      if (zoom && (value < zoom.min || value >= zoom.max)) {
+        continue;
+      }
+      if (value < lo) lo = value;
+      if (value > hi) hi = value;
+    }
+    if (!Number.isFinite(lo)) {
+      return null;
+    }
+    if (zoom) {
+      lo = zoom.min;
+      hi = zoom.max;
+    }
+    if (hi <= lo) {
+      hi = lo + 1;
+    }
+
+    const step = niceStep((hi - lo) / 10);
+    const start = Math.floor(lo / step) * step;
+    const end = Math.max(start + step, Math.ceil(hi / step) * step);
+    const bucketCount = Math.min(40, Math.max(1, Math.round((end - start) / step)));
+    const idxFor = (value: number) => Math.min(bucketCount - 1, Math.max(0, Math.floor((value - start) / step)));
+
+    type Bucket = { min: number; max: number; count: number; low: number; seg: Map<string, number> };
+    const buckets: Bucket[] = Array.from({ length: bucketCount }, (_, index) => ({
+      min: start + index * step,
+      max: start + (index + 1) * step,
+      count: 0,
+      low: 0,
+      seg: new Map<string, number>(),
+    }));
+    const inRange = (value: number) => Number.isFinite(value) && (!zoom || (value >= zoom.min && value < zoom.max));
+
+    const segTotals = new Map<string, number>();
+    for (const record of rates) {
+      const value = valueOf(record);
+      if (!inRange(value)) {
+        continue;
+      }
+      const bucket = buckets[idxFor(value)];
+      bucket.count += 1;
+      if (splitOf) {
+        const key = splitOf(record);
+        bucket.seg.set(key, (bucket.seg.get(key) ?? 0) + 1);
+        segTotals.set(key, (segTotals.get(key) ?? 0) + 1);
+      }
+    }
+    for (const item of cases) {
+      const value = valueOf(item);
+      if (!inRange(value)) {
+        continue;
+      }
+      buckets[idxFor(value)].low += 1;
+    }
+
+    const topSegments = Array.from(segTotals.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, SEGMENT_COLORS.length - 1)
+      .map(([key]) => key);
+    const topSet = new Set(topSegments);
+    const hasOther = Array.from(segTotals.keys()).some((key) => !topSet.has(key));
+    const segmentKeys = splitOf ? [...topSegments, ...(hasOther ? [OTHER_SEGMENT_KEY] : [])] : [];
+
+    const chartData = buckets.map((bucket) => {
+      const row: Record<string, number | string> = {
+        band: formatBandMoney(bucket.min),
+        bandMin: bucket.min,
+        bandMax: bucket.max,
+        count: bucket.count,
+        low: bucket.low,
+      };
+      if (splitOf) {
+        let other = 0;
+        for (const [key, value] of bucket.seg) {
+          if (topSet.has(key)) {
+            row[key] = value;
+          } else {
+            other += value;
+          }
+        }
+        for (const key of topSegments) {
+          if (!(key in row)) {
+            row[key] = 0;
+          }
+        }
+        if (hasOther) {
+          row[OTHER_SEGMENT_KEY] = other;
+        }
+      }
+      return row;
+    });
+
+    const total = buckets.reduce((sum, bucket) => sum + bucket.count, 0);
+    return { buckets, chartData, segmentKeys, total };
+  }, [rates, cases, metric, split, zoom]);
+
+  const segmentLabel = (key: string) => (key === OTHER_SEGMENT_KEY ? text.rateBandOther : key);
+  const zoomInto = (min: number, max: number) => {
+    if (!(max - min > 10)) {
+      return;
+    }
+    setZoomStack((stack) => [...stack, { min, max }]);
+  };
+
+  return (
+    <div className="rate-band-panel">
+      <div className="rate-band-controls">
+        <div className="segmented-control rate-band-segmented">
+          {([
+            ['of', text.rateBandMetricOf],
+            ['allin', text.rateBandMetricAllIn],
+          ] as const).map(([value, label]) => (
+            <button className={metric === value ? 'active' : ''} key={value} type="button" onClick={() => setMetric(value)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="segmented-control rate-band-segmented">
+          {([
+            ['none', text.rateBandSplitNone],
+            ['size', text.rateBandSplitSize],
+            ['type', text.rateBandSplitType],
+          ] as const).map(([value, label]) => (
+            <button className={split === value ? 'active' : ''} key={value} type="button" onClick={() => setSplit(value)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="rate-band-breadcrumb">
+        <button
+          type="button"
+          className={zoomStack.length ? 'crumb crumb-link' : 'crumb crumb-current'}
+          onClick={() => setZoomStack([])}
+          disabled={!zoomStack.length}
+        >
+          {text.rateBandRangeAll}
+        </button>
+        {zoomStack.map((range, index) => (
+          <span className="crumb-segment" key={`${range.min}-${range.max}-${index}`}>
+            <ChevronRight size={12} aria-hidden="true" />
+            <button
+              type="button"
+              className={index === zoomStack.length - 1 ? 'crumb crumb-current' : 'crumb crumb-link'}
+              onClick={() => setZoomStack((stack) => stack.slice(0, index + 1))}
+            >
+              {formatBandMoney(range.min)} – {formatBandMoney(range.max)}
+            </button>
+          </span>
+        ))}
+        {zoomStack.length > 0 && (
+          <button type="button" className="rate-band-back" onClick={() => setZoomStack((stack) => stack.slice(0, -1))}>
+            {text.rateBandBack}
+          </button>
+        )}
+      </div>
+
+      <p className="summary-drill-note">{text.rateBandNote}</p>
+
+      {model && model.total ? (
+        <>
+          <div className="rate-band-chart">
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={model.chartData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eef1f0" vertical={false} />
+                <XAxis dataKey="band" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
+                <YAxis tick={{ fontSize: 11 }} width={42} allowDecimals={false} />
+                <Tooltip
+                  formatter={(value, name) => [formatNumber(Number(value)), name === 'count' ? text.rateBandCount : name === 'low' ? text.rateBandLow : segmentLabel(String(name))]}
+                  labelFormatter={(label, payload) => {
+                    const point = payload?.[0]?.payload as { bandMin?: number; bandMax?: number } | undefined;
+                    return point ? `${formatBandMoney(point.bandMin ?? 0)} – ${formatBandMoney(point.bandMax ?? 0)}` : String(label);
+                  }}
+                />
+                {split === 'none' ? (
+                  <>
+                    <Bar
+                      dataKey="count"
+                      name={text.rateBandCount}
+                      fill="#9fc3b6"
+                      cursor="pointer"
+                      onClick={(entry) => {
+                        const point = (entry as { payload?: { bandMin?: number; bandMax?: number } }).payload;
+                        zoomInto(point?.bandMin ?? 0, point?.bandMax ?? 0);
+                      }}
+                    />
+                    <Bar dataKey="low" name={text.rateBandLow} fill="#dc7a4f" />
+                  </>
+                ) : (
+                  <>
+                    <Legend wrapperStyle={{ fontSize: 11 }} formatter={(value) => segmentLabel(String(value))} />
+                    {model.segmentKeys.map((key, index) => (
+                      <Bar
+                        key={key}
+                        dataKey={key}
+                        name={key}
+                        stackId="seg"
+                        fill={SEGMENT_COLORS[index % SEGMENT_COLORS.length]}
+                        cursor="pointer"
+                        onClick={(entry) => {
+                          const point = (entry as { payload?: { bandMin?: number; bandMax?: number } }).payload;
+                          zoomInto(point?.bandMin ?? 0, point?.bandMax ?? 0);
+                        }}
+                      />
+                    ))}
+                  </>
+                )}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="table-wrap">
+            <table className="summary-table rate-band-table">
+              <thead>
+                <tr>
+                  <th>{metric === 'of' ? text.rateBandMetricOf : text.rateBandMetricAllIn}</th>
+                  <th>{text.rateBandCount}</th>
+                  <th>{text.rateBandLow}</th>
+                  <th>{text.rateBandShare}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {model.buckets.map((bucket) => {
+                  const drillable = bucket.count > 0 && bucket.max - bucket.min > 10;
+                  return (
+                    <tr
+                      key={bucket.min}
+                      className={drillable ? 'rate-band-row-drill' : undefined}
+                      onClick={() => drillable && zoomInto(bucket.min, bucket.max)}
+                    >
+                      <td>
+                        <strong>{formatBandMoney(bucket.min)} – {formatBandMoney(bucket.max)}</strong>
+                      </td>
+                      <td className="num-cell"><strong>{formatNumber(bucket.count)}</strong></td>
+                      <td className="num-cell">{formatNumber(bucket.low)}</td>
+                      <td className="num-cell">{formatPct(model.total ? bucket.count / model.total : 0)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : (
+        <p className="rate-band-empty">{text.rateBandEmpty}</p>
+      )}
+    </div>
+  );
+}
+
 function AppContent({ data }: { data: MonitoringData }) {
   const records = useMemo(() => decodeRecords(data), [data]);
   const [summaryFilters, setSummaryFilters] = useState<FilterState>(() => createDefaultFilters(data));
   const [detailFilters, setDetailFilters] = useState<FilterState>(() => createDefaultFilters(data));
   const [page, setPage] = useState(1);
   const [view, setView] = useState<'summary' | 'detail'>('summary');
-  const [summaryDim, setSummaryDim] = useState<'origin' | 'destination' | 'staff' | 'company'>('origin');
+  const [summaryDim, setSummaryDim] = useState<'origin' | 'destination' | 'staff' | 'company' | 'rateband'>('origin');
   const [expandedOriginCountries, setExpandedOriginCountries] = useState<string[]>([]);
   const [expandedDestinationCountries, setExpandedDestinationCountries] = useState<string[]>([]);
   const [selectedTrendCompany, setSelectedTrendCompany] = useState('');
@@ -2029,14 +2374,26 @@ function AppContent({ data }: { data: MonitoringData }) {
       ? destinationSummary
       : summaryDim === 'staff'
         ? staffSummary
-        : companySummary;
-  const summaryHead = summaryDim === 'origin' ? text.summary.origin : summaryDim === 'destination' ? text.summary.destination : summaryDim === 'staff' ? text.filter.staff : text.filter.company;
+        : summaryDim === 'company'
+          ? companySummary
+          : [];
+  const summaryHead = summaryDim === 'origin'
+    ? text.summary.origin
+    : summaryDim === 'destination'
+      ? text.summary.destination
+      : summaryDim === 'staff'
+        ? text.filter.staff
+        : summaryDim === 'company'
+          ? text.filter.company
+          : text.summary.rateBand;
   const summaryShowActive = summaryDim === 'origin' || summaryDim === 'destination';
   const summaryCountLabel = summaryDim === 'origin'
     ? `${formatNumber(originCountrySummary.length)} ${language === 'ko' ? '국가' : 'countries'}`
     : summaryDim === 'destination'
       ? `${formatNumber(destinationCountrySummary.length)} ${language === 'ko' ? '국가' : 'countries'}`
-      : `${formatNumber(summaryRows.length)} ${summaryHead}`;
+      : summaryDim === 'rateband'
+        ? `${formatNumber(summaryRates.length)} ${text.summary.rateBandUnit}`
+        : `${formatNumber(summaryRows.length)} ${summaryHead}`;
 
   const resetScope = () => {
     setActiveFilters(createDefaultFilters(data));
@@ -2329,6 +2686,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                     ['destination', text.summary.destination, Anchor],
                     ['staff', text.summary.staff, Users],
                     ['company', text.summary.company, TrendingUp],
+                    ['rateband', text.summary.rateBand, BarChart3],
                   ] as const).map(([value, label, Icon]) => (
                     <button
                       className={summaryDim === value ? 'active' : ''}
@@ -2344,6 +2702,10 @@ function AppContent({ data }: { data: MonitoringData }) {
 
                 {(summaryDim === 'origin' || summaryDim === 'destination') && (
                   <p className="summary-drill-note">{text.summary.drillNote}</p>
+                )}
+
+                {summaryDim === 'rateband' && (
+                  <RateBandPanel rates={summaryRates} cases={summaryCases} language={language} />
                 )}
 
                 {summaryDim === 'company' && (
@@ -2400,6 +2762,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                   </div>
                 )}
 
+                {summaryDim !== 'rateband' && (
                 <div className="table-wrap">
                   <table className={`summary-table${summaryDim === 'company' ? ' summary-company-table' : ''}`}>
                     <thead>
@@ -2458,6 +2821,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                     </tbody>
                   </table>
                 </div>
+                )}
               </>
             ) : (
               <>

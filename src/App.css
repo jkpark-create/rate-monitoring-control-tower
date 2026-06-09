@@ -806,6 +806,101 @@ table.summary-company-table td:not(:first-child) {
   font-weight: 800;
 }
 
+.rate-band-panel {
+  padding: 4px 0 0;
+}
+
+.rate-band-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 0 16px 6px;
+}
+
+.rate-band-segmented {
+  padding: 0;
+  gap: 4px;
+}
+
+.rate-band-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 0 16px 4px;
+  font-size: 11px;
+}
+
+.rate-band-breadcrumb .crumb-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #9aa7af;
+}
+
+.rate-band-breadcrumb .crumb {
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+  font-size: 11px;
+  border-radius: 4px;
+}
+
+.rate-band-breadcrumb .crumb-link {
+  color: #1f6a51;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rate-band-breadcrumb .crumb-link:hover {
+  background: #eef8f4;
+}
+
+.rate-band-breadcrumb .crumb-current {
+  color: #315866;
+  font-weight: 800;
+}
+
+.rate-band-breadcrumb .crumb:disabled {
+  cursor: default;
+}
+
+.rate-band-back {
+  margin-left: auto;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid #b9d3c9;
+  border-radius: 4px;
+  background: #f4faf7;
+  color: #1f6a51;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.rate-band-chart {
+  padding: 6px 16px 4px;
+}
+
+.rate-band-table {
+  min-width: 0;
+}
+
+.rate-band-row-drill {
+  cursor: pointer;
+}
+
+.rate-band-row-drill:hover td {
+  background: #f3f8f6;
+}
+
+.rate-band-empty {
+  margin: 0;
+  padding: 28px 16px;
+  color: #6b7780;
+  font-size: 13px;
+  text-align: center;
+}
+
 .summary-selected-row td {
   background: #eef8f4;
 }
