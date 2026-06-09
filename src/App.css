@@ -893,6 +893,66 @@ table.summary-company-table td:not(:first-child) {
   background: #f3f8f6;
 }
 
+.rate-band-cell-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rate-band-cell-label svg {
+  color: #8c99a1;
+  transition: transform 0.12s ease;
+}
+
+.rate-band-cell-label svg.expanded {
+  transform: rotate(90deg);
+}
+
+.rate-band-row-open > td {
+  background: #eef5f2;
+}
+
+.rate-band-cases-row > td {
+  padding: 0;
+  background: #f7faf9;
+}
+
+.rate-band-cases {
+  overflow-x: auto;
+  padding: 4px 0 8px;
+}
+
+table.rate-band-cases-table {
+  width: 100%;
+  min-width: 0;
+}
+
+table.rate-band-cases-table th,
+table.rate-band-cases-table td {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+table.rate-band-cases-table th {
+  background: #eef2f1;
+  color: #5a666e;
+  font-weight: 700;
+}
+
+table.rate-band-cases-table td span {
+  display: block;
+  color: #8a959c;
+  font-size: 10px;
+}
+
+tr.rate-band-case {
+  cursor: pointer;
+}
+
+tr.rate-band-case:hover td {
+  background: #eef8f4;
+}
+
 .rate-band-empty {
   margin: 0;
   padding: 28px 16px;

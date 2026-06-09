@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Anchor,
   AlertTriangle,
@@ -341,7 +341,7 @@ const UI_COPY = {
       staff: '영업사원별',
       company: '업체별 트렌드',
       rateBand: '운임대별',
-      rateBandNote: '막대 또는 행을 클릭하면 해당 운임대를 더 세분화합니다. 상단 필터를 적용하면 분포가 다시 계산됩니다.',
+      rateBandNote: '막대를 클릭하면 해당 운임대로 더 세분화되고, 아래 표의 행을 클릭하면 그 운임대에 속한 운임 목록이 펼쳐집니다. 운임번호를 클릭하면 상세로 이동합니다. 상단 필터를 적용하면 분포가 다시 계산됩니다.',
       rateBandMetricOf: 'O/F 운임',
       rateBandMetricAllIn: 'All-in',
       rateBandSplitNone: '구분 없음',
@@ -539,7 +539,7 @@ const UI_COPY = {
       staff: 'By Sales Staff',
       company: 'Company Trend',
       rateBand: 'Rate Band',
-      rateBandNote: 'Click a bar or row to subdivide that rate band. Applying the top filters recalculates the distribution.',
+      rateBandNote: 'Click a bar to subdivide that rate band; click a table row to expand the rates within it, and click a rate number to open its detail. Applying the top filters recalculates the distribution.',
       rateBandMetricOf: 'O/F Rate',
       rateBandMetricAllIn: 'All-in',
       rateBandSplitNone: 'No split',
@@ -1709,15 +1709,21 @@ function RateBandPanel({
   rates,
   cases,
   language,
+  onInspectRate,
 }: {
   rates: RateRecord[];
   cases: LowRateCase[];
   language: Language;
+  onInspectRate: (rate: RateRecord) => void;
 }) {
   const text = UI_COPY[language].summary;
+  const detailText = UI_COPY[language].detail;
   const [metric, setMetric] = useState<RateBandMetric>('of');
   const [split, setSplit] = useState<RateBandSplit>('none');
   const [zoomStack, setZoomStack] = useState<{ min: number; max: number }[]>([]);
+  const [expandedBand, setExpandedBand] = useState<number | null>(null);
+
+  const valueOf = (record: RateRecord) => (metric === 'of' ? record.ofRate : record.allInRate);
 
   // Changing the data set (top filters) or the banding metric invalidates the
   // drill range, so collapse back to the full distribution.
@@ -1727,8 +1733,20 @@ function RateBandPanel({
 
   const zoom = zoomStack.length ? zoomStack[zoomStack.length - 1] : null;
 
+  // Collapse any open band list when the distribution itself changes.
+  useEffect(() => {
+    setExpandedBand(null);
+  }, [zoom, split, rates, metric]);
+
+  const caseStatusById = useMemo(() => {
+    const map = new Map<string, IssueStatus>();
+    for (const item of cases) {
+      map.set(item.id, item.status);
+    }
+    return map;
+  }, [cases]);
+
   const model = useMemo(() => {
-    const valueOf = (record: RateRecord) => (metric === 'of' ? record.ofRate : record.allInRate);
     const splitOf = split === 'size'
       ? (record: RateRecord) => record.containerSize || '-'
       : split === 'type'
@@ -1764,6 +1782,9 @@ function RateBandPanel({
     const end = Math.max(start + step, Math.ceil(hi / step) * step);
     const bucketCount = Math.min(40, Math.max(1, Math.round((end - start) / step)));
     const idxFor = (value: number) => Math.min(bucketCount - 1, Math.max(0, Math.floor((value - start) / step)));
+    // 굵은 스텝(>=$1k)에서는 $12k 처럼 축약하지만, 세분화로 스텝이 작아지면
+    // 밴드끼리 라벨이 겹치지 않도록 정확한 금액($12,020)으로 표시한다.
+    const labelOf = (value: number) => (step >= 1000 ? formatBandMoney(value) : `$${Math.round(value).toLocaleString('en-US')}`);
 
     type Bucket = { min: number; max: number; count: number; low: number; seg: Map<string, number> };
     const buckets: Bucket[] = Array.from({ length: bucketCount }, (_, index) => ({
@@ -1807,7 +1828,7 @@ function RateBandPanel({
 
     const chartData = buckets.map((bucket) => {
       const row: Record<string, number | string> = {
-        band: formatBandMoney(bucket.min),
+        band: labelOf(bucket.min),
         bandMin: bucket.min,
         bandMax: bucket.max,
         count: bucket.count,
@@ -1863,7 +1884,7 @@ function RateBandPanel({
       if (value === null || value < start || value >= end) {
         return null;
       }
-      return formatBandMoney(buckets[idxFor(value)].min);
+      return labelOf(buckets[idxFor(value)].min);
     };
     const marketRef = laneSelected && marketCount ? marketSum / marketCount : null;
     const benchmarkRef = laneSelected && valueCount ? valueSum / valueCount : null;
@@ -1873,6 +1894,7 @@ function RateBandPanel({
       chartData,
       segmentKeys,
       total,
+      labelOf,
       marketRef,
       benchmarkRef,
       marketBand: bandLabelFor(marketRef),
@@ -1956,7 +1978,7 @@ function RateBandPanel({
                   formatter={(value, name) => [formatNumber(Number(value)), name === 'count' ? text.rateBandCount : name === 'low' ? text.rateBandLow : segmentLabel(String(name))]}
                   labelFormatter={(label, payload) => {
                     const point = payload?.[0]?.payload as { bandMin?: number; bandMax?: number } | undefined;
-                    return point ? `${formatBandMoney(point.bandMin ?? 0)} – ${formatBandMoney(point.bandMax ?? 0)}` : String(label);
+                    return point ? `${formatMoney(point.bandMin ?? 0)} – ${formatMoney(point.bandMax ?? 0)}` : String(label);
                   }}
                 />
                 {model.benchmarkBand !== null && model.benchmarkRef !== null && (
@@ -2025,20 +2047,72 @@ function RateBandPanel({
               </thead>
               <tbody>
                 {model.buckets.map((bucket) => {
-                  const drillable = bucket.count > 0 && bucket.max - bucket.min > 10;
+                  const expandable = bucket.count > 0;
+                  const expanded = expandedBand === bucket.min;
+                  const bandRates = expanded
+                    ? rates.filter((rate) => {
+                      const value = valueOf(rate);
+                      return Number.isFinite(value) && value >= bucket.min && value < bucket.max;
+                    }).sort((a, b) => valueOf(a) - valueOf(b))
+                    : [];
                   return (
-                    <tr
-                      key={bucket.min}
-                      className={drillable ? 'rate-band-row-drill' : undefined}
-                      onClick={() => drillable && zoomInto(bucket.min, bucket.max)}
-                    >
-                      <td>
-                        <strong>{formatBandMoney(bucket.min)} – {formatBandMoney(bucket.max)}</strong>
-                      </td>
-                      <td className="num-cell"><strong>{formatNumber(bucket.count)}</strong></td>
-                      <td className="num-cell">{formatNumber(bucket.low)}</td>
-                      <td className="num-cell">{formatPct(model.total ? bucket.count / model.total : 0)}</td>
-                    </tr>
+                    <Fragment key={bucket.min}>
+                      <tr
+                        className={[expandable ? 'rate-band-row-drill' : '', expanded ? 'rate-band-row-open' : ''].filter(Boolean).join(' ') || undefined}
+                        onClick={() => expandable && setExpandedBand(expanded ? null : bucket.min)}
+                      >
+                        <td>
+                          <div className="rate-band-cell-label">
+                            {expandable && <ChevronRight className={expanded ? 'expanded' : ''} size={14} aria-hidden="true" />}
+                            <strong>{model.labelOf(bucket.min)} – {model.labelOf(bucket.max)}</strong>
+                          </div>
+                        </td>
+                        <td className="num-cell"><strong>{formatNumber(bucket.count)}</strong></td>
+                        <td className="num-cell">{formatNumber(bucket.low)}</td>
+                        <td className="num-cell">{formatPct(model.total ? bucket.count / model.total : 0)}</td>
+                      </tr>
+                      {expanded && (
+                        <tr className="rate-band-cases-row">
+                          <td colSpan={4}>
+                            <div className="rate-band-cases">
+                              <table className="rate-band-cases-table">
+                                <thead>
+                                  <tr>
+                                    <th>{detailText.status}</th>
+                                    <th>{detailText.rateNo}</th>
+                                    <th>{detailText.lane}</th>
+                                    <th>{detailText.cntr}</th>
+                                    <th>{metric === 'of' ? text.rateBandMetricOf : text.rateBandMetricAllIn}</th>
+                                    <th>{detailText.company}</th>
+                                    <th>{detailText.salesStaff}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {bandRates.map((rate) => {
+                                    const status: DetailStatus = caseStatusById.get(rate.id) ?? 'normal';
+                                    return (
+                                      <tr
+                                        key={rate.id}
+                                        className="rate-band-case"
+                                        onClick={(event) => { event.stopPropagation(); onInspectRate(rate); }}
+                                      >
+                                        <td><StatusBadge status={status} language={language} /></td>
+                                        <td><button className="rate-link" type="button">{rate.rateApplicationNo}</button></td>
+                                        <td><strong>{rate.porPort} {rate.porCountry} → {rate.dlyPort} {rate.dlyCountry}</strong></td>
+                                        <td>{rate.container || `${rate.containerSize}/${rate.containerType}`}<span>{formatCargoProfile(rate.cargoProfile)}</span></td>
+                                        <td className="money-cell">{formatMoney(valueOf(rate))}<span>O/F {formatMoney(rate.ofRate)} · all-in {formatMoney(rate.allInRate)}</span></td>
+                                        <td><strong>{rate.shipperCode || '-'}</strong><span>{rate.shipperName || 'No company name'}</span></td>
+                                        <td>{rate.staff || '-'}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -2408,6 +2482,20 @@ function AppContent({ data }: { data: MonitoringData }) {
     setView('detail');
   };
 
+  // 운임대 분포에서 특정 운임을 클릭하면 상세 화면으로 이동해 해당 운임번호를
+  // 검색한 결과를 보여준다. (전체 범위로 열어 정상 건도 확인 가능)
+  const inspectRateFromSummary = (rate: RateRecord) => {
+    setDetailFilters({
+      ...summaryFilters,
+      status: [],
+      query: rate.rateApplicationNo,
+      scope: 'all',
+    });
+    setPage(1);
+    setSelectedCase(null);
+    setView('detail');
+  };
+
   const toggleSummaryCountry = (country: string) => {
     const toggle = (current: string[]) => current.includes(country)
       ? current.filter((value) => value !== country)
@@ -2769,7 +2857,12 @@ function AppContent({ data }: { data: MonitoringData }) {
                 )}
 
                 {summaryDim === 'rateband' && (
-                  <RateBandPanel rates={summaryRates} cases={summaryCases} language={language} />
+                  <RateBandPanel
+                    rates={summaryRates}
+                    cases={summaryCases}
+                    language={language}
+                    onInspectRate={inspectRateFromSummary}
+                  />
                 )}
 
                 {summaryDim === 'company' && (
