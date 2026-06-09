@@ -688,8 +688,14 @@ def build_booking_usage(path):
 
     usage_map = {}
     for key, entry in aggregates.items():
+        booking_teu = sum(b["teu"] for b in entry["bookings"].values())
         shipped_teu = sum(b["teu"] for b in entry["bookings"].values() if b["hasBL"])
-        usage_map[key] = (len(entry["bls"]), len(entry["bookings"]), round(shipped_teu, 1))
+        usage_map[key] = (
+            len(entry["bls"]),
+            len(entry["bookings"]),
+            round(shipped_teu, 1),
+            round(booking_teu, 1),
+        )
     return usage_map, True
 
 
@@ -765,13 +771,13 @@ for row in dashboard_rows(RATE_FILE, rate_source_columns):
         market_source = guideline["source"] if market_rate is not None else ""
         detail = rate_detail(row)
 
-        bl_count, booking_count, teu = booking_usage_map.get(
+        bl_count, booking_count, teu, booking_teu = booking_usage_map.get(
             booking_usage_key(
                 row.get("RATE_APPLICATION_NO", ""),
                 row.get("CONTAINER_SIZE", ""),
                 row.get("CONTAINER_TYPE", ""),
             ),
-            (0, 0, 0.0),
+            (0, 0, 0.0, 0.0),
         )
 
         record_key = (
@@ -818,6 +824,7 @@ for row in dashboard_rows(RATE_FILE, rate_source_columns):
                 bl_count,
                 booking_count,
                 teu,
+                booking_teu,
             ]
         )
 
@@ -899,6 +906,7 @@ payload = {
             "blCount",
             "bookingCount",
             "teu",
+            "bookingTeu",
         ],
         "rateDetailSchema": [
             "freightUnit",

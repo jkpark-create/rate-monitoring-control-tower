@@ -61,6 +61,7 @@ type RawRecord = [
   blCount?: number,
   bookingCount?: number,
   teu?: number,
+  bookingTeu?: number,
 ];
 
 type RawRateDetail = [
@@ -211,6 +212,7 @@ type RateRecord = {
   blCount: number | null;
   bookingCount: number | null;
   teu: number | null;
+  bookingTeu: number | null;
 };
 
 type LaneBenchmark = {
@@ -422,9 +424,9 @@ const UI_COPY = {
       registeredDetail: 'Registered O/F (all-in)',
       gapBasis: 'Gap (all-in 기준)',
       appliedBenchmark: '적용 비교 기준',
-      usage: '사용 실적 (BL / 물량)',
-      usageValue: 'BL {bl}건 · 예약 {bkg}건 · {teu} TEU',
-      usageNone: '미사용 (BL·예약 없음)',
+      usage: '사용 실적 (부킹 / BL)',
+      usageValue: '부킹 {bkg}건 · {bkgTeu} TEU · BL {bl}건 · {teu} TEU',
+      usageNone: '미사용 (부킹·BL 없음)',
       usageUnavailable: '데이터 갱신 후 표시',
     },
     charge: {
@@ -630,9 +632,9 @@ const UI_COPY = {
       registeredDetail: 'Registered O/F (all-in)',
       gapBasis: 'Gap (all-in basis)',
       appliedBenchmark: 'Applied Benchmark',
-      usage: 'Usage (B/L / Volume)',
-      usageValue: 'B/L {bl} · Bookings {bkg} · {teu} TEU',
-      usageNone: 'Unused (no B/L or booking)',
+      usage: 'Usage (Booking / B/L)',
+      usageValue: 'Bookings {bkg} · {bkgTeu} TEU · B/L {bl} · {teu} TEU',
+      usageNone: 'Unused (no booking or B/L)',
       usageUnavailable: 'Available after next data refresh',
     },
     charge: {
@@ -1235,6 +1237,7 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
       blCount: typeof record[19] === 'number' ? record[19] : null,
       bookingCount: typeof record[20] === 'number' ? record[20] : null,
       teu: typeof record[21] === 'number' ? record[21] : null,
+      bookingTeu: typeof record[22] === 'number' ? record[22] : null,
     };
   });
 }
@@ -1712,8 +1715,9 @@ function RateDetailPanel({ rate, detail, language, onClose }: { rate: DetailRate
     : usageUnused
       ? text.usageNone
       : text.usageValue
-        .replace('{bl}', formatNumber(rate.blCount ?? 0))
         .replace('{bkg}', formatNumber(rate.bookingCount ?? 0))
+        .replace('{bkgTeu}', formatNumber(rate.bookingTeu ?? 0))
+        .replace('{bl}', formatNumber(rate.blCount ?? 0))
         .replace('{teu}', formatNumber(rate.teu ?? 0));
   const usageClass = usageUnavailable ? 'usage-na' : usageUnused ? 'usage-none' : 'usage-used';
 
@@ -1773,17 +1777,23 @@ function RateLaneScatter({
   metric,
   language,
   onInspectRate,
+  axis,
+  setAxis,
+  containerCombo,
+  setContainerCombo,
 }: {
   rates: RateRecord[];
   cases: LowRateCase[];
   metric: RateBandMetric;
   language: Language;
   onInspectRate: (rate: RateRecord) => void;
+  axis: RateScatterAxis;
+  setAxis: (axis: RateScatterAxis) => void;
+  containerCombo: string;
+  setContainerCombo: (combo: string) => void;
 }) {
   const text = UI_COPY[language].summary;
   const statusText = UI_COPY[language].status;
-  const [axis, setAxis] = useState<RateScatterAxis>('origin');
-  const [containerCombo, setContainerCombo] = useState('40|HC');
 
   const valueOf = (record: RateRecord) => (metric === 'of' ? record.ofRate : record.allInRate);
 
@@ -1987,16 +1997,30 @@ function RateBandPanel({
   cases,
   language,
   onInspectRate,
+  metric,
+  setMetric,
+  chartMode,
+  setChartMode,
+  scatterAxis,
+  setScatterAxis,
+  scatterContainer,
+  setScatterContainer,
 }: {
   rates: RateRecord[];
   cases: LowRateCase[];
   language: Language;
   onInspectRate: (rate: RateRecord) => void;
+  metric: RateBandMetric;
+  setMetric: (metric: RateBandMetric) => void;
+  chartMode: RateBandChartMode;
+  setChartMode: (mode: RateBandChartMode) => void;
+  scatterAxis: RateScatterAxis;
+  setScatterAxis: (axis: RateScatterAxis) => void;
+  scatterContainer: string;
+  setScatterContainer: (combo: string) => void;
 }) {
   const text = UI_COPY[language].summary;
   const detailText = UI_COPY[language].detail;
-  const [metric, setMetric] = useState<RateBandMetric>('of');
-  const [chartMode, setChartMode] = useState<RateBandChartMode>('histogram');
   const [zoomStack, setZoomStack] = useState<{ min: number; max: number }[]>([]);
   const [expandedBand, setExpandedBand] = useState<number | null>(null);
 
@@ -2174,6 +2198,10 @@ function RateBandPanel({
           metric={metric}
           language={language}
           onInspectRate={onInspectRate}
+          axis={scatterAxis}
+          setAxis={setScatterAxis}
+          containerCombo={scatterContainer}
+          setContainerCombo={setScatterContainer}
         />
       ) : (
       <>
@@ -2354,6 +2382,12 @@ function AppContent({ data }: { data: MonitoringData }) {
   const [page, setPage] = useState(1);
   const [view, setView] = useState<'summary' | 'detail'>('summary');
   const [summaryDim, setSummaryDim] = useState<'origin' | 'destination' | 'staff' | 'company' | 'rateband'>('origin');
+  // Rate-band view state is lifted here so it survives navigating into the detail
+  // view and back (the panel unmounts, but the chosen chart/container persist).
+  const [rateBandMetric, setRateBandMetric] = useState<RateBandMetric>('of');
+  const [rateBandChartMode, setRateBandChartMode] = useState<RateBandChartMode>('histogram');
+  const [rateScatterAxis, setRateScatterAxis] = useState<RateScatterAxis>('origin');
+  const [rateScatterContainer, setRateScatterContainer] = useState('40|HC');
   const [expandedOriginCountries, setExpandedOriginCountries] = useState<string[]>([]);
   const [expandedDestinationCountries, setExpandedDestinationCountries] = useState<string[]>([]);
   const [selectedTrendCompany, setSelectedTrendCompany] = useState('');
@@ -3083,6 +3117,14 @@ function AppContent({ data }: { data: MonitoringData }) {
                     cases={summaryCases}
                     language={language}
                     onInspectRate={inspectRateFromSummary}
+                    metric={rateBandMetric}
+                    setMetric={setRateBandMetric}
+                    chartMode={rateBandChartMode}
+                    setChartMode={setRateBandChartMode}
+                    scatterAxis={rateScatterAxis}
+                    setScatterAxis={setRateScatterAxis}
+                    scatterContainer={rateScatterContainer}
+                    setScatterContainer={setRateScatterContainer}
                   />
                 )}
 
