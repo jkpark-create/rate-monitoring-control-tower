@@ -1793,6 +1793,7 @@ function scatterJitter(id: string) {
 
 function RateLaneScatter({
   rates,
+  volumeRates,
   cases,
   metric,
   language,
@@ -1803,6 +1804,7 @@ function RateLaneScatter({
   setContainerCombo,
 }: {
   rates: RateRecord[];
+  volumeRates: RateRecord[];
   cases: LowRateCase[];
   metric: RateBandMetric;
   language: Language;
@@ -1858,21 +1860,38 @@ function RateLaneScatter({
       : (record.dlyPort || record.dlyCountry));
     const laneCountryOf = (record: RateRecord) => (axis === 'origin' ? record.porCountry : record.dlyCountry);
 
-    const counts = new Map<string, { key: string; country: string; count: number; volume: number }>();
+    // Lane volume for the X-axis ordering comes from volumeRates, which applies
+    // the same scope filters but IGNORES the period window — so a lane is ranked
+    // by its full BL TEU regardless of which weeks its rate files are valid in.
+    // Restricted to the selected container combo to match the dots on screen.
+    const volumeByLane = new Map<string, number>();
+    for (const record of volumeRates) {
+      if (`${record.containerSize}|${record.containerType}` !== containerCombo) {
+        continue;
+      }
+      const key = laneKeyOf(record);
+      if (!key) {
+        continue;
+      }
+      volumeByLane.set(key, (volumeByLane.get(key) ?? 0) + (record.teu ?? 0));
+    }
+
+    const counts = new Map<string, { key: string; country: string; count: number }>();
     for (const record of comboRates) {
       const key = laneKeyOf(record);
       if (!key) {
         continue;
       }
-      const current = counts.get(key) ?? { key, country: laneCountryOf(record), count: 0, volume: 0 };
+      const current = counts.get(key) ?? { key, country: laneCountryOf(record), count: 0 };
       current.count += 1;
-      current.volume += record.teu ?? 0;
       counts.set(key, current);
     }
-    // Order lanes by actual BL volume (TEU) descending, falling back to rate
-    // count then key so lanes with no usage data still sort deterministically.
+    // Order lanes by lane BL volume (TEU) descending, falling back to rate count
+    // then key so lanes with no usage data still sort deterministically.
     const sortedLanes = Array.from(counts.values()).sort(
-      (a, b) => b.volume - a.volume || b.count - a.count || a.key.localeCompare(b.key),
+      (a, b) => (volumeByLane.get(b.key) ?? 0) - (volumeByLane.get(a.key) ?? 0)
+        || b.count - a.count
+        || a.key.localeCompare(b.key),
     );
     const lanes = sortedLanes.slice(0, SCATTER_MAX_LANES);
     const hiddenLanes = sortedLanes.length - lanes.length;
@@ -1907,7 +1926,7 @@ function RateLaneScatter({
       pointCount: valueCount,
       averageValue: valueCount ? valueSum / valueCount : null,
     };
-  }, [rates, containerCombo, axis, metric, caseStatusById]);
+  }, [rates, volumeRates, containerCombo, axis, metric, caseStatusById]);
 
   const laneTick = (value: number) => model.lanes[value]?.key ?? '';
 
@@ -2019,6 +2038,7 @@ function RateLaneScatter({
 
 function RateBandPanel({
   rates,
+  volumeRates,
   cases,
   language,
   onInspectRate,
@@ -2032,6 +2052,7 @@ function RateBandPanel({
   setScatterContainer,
 }: {
   rates: RateRecord[];
+  volumeRates: RateRecord[];
   cases: LowRateCase[];
   language: Language;
   onInspectRate: (rate: RateRecord) => void;
@@ -2219,6 +2240,7 @@ function RateBandPanel({
       {chartMode === 'scatter' ? (
         <RateLaneScatter
           rates={rates}
+          volumeRates={volumeRates}
           cases={cases}
           metric={metric}
           language={language}
@@ -2450,6 +2472,10 @@ function AppContent({ data }: { data: MonitoringData }) {
     [data.metadata.marketAverageFallbackMinimumSamples, detailFilters.periodEnd, detailFilters.periodStart, records],
   );
   const summaryRates = useMemo(() => summaryPeriodAnalysis.activeRates.filter((rate) => matchesScope(rate, summaryScope)), [summaryPeriodAnalysis.activeRates, summaryScope]);
+  // Same scope filters as summaryRates but WITHOUT the period window — used to
+  // rank the scatter X-axis by each lane's full booking volume regardless of
+  // which weeks a rate file happens to be valid in.
+  const summaryVolumeRates = useMemo(() => records.filter((rate) => matchesScope(rate, summaryScope)), [records, summaryScope]);
   const summaryCases = useMemo(() => summaryPeriodAnalysis.cases.filter((item) => matchesScope(item, summaryScope)), [summaryPeriodAnalysis.cases, summaryScope]);
   const detailRates = useMemo(() => detailPeriodAnalysis.activeRates.filter((rate) => matchesScope(rate, detailScope)), [detailPeriodAnalysis.activeRates, detailScope]);
   const detailCases = useMemo(() => detailPeriodAnalysis.cases.filter((item) => matchesScope(item, detailScope)), [detailPeriodAnalysis.cases, detailScope]);
@@ -3143,6 +3169,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                 {summaryDim === 'rateband' && (
                   <RateBandPanel
                     rates={summaryRates}
+                    volumeRates={summaryVolumeRates}
                     cases={summaryCases}
                     language={language}
                     onInspectRate={inspectRateFromSummary}
