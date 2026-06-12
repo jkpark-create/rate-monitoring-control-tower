@@ -1858,17 +1858,22 @@ function RateLaneScatter({
       : (record.dlyPort || record.dlyCountry));
     const laneCountryOf = (record: RateRecord) => (axis === 'origin' ? record.porCountry : record.dlyCountry);
 
-    const counts = new Map<string, { key: string; country: string; count: number }>();
+    const counts = new Map<string, { key: string; country: string; count: number; volume: number }>();
     for (const record of comboRates) {
       const key = laneKeyOf(record);
       if (!key) {
         continue;
       }
-      const current = counts.get(key) ?? { key, country: laneCountryOf(record), count: 0 };
+      const current = counts.get(key) ?? { key, country: laneCountryOf(record), count: 0, volume: 0 };
       current.count += 1;
+      current.volume += record.teu ?? 0;
       counts.set(key, current);
     }
-    const sortedLanes = Array.from(counts.values()).sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
+    // Order lanes by actual BL volume (TEU) descending, falling back to rate
+    // count then key so lanes with no usage data still sort deterministically.
+    const sortedLanes = Array.from(counts.values()).sort(
+      (a, b) => b.volume - a.volume || b.count - a.count || a.key.localeCompare(b.key),
+    );
     const lanes = sortedLanes.slice(0, SCATTER_MAX_LANES);
     const hiddenLanes = sortedLanes.length - lanes.length;
     const laneIndex = new Map(lanes.map((lane, index) => [lane.key, index]));
