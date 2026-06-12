@@ -2428,11 +2428,11 @@ function AppContent({ data }: { data: MonitoringData }) {
   const [detailFilters, setDetailFilters] = useState<FilterState>(() => createDefaultFilters(data));
   const [page, setPage] = useState(1);
   const [view, setView] = useState<'summary' | 'detail'>('summary');
-  const [summaryDim, setSummaryDim] = useState<'origin' | 'destination' | 'staff' | 'company' | 'rateband'>('origin');
+  const [summaryDim, setSummaryDim] = useState<'origin' | 'destination' | 'staff' | 'company' | 'rateband'>('rateband');
   // Rate-band view state is lifted here so it survives navigating into the detail
   // view and back (the panel unmounts, but the chosen chart/container persist).
   const [rateBandMetric, setRateBandMetric] = useState<RateBandMetric>('of');
-  const [rateBandChartMode, setRateBandChartMode] = useState<RateBandChartMode>('histogram');
+  const [rateBandChartMode, setRateBandChartMode] = useState<RateBandChartMode>('scatter');
   const [rateScatterAxis, setRateScatterAxis] = useState<RateScatterAxis>('origin');
   const [rateScatterContainer, setRateScatterContainer] = useState('40|HC');
   const [expandedOriginCountries, setExpandedOriginCountries] = useState<string[]>([]);
