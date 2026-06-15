@@ -1,51 +1,81 @@
 # Rate Monitoring Control Tower Guide
 
-운임파일 등록현황 모니터링 대시보드의 데이터 생성, 판정 로직, 화면 사용법, 배포/운영 절차를 정리한 가이드입니다.
+운임파일 등록현황 모니터링 대시보드의 데이터 생성, 저운임 판정 로직, 화면 사용법, 운영 절차, 최근 개발 업데이트를 정리한 가이드입니다.
+
+최종 업데이트: 2026-06-15
 
 ## 1. 목적
 
-이 대시보드는 등록된 O/F 운임 중 영업 검토가 필요한 저운임 건을 빠르게 찾기 위한 모니터링 화면입니다. 단순히 낮은 O/F만 찾는 것이 아니라, 파일에 등록된 surcharge와 local charge를 반영한 all-in 기준으로 비교합니다.
+이 대시보드는 등록된 O/F 운임 중 영업 검토가 필요한 저운임 건을 빠르게 찾기 위한 모니터링 화면입니다. 단순히 낮은 O/F를 찾는 것이 아니라, 파일에 등록된 surcharge와 local charge를 반영한 all-in 기준으로 Market Rate 또는 기간 평균과 비교합니다.
 
-## 2. 데이터 소스
+대시보드는 등록 오류를 단정하는 도구가 아니라 확인 우선순위를 정하는 도구입니다. 최종 조정 여부는 계약, 프로모션, 특수 화물 조건, 담당자 확인을 함께 보고 판단합니다.
 
-- Rate Base: `scripts/extract-rate-base.sql`
-- Basic Tariff: `scripts/extract-basic-tariff.sql`
-- Route: `scripts/extract-rate-route.sql`
-- CN/HK Market Rate guideline: `scripts/sync-china-guideline.py`
-- SEA/ETC working-rate guideline: `scripts/sync-sea-guideline.py`
-- JSON 생성: `scripts/build-weekly-data.py`
+## 2. 최근 개발 업데이트
 
-운영 화면은 최종 JSON 캐시를 읽습니다. GitHub Pages 배포본은 Google Drive의 JSON 파일을 OAuth로 읽도록 구성되어 있습니다.
+### 2026-06-15 반영 사항
 
-## 3. 데이터 생성 흐름
+- CN/HK Market Rate guideline JSON과 SEA/ETC working-rate guideline JSON을 최신 원천 기준으로 갱신했습니다. 생성 시각은 각각 `2026-06-15T12:07:25`, `2026-06-15T12:07:51`입니다.
+- Google Drive 문서화를 위한 `scripts/upload-doc-to-gdrive.py`가 추가되었습니다. Markdown 문서를 native Google Docs 파일로 생성하거나 기존 동일 제목 문서를 갱신할 수 있습니다.
+- 데이터 파이프라인 상세 문서 `docs/data-pipeline.md`가 추가되어 Oracle 추출, Google Drive 가이드 동기화, Python 빌드, JSON 배포 흐름을 별도 문서로 정리했습니다.
+
+### 최근 기능/로직 변경
+
+- 집계 분석의 기본 화면을 `운임대별` 분석으로 변경했고, 운임대별 기본 차트는 `사이즈·타입별` scatter입니다.
+- rate-band scatter의 X축 구간 정렬은 선택 기간에 종속되지 않고, 동일 필터 범위의 전체 BL TEU 물량 기준으로 정렬합니다. 물량이 없으면 운임 건수와 Lane key로 deterministic fallback 정렬합니다.
+- 상단 필터에서 OOG Type과 Full/Empty 직접 필터를 제거하고, `사용 실적` 필터를 추가했습니다. 화면 필터는 더 단순해졌지만 기간 평균 비교군 생성에는 OOG Type과 Full/Empty가 계속 사용됩니다.
+- booking 사용량 추출에서 `ODS_ICC.M_SA003I`를 추가로 조회해 예정/현재 B/L 배정까지 탐지합니다. 과거 확정 B/L은 `ODS_ICC.CS004R`, 예정/현재 B/L은 `M_SA003I` 최신 `BASC_DT` snapshot으로 보완합니다.
+- charge 상세 생성 시 동일 charge 항목이 중복 표시되지 않도록 charge basket/detail-only 항목을 dedupe합니다.
+- 레거시 `scripts/build-data.py`를 제거하고 `scripts/build-weekly-data.py`를 단일 JSON 빌더로 정리했습니다.
+
+## 3. 데이터 소스
+
+| 구분 | 소스 | 대상 | 담당 파일 |
+| --- | --- | --- | --- |
+| 운임 본문 | Oracle | O/F, surcharge, local charge, charge detail | `scripts/extract-rate-base.sql` |
+| Booking 사용량 | Oracle | booking 수, BL 수, TEU | `scripts/extract-booking-usage.sql` |
+| Basic Tariff | Oracle | 동적 EFC 상세 조회용 tariff | `scripts/extract-basic-tariff.sql` |
+| 운임 적용 항로 | Oracle | rate application route | `scripts/extract-rate-route.sql` |
+| CN/HK Market Rate | Google Drive/Sheets | AB Customer tier market guideline | `scripts/sync-china-guideline.py` |
+| SEA/ETC Working Rate | Google Drive/Sheets | KMTC working-rate guideline | `scripts/sync-sea-guideline.py` |
+| 대시보드 JSON | 로컬/Drive | `weekly-monitoring.json` | `scripts/build-weekly-data.py`, `scripts/upload-to-gdrive.py` |
+
+운영 화면은 최종 JSON 캐시를 읽습니다. GitHub Pages 배포본은 Google Drive의 JSON 파일을 OAuth로 읽도록 구성되어 있으며, 브라우저가 Oracle에 직접 접속하지 않습니다.
+
+## 4. 데이터 생성 흐름
 
 ```text
 Oracle SQL 추출
-  -> rate-base-latest.csv
-  -> basic-tariff-latest.csv
-  -> rate-route-latest.csv
-Market guideline / SEA guideline 동기화
+  -> data/rate-base-latest.csv
+  -> data/booking-usage-latest.csv
+  -> data/basic-tariff-latest.csv
+  -> data/rate-route-latest.csv
+Google Drive market guideline 동기화
+  -> scripts/guideline_china_hk.json
+  -> scripts/guideline_sea_etc.json
+Python 빌드
   -> scripts/build-weekly-data.py
   -> public/data/weekly-monitoring.json
+배포/공유
+  -> dist/data/weekly-monitoring.json
   -> Google Drive 업로드
-  -> GitHub Pages 화면에서 조회
+  -> GitHub Pages 또는 내부 정적 서버에서 조회
 ```
 
-운영 자동화는 하루 2회, 06:30과 12:00 KST에 실행하도록 작업 스케줄러에 등록했습니다. 소스 DW가 야간 배치 중심으로 갱신되기 때문에 15분 단위 갱신은 비효율적입니다.
+운영 자동화는 하루 2회, 06:30과 12:00 KST에 실행하도록 Windows 작업 스케줄러에 등록합니다. 소스 DW가 야간 배치 중심으로 갱신되기 때문에 15분 단위 상시 갱신은 임시 운영이나 내부 서버 테스트용으로만 사용합니다.
 
-## 4. 주요 판정 로직
+## 5. 주요 판정 로직
 
-- 유효 운임: 조회 기간과 `EFFECTIVE_START_DATE` / `EFFECTIVE_END_DATE`가 겹치는 운임.
-- 비교 대상: O/F가 등록된 `Origin Sales` 운임 행.
+- 유효 운임: 조회 기간과 `EFFECTIVE_START_DATE` / `EFFECTIVE_END_DATE`가 겹치는 운임입니다.
+- 비교 대상: O/F가 등록된 `Origin Sales` 운임 행입니다.
 - 비교 기준: 모든 저운임 판정은 all-in 기준입니다.
 - Market 저운임: 구간, CNTR Size 기준 Market Rate가 직접 매핑되면 Market O/F를 all-in으로 환산해 등록 all-in과 비교합니다. CN/HK는 AB Customer tier를 적용합니다.
-- 기간 Avg 저운임: Market Rate가 없으면 동일 구간, CNTR Size, CNTR Type, Cargo Type, OOG Type, Full/Empty의 기간 평균 all-in으로 fallback 합니다.
+- 기간 Avg 저운임: Market Rate가 없으면 동일 Lane, CNTR Size, CNTR Type, Cargo Type, OOG Type, Full/Empty의 기간 평균 all-in으로 fallback합니다.
 - 기간 평균 fallback은 비교군이 최소 3건 이상일 때만 적용합니다.
 - US 향발 운임은 PSS와 GRI를 비교 all-in 계산에서 제외합니다. 단, 상세 항목에는 표시합니다.
 
-### 비교군을 이렇게 나누는 이유
+### 비교군을 나누는 이유
 
-이 대시보드는 전체 평균과 등록 운임을 단순 비교하지 않습니다. 같은 구간이라도 운임 수준은 장비와 화물 조건에 따라 달라지기 때문입니다. 그래서 기간 평균 fallback 비교군은 아래 조합으로 생성합니다.
+이 대시보드는 전체 평균과 등록 운임을 단순 비교하지 않습니다. 같은 구간이라도 운임 수준은 장비와 화물 조건에 따라 달라지기 때문입니다. 기간 평균 fallback 비교군은 아래 조합으로 생성합니다.
 
 ```text
 Lane
@@ -56,12 +86,7 @@ Lane
 + Full / Empty
 ```
 
-- `Lane`: 출발/도착 구간이 다르면 시장 가격대가 달라집니다.
-- `CNTR Size`: 20/40/45는 단가 구조가 다릅니다.
-- `CNTR Type`: GP/HC/TK/RF 등 장비 타입별 비용과 시장가가 다릅니다.
-- `Cargo Type`: General, HZ, RF, OOG, ING, FB 등 화물 성격에 따라 비용/리스크가 다릅니다.
-- `OOG Type`: OH/OW/OL 등 초과 규격 조건은 장비 운용 난이도가 달라집니다.
-- `Full / Empty`: Full 영업 운임과 Empty 재배치성 운임은 목적이 다릅니다.
+화면 상단 필터에서는 OOG Type과 Full/Empty를 직접 노출하지 않지만, 비교군 생성에는 계속 포함됩니다. 따라서 화면은 간결하게 유지하면서도 판정 로직은 기존의 조건별 비교 기준을 유지합니다.
 
 ### 비교 절차
 
@@ -70,16 +95,6 @@ Lane
 3. Market Rate가 직접 매핑되면 Market Rate를 우선 사용합니다.
 4. Market Rate가 없으면 같은 비교키의 기간 평균 all-in을 사용합니다.
 5. 등록 all-in이 기준 all-in보다 낮으면 확인 대상 저운임으로 표시합니다.
-
-### CN/HK Market Rate 매핑
-
-CN/HK Market Rate는 기존 `kmtc-rate-dashboard`와 같은 원천 엑셀을 사용합니다. 이 모니터링에서는 영업 검토 기준으로 AB Customer tier를 적용하고, 동일 주차에 같은 구간이 복수 행으로 존재하면 평균값을 사용합니다.
-
-포트 매핑도 Market Rate 시트 기준으로 정규화합니다.
-
-- `SHK`, `YTN` 출발은 `SZP` Market Rate를 사용합니다.
-- `NNS` 출발은 `CAN` Market Rate를 사용합니다.
-- 예: `SHK -> BKK 20GP`는 `SZP -> BKK 20'` 기준을 사용하고, `40GP/40HC`는 `SZP -> BKK 40'` 기준을 사용합니다.
 
 ### Market Rate를 all-in으로 환산하는 이유
 
@@ -91,40 +106,58 @@ Market all-in = Market O/F + (등록 all-in - 등록 O/F)
 
 즉 등록 운임파일에 포함된 surcharge/local charge 차이를 Market O/F에 더해 Market all-in으로 환산한 뒤 등록 all-in과 비교합니다.
 
-### all-in 기준을 사용하는 이유
+## 6. Booking 사용량 로직
 
-O/F만 보면 실제 운임 수준을 잘못 판단할 수 있습니다.
+Booking 사용량은 `RATE_APPLICATION_NO + CONTAINER_SIZE + CONTAINER_TYPE` 기준으로 대시보드 운임과 연결합니다.
 
-- O/F는 낮지만 surcharge/local charge가 높으면 실제 all-in은 낮지 않을 수 있습니다.
-- O/F는 정상처럼 보이지만 charge가 누락되면 실제 all-in은 낮을 수 있습니다.
+- `DW_SALES.SP002S`에서 최근 7개월 출항분의 확정/선적 booking을 추출합니다.
+- booking container snapshot은 `CLOS_DTM` 최신값 기준으로 dedupe합니다.
+- TEU는 20' = 수량 x 1, 40'/45' = 수량 x 2로 계산합니다.
+- `CS004R`은 과거 확정 B/L mapping, `M_SA003I`는 현재/예정 B/L assignment를 보완합니다.
+- Python 빌더는 booking별 `TOTAL_TEU`를 최대값으로 접어 조인 fan-out에 따른 TEU 중복 합산을 방지합니다.
+- 화면 상세에는 `부킹 N건 · booking TEU · BL N건 · BL TEU` 형식으로 표시합니다.
+- 상단 필터의 `사용 실적`은 booking 또는 BL이 있는 운임과 미사용 운임을 구분합니다.
 
-따라서 저운임 판정은 `O/F + 비교 반영 charge`의 all-in 기준으로 수행합니다.
-
-## 5. Charge 표시 기준
+## 7. Charge 표시 기준
 
 상세 패널은 비교 all-in에 반영되는 항목과 원천 파일에서 조회되는 항목을 함께 보여줍니다.
 
 - `O/F`: Ocean Freight로 분류하고 가장 위에 표시합니다.
 - `CUR_CD = USD`인 O/F 외 항목: Surcharge로 분류합니다.
 - `CUR_CD != USD`인 항목: Local Charge로 분류합니다.
-- `FRT_PNC_CD = P`: 선적지 지불.
-- `FRT_PNC_CD = C`: 도착지 지불.
+- `FRT_PNC_CD = P`: 선적지 지불입니다.
+- `FRT_PNC_CD = C`: 도착지 지불입니다.
 - 정렬 순서: Ocean Freight -> 선적지 지불 -> 도착지 지불 -> Surcharge -> Local Charge.
 - 적용 방식은 등록 금액 아래에 `AMOUNT`, `TARIFF`, `WAIVE`, `PERCENT`로 표시합니다.
 - `WAIVE` 항목은 금액 없이 상세 조회용으로 표시하고 비교 all-in에는 포함하지 않습니다.
 - EFC Basic Tariff처럼 조회 시점에 동적으로 적용되는 항목은 상세 검토용으로 표시하되 비교 all-in에는 포함하지 않습니다.
+- charge basket과 detail-only 항목은 dedupe하여 같은 항목이 반복 노출되지 않도록 했습니다.
 
-## 6. 화면 구성
+## 8. 화면 구성
 
-- 조회 조건: 기간, 국가/포트, CNTR, Cargo Type, OOG Type, Full/Empty, 영업사원, 업체를 검색형 멀티셀렉트로 필터링합니다.
-- 집계 분석: 국가 단위로 먼저 보여주고, 국가를 클릭하면 포트 단위로 확장합니다.
-- 상세: 확인 대상 운임을 행 단위로 보고, 행 선택 시 오른쪽 패널에서 charge 상세를 확인합니다.
-- 확인 집중 구간: 집계 탭에서만 보이며 저운임 건수와 저운임 화주수 기준으로 Lane 상위 10개를 보여줍니다.
-- 업체별 트렌드: 업체 행을 클릭하면 상세로 이동하지 않고 상단 그래프가 해당 업체 기준으로 변경됩니다.
-- 언어 전환: 상단 `EN` / `KO` 토글로 한국어와 영어 화면을 전환합니다. 선택값은 브라우저 localStorage에 저장됩니다.
-- 외부 대시보드: 상단 `Rate Dashboard` 버튼은 `https://jkpark-create.github.io/kmtc-rate-dashboard/`로 연결됩니다.
+### 조회 조건
 
-## 7. 운영 명령
+조회 조건은 기간, 국가/포트, CNTR Size/Type, Cargo Type, 사용 실적, 영업사원, 업체를 검색형 멀티셀렉트로 제공합니다. 상세 탭에서는 운임번호 검색과 `전체 / 확인대상 / Market 저운임 / 기간 Avg 저운임` 보기 모드를 사용할 수 있습니다.
+
+`사용 실적` 필터는 `실적 있음`과 `실적 없음`을 구분합니다. 실적 데이터가 아직 생성되지 않은 경우 상세에는 `데이터 갱신 후 표시`로 표시됩니다.
+
+### 집계 분석
+
+- 기본 집계 화면은 `운임대별`입니다.
+- 운임대별 기본 차트는 `사이즈·타입별` scatter입니다.
+- scatter의 점 하나는 운임 한 건을 의미하며, 색상은 정상/Market 저운임/기간 Avg 저운임 상태를 나타냅니다.
+- X축은 선적지 또는 도착지 기준으로 전환할 수 있습니다.
+- 컨테이너 조합은 화면에서 선택할 수 있으며, 기본 fallback은 `40|HC`가 있으면 40'HC입니다.
+- X축 Lane은 현재 필터 범위의 전체 BL TEU 물량 기준으로 정렬합니다. 이 정렬은 선택 기간의 유효 운임 기간에만 묶이지 않기 때문에 물량이 큰 Lane을 안정적으로 앞에 보여줍니다.
+- 국가/포트 집계에서는 국가 행을 클릭하면 포트 단위로 확장하고, 포트 행을 클릭하면 상세 목록으로 이동합니다.
+
+### 상세 검토
+
+상세 목록에서는 확인 대상 운임을 행 단위로 보고, 행 선택 시 오른쪽 패널에서 charge 상세, 비교 기준, 사용 실적, 담당자/화주/항로 정보를 확인합니다.
+
+업체 행을 클릭하면 상세로 이동하지 않고 상단 그래프가 해당 업체 기준으로 변경됩니다. 상단 `EN` / `KO` 토글로 한국어와 영어 화면을 전환하며, 선택값은 브라우저 localStorage에 저장됩니다.
+
+## 9. 운영 명령
 
 로컬 개발:
 
@@ -139,16 +172,34 @@ npm run dev
 npm run data
 ```
 
+Market guideline 원천을 새로 받은 뒤 JSON 재생성:
+
+```bash
+npm run data:fresh
+```
+
 Oracle에서 최신 CSV 추출 후 JSON 생성:
 
 ```bash
 npm run data:oracle
 ```
 
-GitHub Drive 업로드:
+15분 주기 임시 반복 추출:
+
+```bash
+npm run data:oracle:watch
+```
+
+Google Drive에 JSON 업로드:
 
 ```bash
 python scripts/upload-to-gdrive.py
+```
+
+Google Drive에 문서 업로드:
+
+```bash
+python scripts/upload-doc-to-gdrive.py docs/rate-monitoring-guide.md "Rate Monitoring Control Tower Guide"
 ```
 
 빌드:
@@ -163,20 +214,42 @@ npm run build
 npm run data:task:install
 ```
 
-## 8. GitHub Pages 배포
+## 10. GitHub Pages 배포
 
-`main` 브랜치에 push하면 `.github/workflows/deploy.yml`이 실행되어 GitHub Pages로 배포됩니다. 배포 주소는 다음과 같습니다.
+`main` 브랜치에 push하면 `.github/workflows/deploy.yml`이 실행되어 GitHub Pages로 배포됩니다.
 
 ```text
 https://jkpark-create.github.io/rate-monitoring-control-tower/
 ```
 
-Google 로그인은 회사 Google 계정 기준으로 동작하며, 배포본은 Drive에 업로드된 JSON 파일을 OAuth 토큰으로 읽습니다.
+Google 로그인은 회사 Google 계정 기준으로 동작하며, 배포본은 Drive에 업로드된 JSON 파일을 OAuth 토큰으로 읽습니다. GitHub Pages는 정적 배포본이므로 완전한 준실시간 운영에는 내부 정적 서버와 `data:oracle:watch` 또는 작업 스케줄러 조합이 더 적합합니다.
 
-## 9. 문제 확인 포인트
+## 11. 문제 확인 포인트
 
 - 최신 데이터가 보이지 않으면 Google Drive JSON 업로드 시각과 화면 상단 cache 시각을 비교합니다.
+- 사용 실적이 모두 비어 있으면 `data/booking-usage-latest.csv` 생성 여부와 `usageAvailable` metadata를 확인합니다.
+- 예정 B/L이 누락되면 `M_SA003I` 최신 `BASC_DT`, `CNCL_DT IS NULL`, booking number mapping을 확인합니다.
 - charge 금액이 비어 있으면 원천 적용 방식이 `WAIVE`인지 먼저 확인합니다.
 - local charge의 등록 금액이 비어 있는데 USD 환산만 보이면 `CUR_CD`, `LOC_AMT`, `USD_AMT`, `FIX_USD_AMT` 추출 여부를 확인합니다.
-- 특정 charge가 누락되면 Basic Tariff 상세 조회 항목인지, 비교 Basket 항목인지 구분합니다.
-- 배포 후 404가 뜨면 GitHub Pages source와 repository name, Vite `base` 설정, OAuth redirect URI를 함께 확인합니다.
+- 특정 charge가 누락되면 Basic Tariff 상세 조회 항목인지, 비교 basket 항목인지 구분합니다.
+- rate-band scatter 정렬이 기대와 다르면 선택 기간이 아니라 현재 scope 전체의 BL TEU 기준으로 정렬된다는 점을 먼저 확인합니다.
+- 배포 후 404가 뜨면 GitHub Pages source, repository name, Vite `base` 설정, OAuth redirect URI를 함께 확인합니다.
+
+## 12. 핵심 파일 레퍼런스
+
+| 파일 | 역할 |
+| --- | --- |
+| `src/App.tsx` | React 대시보드 화면, 필터, 집계/상세 분석, rate-band scatter |
+| `src/App.css` | 대시보드 스타일 |
+| `public/guide.html` | 화면에서 여는 사용자 가이드 |
+| `docs/data-pipeline.md` | 데이터 수집/가공 상세 문서 |
+| `scripts/refresh-dashboard-data.py` | 전체 데이터 갱신 오케스트레이션 |
+| `scripts/build-weekly-data.py` | CSV/가이드라인을 대시보드 JSON으로 변환 |
+| `scripts/extract-rate-base.sql` | 운임 본문 추출 |
+| `scripts/extract-booking-usage.sql` | booking/BL/TEU 사용량 추출 |
+| `scripts/extract-basic-tariff.sql` | Basic Tariff 추출 |
+| `scripts/extract-rate-route.sql` | 운임 적용 항로 추출 |
+| `scripts/sync-china-guideline.py` | CN/HK Market Rate guideline JSON 생성 |
+| `scripts/sync-sea-guideline.py` | SEA/ETC working-rate guideline JSON 생성 |
+| `scripts/upload-to-gdrive.py` | JSON 산출물 Google Drive 업로드 |
+| `scripts/upload-doc-to-gdrive.py` | Markdown 문서 Google Docs 변환 업로드 |
