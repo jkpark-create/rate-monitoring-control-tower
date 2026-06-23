@@ -76,6 +76,7 @@ type RawShipmentLink = [
   bookingTeu: number,
   departureStart: string,
   departureEnd: string,
+  routeName?: string,
 ];
 
 type RawRateDetail = [
@@ -247,6 +248,7 @@ type RateRecord = {
 };
 
 type ShipmentLink = {
+  routeName: string;
   vesselCode: string;
   voyageNo: string;
   blCount: number;
@@ -377,7 +379,7 @@ const UI_COPY = {
       destinationPort: '도착지 포트',
       containerSize: 'CNTR Size',
       containerType: 'CNTR Type',
-      route: '항로',
+      route: '항로명',
       cargoType: 'Cargo Type',
       oogType: 'OOG Type',
       fullEmpty: 'Full / Empty',
@@ -403,7 +405,6 @@ const UI_COPY = {
       marketCoverage: 'Market 직접 매핑',
     },
     panel: {
-      aggregatedView: 'Aggregated View',
       lowFreightCases: 'Low Freight Cases',
       summaryTitle: '집계 분석',
       detailTitle: '확인 대상 운임',
@@ -524,7 +525,6 @@ const UI_COPY = {
       unknownPay: '미확인',
     },
     focus: {
-      eyebrow: 'Focus Lanes',
       title: '확인 집중 구간',
       note: '현재 조회 조건의 확인 대상 운임을 Lane별로 묶어 저운임 건수, 저운임 화주수 순으로 정렬한 상위 10개입니다.',
       marketLow: 'Market 저운임',
@@ -599,7 +599,7 @@ const UI_COPY = {
       destinationPort: 'Destination Port',
       containerSize: 'CNTR Size',
       containerType: 'CNTR Type',
-      route: 'Route',
+      route: 'Route Name',
       cargoType: 'Cargo Type',
       oogType: 'OOG Type',
       fullEmpty: 'Full / Empty',
@@ -625,7 +625,6 @@ const UI_COPY = {
       marketCoverage: 'Direct Market Match',
     },
     panel: {
-      aggregatedView: 'Aggregated View',
       lowFreightCases: 'Low Freight Cases',
       summaryTitle: 'Aggregated Analysis',
       detailTitle: 'Low Freight Cases',
@@ -746,7 +745,6 @@ const UI_COPY = {
       unknownPay: 'Unknown',
     },
     focus: {
-      eyebrow: 'Focus Lanes',
       title: 'Focus Lanes',
       note: 'Top 10 lanes from the current filters, sorted by low freight count and low freight shipper count.',
       marketLow: 'Market low',
@@ -983,12 +981,8 @@ function hasSelection(selected: string[], value: string) {
   return !selected.length || selected.includes(value);
 }
 
-function routeValue(record: Pick<RateRecord, 'laneIndex'>) {
-  return String(record.laneIndex);
-}
-
-function routeLabel(record: Pick<RateRecord, 'porCountry' | 'porPort' | 'dlyCountry' | 'dlyPort'>) {
-  return `${record.porPort} ${record.porCountry} -> ${record.dlyPort} ${record.dlyCountry}`;
+function routeValue(link: Pick<ShipmentLink, 'routeName'>) {
+  return link.routeName.trim();
 }
 
 // 사용 실적 유무: 부킹 또는 B/L 실적이 있으면 'used', 없으면 'unused'.
@@ -1001,25 +995,25 @@ function hasUsageSelection(selected: string[], record: RateRecord) {
 }
 
 function hasShipmentFilter(filters: ScopeFilters | FilterState) {
-  return Boolean(filters.vessel.length || filters.voyage.length);
+  return Boolean(filters.route.length || filters.vessel.length || filters.voyage.length);
 }
 
-function shipmentMatches(link: ShipmentLink, vessel: string[], voyage: string[]) {
-  return hasSelection(vessel, link.vesselCode) && hasSelection(voyage, link.voyageNo);
+function shipmentMatches(link: ShipmentLink, route: string[], vessel: string[], voyage: string[]) {
+  return hasSelection(route, routeValue(link)) && hasSelection(vessel, link.vesselCode) && hasSelection(voyage, link.voyageNo);
 }
 
-function hasShipmentSelection(vessel: string[], voyage: string[], record: RateRecord) {
-  if (!vessel.length && !voyage.length) {
+function hasShipmentSelection(route: string[], vessel: string[], voyage: string[], record: RateRecord) {
+  if (!route.length && !vessel.length && !voyage.length) {
     return true;
   }
-  return record.shipmentLinks.some((link) => shipmentMatches(link, vessel, voyage));
+  return record.shipmentLinks.some((link) => shipmentMatches(link, route, vessel, voyage));
 }
 
-function matchingShipmentLinks(record: RateRecord, filters?: Pick<ScopeFilters, 'vessel' | 'voyage'>) {
-  if (!filters || (!filters.vessel.length && !filters.voyage.length)) {
+function matchingShipmentLinks(record: RateRecord, filters?: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>) {
+  if (!filters || (!filters.route.length && !filters.vessel.length && !filters.voyage.length)) {
     return record.shipmentLinks;
   }
-  return record.shipmentLinks.filter((link) => shipmentMatches(link, filters.vessel, filters.voyage));
+  return record.shipmentLinks.filter((link) => shipmentMatches(link, filters.route, filters.vessel, filters.voyage));
 }
 
 function activeFilterCount(filters: FilterState) {
@@ -1143,7 +1137,8 @@ function formatDepartureRange(link: ShipmentLink) {
 function formatShipmentLinkLine(link: ShipmentLink, language: Language) {
   const blUnit = language === 'ko' ? '건' : '';
   const departure = formatDepartureRange(link);
-  const base = `${link.vesselCode || '-'} / ${link.voyageNo || '-'} · BL ${formatNumber(link.blCount)}${blUnit} · ${formatNumber(link.teu)} TEU`;
+  const routePrefix = link.routeName ? `${link.routeName} / ` : '';
+  const base = `${routePrefix}${link.vesselCode || '-'} / ${link.voyageNo || '-'} · BL ${formatNumber(link.blCount)}${blUnit} · ${formatNumber(link.teu)} TEU`;
   return departure ? `${base} · ${departure}` : base;
 }
 
@@ -1203,7 +1198,6 @@ function overlapsRange(record: RateRecord, rangeStart: string, rangeEnd: string)
 
 function matchesScope(record: RateRecord, filters: ScopeFilters) {
   return (
-    hasSelection(filters.route, routeValue(record)) &&
     hasSelection(filters.originCountry, record.porCountry) &&
     hasSelection(filters.originPort, record.porPort) &&
     hasSelection(filters.destinationCountry, record.dlyCountry) &&
@@ -1214,7 +1208,7 @@ function matchesScope(record: RateRecord, filters: ScopeFilters) {
     hasSelection(filters.specialCargoType, record.specialCargoType) &&
     hasSelection(filters.fullEmptyType, record.fullEmptyType) &&
     hasUsageSelection(filters.usagePresence, record) &&
-    hasShipmentSelection(filters.vessel, filters.voyage, record) &&
+    hasShipmentSelection(filters.route, filters.vessel, filters.voyage, record) &&
     hasSelection(filters.staff, record.staff) &&
     hasSelection(filters.company, shipperKey(record))
   );
@@ -1406,7 +1400,8 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
       bookingCount: typeof record[20] === 'number' ? record[20] : null,
       teu: typeof record[21] === 'number' ? record[21] : null,
       bookingTeu: typeof record[22] === 'number' ? record[22] : null,
-      shipmentLinks: shipmentLinks.map(([vesselCode, voyageNo, blCount, bookingCount, teu, bookingTeu, departureStart, departureEnd]) => ({
+      shipmentLinks: shipmentLinks.map(([vesselCode, voyageNo, blCount, bookingCount, teu, bookingTeu, departureStart, departureEnd, routeName]) => ({
+        routeName: routeName ?? '',
         vesselCode,
         voyageNo,
         blCount,
@@ -1928,7 +1923,7 @@ function RateDetailPanel({
   detailStatus: 'idle' | 'loading' | 'ready' | 'error';
   detailError?: string;
   language: Language;
-  shipmentScope: Pick<ScopeFilters, 'vessel' | 'voyage'>;
+  shipmentScope: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>;
   onClose: () => void;
 }) {
   const text = UI_COPY[language].detail;
@@ -2853,7 +2848,7 @@ function AppContent({ data }: { data: MonitoringData }) {
         item.container,
         item.cargoProfile,
         item.approvalStatus,
-        item.shipmentLinks.map((link) => `${link.vesselCode} ${link.voyageNo}`).join(' '),
+        item.shipmentLinks.map((link) => `${link.routeName} ${link.vesselCode} ${link.voyageNo}`).join(' '),
       ]
         .join(' ')
         .toLowerCase()
@@ -2873,68 +2868,90 @@ function AppContent({ data }: { data: MonitoringData }) {
   const currentCases = view === 'summary' ? summaryCases : filteredLowCases;
   const currentIgnoresPeriod = view === 'summary' ? summaryIgnoresPeriod : detailIgnoresPeriod;
   const toOptions = (values: string[], labelFn: (value: string) => string = (value) => value): FilterOption[] => values.map((value) => ({ value, label: labelFn(value) }));
-  const routeOptions = useMemo<FilterOption[]>(() => {
-    const routes = new Map<string, string>();
-    for (const record of records) {
-      const value = routeValue(record);
-      if (!routes.has(value)) {
-        routes.set(value, routeLabel(record));
-      }
+  const optionUniverse = useMemo(
+    () => currentIgnoresPeriod
+      ? records
+      : records.filter((record) => overlapsRange(record, activeFilters.periodStart, activeFilters.periodEnd)),
+    [activeFilters.periodEnd, activeFilters.periodStart, currentIgnoresPeriod, records],
+  );
+  const optionScope = useCallback((...excluded: (keyof ScopeFilters)[]) => {
+    const scope = filterScope(activeFilters);
+    for (const key of excluded) {
+      scope[key] = [];
     }
-    return Array.from(routes, ([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [records]);
-  const originCountries = useMemo(() => unique(records.map((item) => item.porCountry)), [records]);
+    return scope;
+  }, [activeFilters]);
+  const optionRecords = useCallback((...excluded: (keyof ScopeFilters)[]) => {
+    const scope = optionScope(...excluded);
+    return optionUniverse.filter((record) => matchesScope(record, scope));
+  }, [optionScope, optionUniverse]);
+  const routeOptions = useMemo<FilterOption[]>(() => {
+    const scope = optionScope('route');
+    return toOptions(unique(optionRecords('route')
+      .flatMap((item) => matchingShipmentLinks(item, scope).map(routeValue))
+      .filter(Boolean)));
+  }, [optionRecords, optionScope]);
+  const originCountries = useMemo(() => unique(optionRecords('originCountry').map((item) => item.porCountry)), [optionRecords]);
   const originCountryOptions = useMemo(() => toOptions(originCountries), [originCountries]);
   const originPorts = useMemo(
-    () => unique(records.filter((item) => hasSelection(activeFilters.originCountry, item.porCountry)).map((item) => item.porPort)),
-    [activeFilters.originCountry, records],
+    () => unique(optionRecords('originPort').map((item) => item.porPort)),
+    [optionRecords],
   );
   const originPortOptions = useMemo(() => toOptions(originPorts), [originPorts]);
-  const destinationCountries = useMemo(() => unique(records.map((item) => item.dlyCountry)), [records]);
+  const destinationCountries = useMemo(() => unique(optionRecords('destinationCountry').map((item) => item.dlyCountry)), [optionRecords]);
   const destinationCountryOptions = useMemo(() => toOptions(destinationCountries), [destinationCountries]);
   const destinationPorts = useMemo(
-    () => unique(records.filter((item) => hasSelection(activeFilters.destinationCountry, item.dlyCountry)).map((item) => item.dlyPort)),
-    [activeFilters.destinationCountry, records],
+    () => unique(optionRecords('destinationPort').map((item) => item.dlyPort)),
+    [optionRecords],
   );
   const destinationPortOptions = useMemo(() => toOptions(destinationPorts), [destinationPorts]);
-  const containerSizes = useMemo(() => unique(records.map((item) => item.containerSize)), [records]);
+  const containerSizes = useMemo(() => unique(optionRecords('containerSize').map((item) => item.containerSize)), [optionRecords]);
   const containerSizeOptions = useMemo(() => toOptions(containerSizes), [containerSizes]);
   const containerTypes = useMemo(
-    () => unique(records.filter((item) => hasSelection(activeFilters.containerSize, item.containerSize)).map((item) => item.containerType)),
-    [activeFilters.containerSize, records],
+    () => unique(optionRecords('containerType').map((item) => item.containerType)),
+    [optionRecords],
   );
   const containerTypeOptions = useMemo(() => toOptions(containerTypes), [containerTypes]);
-  const cargoTypes = useMemo(() => unique([...Object.keys(CARGO_TYPE_LABELS), ...records.map((item) => item.cargoType)]), [records]);
+  const cargoTypes = useMemo(() => unique(optionRecords('cargoType').map((item) => item.cargoType)), [optionRecords]);
   const cargoTypeOptions = useMemo(() => toOptions(cargoTypes, formatCargoType), [cargoTypes]);
   const specialCargoTypes = useMemo(
-    () => unique([
-      ...Object.keys(OOG_TYPE_LABELS),
-      ...records.filter((item) => hasSelection(activeFilters.cargoType, item.cargoType)).map((item) => item.specialCargoType),
-    ]),
-    [activeFilters.cargoType, records],
+    () => unique(optionRecords('specialCargoType').map((item) => item.specialCargoType)),
+    [optionRecords],
   );
-  const fullEmptyTypes = useMemo(() => unique(records.map((item) => item.fullEmptyType)), [records]);
+  const fullEmptyTypes = useMemo(() => unique(optionRecords('fullEmptyType').map((item) => item.fullEmptyType)), [optionRecords]);
   const usagePresenceOptions = useMemo<FilterOption[]>(
-    () => [
-      { value: 'used', label: text.filter.usageUsed },
-      { value: 'unused', label: text.filter.usageUnused },
-    ],
-    [text],
+    () => {
+      const presence = new Set(optionRecords('usagePresence').map((record) => recordHasUsage(record) ? 'used' : 'unused'));
+      const options: FilterOption[] = [];
+      if (presence.has('used')) {
+        options.push({ value: 'used', label: text.filter.usageUsed });
+      }
+      if (presence.has('unused')) {
+        options.push({ value: 'unused', label: text.filter.usageUnused });
+      }
+      return options;
+    },
+    [optionRecords, text.filter.usageUnused, text.filter.usageUsed],
   );
   const vesselOptions = useMemo(
-    () => toOptions(unique(records.flatMap((item) => item.shipmentLinks.map((link) => link.vesselCode)))),
-    [records],
+    () => {
+      const scope = optionScope('vessel');
+      return toOptions(unique(optionRecords('vessel')
+        .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.vesselCode))));
+    },
+    [optionRecords, optionScope],
   );
   const voyageOptions = useMemo(
-    () => toOptions(unique(records.flatMap((item) => item.shipmentLinks
-      .filter((link) => hasSelection(activeFilters.vessel, link.vesselCode))
-      .map((link) => link.voyageNo)))),
-    [activeFilters.vessel, records],
+    () => {
+      const scope = optionScope('voyage');
+      return toOptions(unique(optionRecords('voyage')
+        .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.voyageNo))));
+    },
+    [optionRecords, optionScope],
   );
   const approvalStatuses = useMemo(() => unique(records.map((item) => item.approvalStatus)), [records]);
   const formatApprovalStatus = (value: string) => data.metadata.approvalStatusLabels[value] ? `${data.metadata.approvalStatusLabels[value]} (${value})` : value;
-  const staffOptions = useMemo(() => unique(records.map((item) => item.staff)), [records]);
+  const staffOptions = useMemo(() => unique(optionRecords('staff').map((item) => item.staff)), [optionRecords]);
   const staffFilterOptions = useMemo(() => toOptions(staffOptions), [staffOptions]);
   const companies = useMemo(
     () => data.dimensions.shippers
@@ -2943,9 +2960,14 @@ function AppContent({ data }: { data: MonitoringData }) {
       .sort((a, b) => a[2].localeCompare(b[2])),
     [data.dimensions.shippers],
   );
-  const companyOptions = useMemo<FilterOption[]>(
-    () => companies.map(([code, name, label]) => ({ value: code || name, label })),
+  const companyLabelByKey = useMemo(
+    () => new Map(companies.map(([code, name, label]) => [code || name, label])),
     [companies],
+  );
+  const companyOptions = useMemo<FilterOption[]>(
+    () => unique(optionRecords('company').map(shipperKey))
+      .map((value) => ({ value, label: companyLabelByKey.get(value) ?? value })),
+    [companyLabelByKey, optionRecords],
   );
   const periodStart = activeFilters.periodStart;
   const periodEnd = activeFilters.periodEnd;
@@ -3332,7 +3354,6 @@ function AppContent({ data }: { data: MonitoringData }) {
                 onChange={(event) => event.target.value && setActiveFilters((current) => ({ ...current, periodEnd: event.target.value }))}
               />
             </label>
-            <MultiSelectFilter language={language} className="route-filter" label={text.filter.route} options={routeOptions} values={activeFilters.route} onChange={(values) => setActiveFilters((current) => ({ ...current, route: values }))} />
             <MultiSelectFilter language={language} label={text.filter.originCountry} options={originCountryOptions} values={activeFilters.originCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, originCountry: values, originPort: [] }))} />
             <MultiSelectFilter language={language} label={text.filter.originPort} options={originPortOptions} values={activeFilters.originPort} onChange={(values) => setActiveFilters((current) => ({ ...current, originPort: values }))} />
             <MultiSelectFilter language={language} label={text.filter.destinationCountry} options={destinationCountryOptions} values={activeFilters.destinationCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, destinationCountry: values, destinationPort: [] }))} />
@@ -3341,6 +3362,7 @@ function AppContent({ data }: { data: MonitoringData }) {
             <MultiSelectFilter language={language} label={text.filter.containerType} options={containerTypeOptions} values={activeFilters.containerType} onChange={(values) => setActiveFilters((current) => ({ ...current, containerType: values }))} />
             <MultiSelectFilter language={language} className="cargo-type-filter" label={text.filter.cargoType} options={cargoTypeOptions} values={activeFilters.cargoType} onChange={(values) => setActiveFilters((current) => ({ ...current, cargoType: values, specialCargoType: [] }))} />
             <MultiSelectFilter language={language} className="usage-presence-filter" label={text.filter.usagePresence} options={usagePresenceOptions} values={activeFilters.usagePresence} onChange={(values) => setActiveFilters((current) => ({ ...current, usagePresence: values }))} />
+            <MultiSelectFilter language={language} className="route-filter" label={text.filter.route} options={routeOptions} values={activeFilters.route} onChange={(values) => setActiveFilters((current) => ({ ...current, route: values, vessel: [], voyage: [] }))} />
             <MultiSelectFilter language={language} className="vessel-filter" label={text.filter.vessel} options={vesselOptions} values={activeFilters.vessel} onChange={(values) => setActiveFilters((current) => ({ ...current, vessel: values, voyage: [] }))} />
             <MultiSelectFilter language={language} className="voyage-filter" label={text.filter.voyage} options={voyageOptions} values={activeFilters.voyage} onChange={(values) => setActiveFilters((current) => ({ ...current, voyage: values }))} />
             <MultiSelectFilter language={language} label={text.filter.staff} options={staffFilterOptions} values={activeFilters.staff} onChange={(values) => setActiveFilters((current) => ({ ...current, staff: values }))} />
@@ -3509,7 +3531,6 @@ function AppContent({ data }: { data: MonitoringData }) {
           <section className="results-panel">
             <div className="panel-head">
               <div>
-                <p>{view === 'summary' ? text.panel.aggregatedView : text.panel.lowFreightCases}</p>
                 <h2>{view === 'summary' ? text.panel.summaryTitle : (detailScopeMode === 'all' ? text.panel.detailTitleAll : text.panel.detailTitle)}</h2>
               </div>
               <strong>{view === 'summary' ? summaryCountLabel : `${formatNumber(filteredCases.length)} ${text.panel.cases}`}</strong>
@@ -3782,7 +3803,6 @@ function AppContent({ data }: { data: MonitoringData }) {
               <section>
                 <div className="panel-head compact">
                   <div>
-                    <p>{text.focus.eyebrow}</p>
                     <h2>{text.focus.title}</h2>
                   </div>
                 </div>

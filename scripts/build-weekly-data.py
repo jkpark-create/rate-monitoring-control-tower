@@ -726,10 +726,11 @@ def build_booking_usage(path):
             bl_no = (row.get("BL_NO", "") or "").strip()
             if has_bl and bl_no:
                 entry["bls"].add(bl_no)
+                route_name = first_value(row, "ROUTE_NAME", "ROUTE_CODE", "RTE_CD", "ROUTE")
                 vessel = first_value(row, "VESSEL_CODE", "VSL_CD", "VESSEL")
                 voyage = first_value(row, "VOYAGE_NO", "VOY_NO", "VOYAGE")
-                if vessel or voyage:
-                    shipment_key = (vessel, voyage)
+                if route_name or vessel or voyage:
+                    shipment_key = (route_name, vessel, voyage)
                     shipment = entry["shipmentLinks"].get(shipment_key)
                     if shipment is None:
                         shipment = {"bookings": {}, "bls": set(), "departures": set()}
@@ -749,7 +750,7 @@ def build_booking_usage(path):
         booking_teu = sum(b["teu"] for b in entry["bookings"].values())
         shipped_teu = sum(b["teu"] for b in entry["bookings"].values() if b["hasBL"])
         shipment_links = []
-        for (vessel, voyage), shipment in entry["shipmentLinks"].items():
+        for (route_name, vessel, voyage), shipment in entry["shipmentLinks"].items():
             link_teu = sum(b["teu"] for b in shipment["bookings"].values())
             departures = sorted(shipment["departures"])
             shipment_links.append(
@@ -762,9 +763,10 @@ def build_booking_usage(path):
                     round(link_teu, 1),
                     departures[0] if departures else "",
                     departures[-1] if departures else "",
+                    route_name,
                 )
             )
-        shipment_links.sort(key=lambda item: (item[6] or "99999999", item[0], item[1]))
+        shipment_links.sort(key=lambda item: (item[6] or "99999999", item[8], item[0], item[1]))
         usage_map[key] = (
             len(entry["bls"]),
             len(entry["bookings"]),

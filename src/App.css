@@ -212,7 +212,7 @@ main {
   display: flex;
   min-width: 0;
   flex: 1 1 auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 5px;
   overflow: visible;
   padding-bottom: 2px;
@@ -226,7 +226,7 @@ main {
 .filter-grid .filter-field {
   display: grid;
   min-width: 92px;
-  flex: 0 0 106px;
+  flex: 0 1 106px;
   gap: 3px;
 }
 
@@ -1635,6 +1635,7 @@ tr.rate-band-case:hover td {
 
   .filter-grid {
     display: grid;
+    flex-wrap: wrap;
     padding-right: 0;
     overflow-x: visible;
   }

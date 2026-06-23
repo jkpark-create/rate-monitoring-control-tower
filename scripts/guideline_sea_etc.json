@@ -1,6 +1,6 @@
 {
   "basis": "Latest visible SEA/ETC KMTC Working rate by route and container size",
-  "generatedAt": "2026-06-23T15:53:34",
+  "generatedAt": "2026-06-23T17:50:29",
   "routes": {
     "AQJ|BKK": {
       "sheet": "JOAQJ",
@@ -6853,5 +6853,5 @@
       "40Date": "2026-06-18"
     }
   },
-  "source": "/Users/q/Library/CloudStorage/OneDrive-개인/Documents/Claude/organizing rate file/[SEA] Market Rate.xlsx"
+  "source": "C:\\Users\\JKPARK\\OneDrive\\Documents\\Claude\\organizing rate file\\[SEA] Market Rate.xlsx"
 }
