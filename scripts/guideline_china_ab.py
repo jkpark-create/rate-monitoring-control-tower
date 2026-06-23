@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from guideline_japan import japan_destination_candidates
+
 
 DATA_FILE = Path(__file__).with_name("guideline_china_hk.json")
 
@@ -299,23 +301,31 @@ def guideline_rate_for(por_port, dly_port, container_size, container_type=""):
         return None
 
     destination = DEST_ALIASES.get(destination, destination)
+    destinations = japan_destination_candidates(destination) or (destination,)
     size_text = f"{container_size or ''}{container_type or ''}".upper()
     size_key = "20" if size_text.startswith("20") else "40" if size_text.startswith("40") else None
     if not size_key:
         return None
 
-    route = GENERATED_ROUTES.get(f"{sheet}|{destination}")
-    if route is not None and route.get(size_key) is not None:
-        week = route.get(f"{size_key}Week")
-        return {
-            "amount": float(route[size_key]),
-            "originSheet": route.get("sheet", sheet),
-            "destination": destination,
-            "size": size_key,
-            "source": f"{route.get('sheet', sheet)} AB Customer {size_key}'" + (f" {week}" if week else ""),
-        }
+    for candidate in destinations:
+        route = GENERATED_ROUTES.get(f"{sheet}|{candidate}")
+        if route is not None and route.get(size_key) is not None:
+            week = route.get(f"{size_key}Week")
+            return {
+                "amount": float(route[size_key]),
+                "originSheet": route.get("sheet", sheet),
+                "destination": candidate,
+                "size": size_key,
+                "source": f"{route.get('sheet', sheet)} AB Customer {size_key}'" + (f" {week}" if week else ""),
+            }
 
-    rates = GUIDELINE_RATES.get(sheet, {}).get(destination)
+    rates = None
+    matched_destination = ""
+    for candidate in destinations:
+        rates = GUIDELINE_RATES.get(sheet, {}).get(candidate)
+        if rates is not None:
+            matched_destination = candidate
+            break
     if rates is None:
         return None
 
@@ -323,7 +333,7 @@ def guideline_rate_for(por_port, dly_port, container_size, container_type=""):
     return {
         "amount": amount,
         "originSheet": sheet,
-        "destination": destination,
+        "destination": matched_destination,
         "size": size_key,
         "source": f"{sheet} legacy market {size_key}'",
     }

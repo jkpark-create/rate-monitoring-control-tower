@@ -8,6 +8,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from guideline_japan import JAPAN_DESTINATION_ALIASES, normalize_code
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE_DIR = ROOT.parent / "organizing rate file"
@@ -41,6 +43,11 @@ def origin_ports(pol):
 
 def destination_ports(pod_port):
     normalized = str(pod_port or "").strip().upper()
+    normalized_code = normalize_code(normalized)
+    if normalized_code == "HOKKAIDO":
+        return ("HOKKAIDO",)
+    if normalized_code in JAPAN_DESTINATION_ALIASES:
+        return (JAPAN_DESTINATION_ALIASES[normalized_code],)
     if normalized in COMPOSITE_DESTINATIONS:
         return COMPOSITE_DESTINATIONS[normalized]
     return (normalized,) if re.fullmatch(r"[A-Z]{2,4}", normalized) else ()

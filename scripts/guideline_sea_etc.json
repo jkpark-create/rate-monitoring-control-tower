@@ -1,6 +1,6 @@
 {
   "basis": "Latest visible SEA/ETC KMTC Working rate by route and container size",
-  "generatedAt": "2026-06-15T12:07:51",
+  "generatedAt": "2026-06-23T15:53:34",
   "routes": {
     "AQJ|BKK": {
       "sheet": "JOAQJ",
@@ -322,6 +322,16 @@
       "40Week": "2026-W26",
       "40Date": "2026-06-25"
     },
+    "BKK|HOKKAIDO": {
+      "sheet": "TH BKK",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 200.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 400.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
     "BKK|HPH": {
       "sheet": "TH BKK",
       "remark": "FAF,EBS,LSS, POD CIC Inclusive",
@@ -339,6 +349,26 @@
       "20Week": "2026-W26",
       "20Date": "2026-06-25",
       "40": 100.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
+    "BKK|JPM": {
+      "sheet": "TH BKK",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 150.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 300.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
+    "BKK|JPO": {
+      "sheet": "TH BKK",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 200.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 400.0,
       "40Week": "2026-W26",
       "40Date": "2026-06-25"
     },
@@ -489,6 +519,16 @@
       "20Week": "2026-W25",
       "20Date": "2026-06-18",
       "40": 20.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
+    "HPH|HOKKAIDO": {
+      "sheet": "VN HPH",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 200.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 400.0,
       "40Week": "2026-W25",
       "40Date": "2026-06-18"
     },
@@ -1172,6 +1212,16 @@
       "40Week": "2026-W17",
       "40Date": "2026-04-23"
     },
+    "JED|HOKKAIDO": {
+      "sheet": "SAJED",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 400.0,
+      "20Week": "2026-W17",
+      "20Date": "2026-04-23",
+      "40": 700.0,
+      "40Week": "2026-W17",
+      "40Date": "2026-04-23"
+    },
     "JED|HPH": {
       "sheet": "SAJED",
       "remark": "FAF,EBS,LSS Inclusive",
@@ -1499,6 +1549,16 @@
       "20Week": "2026-W24",
       "20Date": "2026-06-11",
       "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "JKT|HOKKAIDO": {
+      "sheet": "ID JKT",
+      "remark": "LSS, L.THC included",
+      "20": 250.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 500.0,
       "40Week": "2026-W24",
       "40Date": "2026-06-11"
     },
@@ -2142,6 +2202,16 @@
       "40Week": "2026-W26",
       "40Date": "2026-06-25"
     },
+    "LCH|HOKKAIDO": {
+      "sheet": "TH LCH",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 200.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 400.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
     "LCH|HPH": {
       "sheet": "TH LCH",
       "remark": "FAF,EBS,LSS, POD CIC Inclusive",
@@ -2199,6 +2269,26 @@
       "20Week": "2026-W26",
       "20Date": "2026-06-25",
       "40": 100.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
+    "LCH|JPM": {
+      "sheet": "TH LCH",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 150.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 300.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
+    "LCH|JPO": {
+      "sheet": "TH LCH",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 200.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 400.0,
       "40Week": "2026-W26",
       "40Date": "2026-06-25"
     },
@@ -2462,6 +2552,16 @@
       "40Week": "2026-W26",
       "40Date": "2026-06-25"
     },
+    "LKB|HOKKAIDO": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 300.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 550.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
     "LKB|HPH": {
       "sheet": "TH LKB",
       "remark": "LCH rate + $100",
@@ -2519,6 +2619,26 @@
       "20Week": "2026-W26",
       "20Date": "2026-06-25",
       "40": 250.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
+    "LKB|JPM": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 250.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 450.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
+    "LKB|JPO": {
+      "sheet": "TH LKB",
+      "remark": "LCH rate + $100",
+      "20": 300.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 550.0,
       "40Week": "2026-W26",
       "40Date": "2026-06-25"
     },
@@ -3002,6 +3122,16 @@
       "40Week": "2026-W23",
       "40Date": "2026-06-04"
     },
+    "MIP|HOKKAIDO": {
+      "sheet": "PH MIP",
+      "remark": "FAF/YAS Inclusive, Subject to local charges and POD charges",
+      "20": 300.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 600.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
     "MIP|HPH": {
       "sheet": "PH MIP",
       "remark": "FAF inclusive, Subject to LSS and POD charges",
@@ -3279,6 +3409,16 @@
       "20Week": "2026-W23",
       "20Date": "2026-06-04",
       "40": 300.0,
+      "40Week": "2026-W23",
+      "40Date": "2026-06-04"
+    },
+    "MNL|HOKKAIDO": {
+      "sheet": "PH MNL",
+      "remark": "FAF/YAS Inclusive, Subject to local charges and POD charges",
+      "20": 300.0,
+      "20Week": "2026-W23",
+      "20Date": "2026-06-04",
+      "40": 600.0,
       "40Week": "2026-W23",
       "40Date": "2026-06-04"
     },
@@ -3982,6 +4122,16 @@
       "40Week": "2026-W24",
       "40Date": "2026-06-11"
     },
+    "PEN|HOKKAIDO": {
+      "sheet": "MY PEN",
+      "remark": "LSS, FAF Inclusive Subject to EFC, Local charges",
+      "20": 250.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 500.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
     "PEN|HPH": {
       "sheet": "MY PEN",
       "remark": "Subject to EFC. FAF, LSS Inclusive",
@@ -4242,6 +4392,16 @@
       "40Week": "2026-W26",
       "40Date": "2026-06-25"
     },
+    "PGU|HOKKAIDO": {
+      "sheet": "MY PGU",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 250.0,
+      "20Week": "2026-W26",
+      "20Date": "2026-06-25",
+      "40": 500.0,
+      "40Week": "2026-W26",
+      "40Date": "2026-06-25"
+    },
     "PGU|HPH": {
       "sheet": "MY PGU",
       "remark": "FAF,EBS,LSS Inclusive",
@@ -4449,6 +4609,16 @@
       "20Week": "2026-W24",
       "20Date": "2026-06-11",
       "40": 2.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "PKG|HOKKAIDO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "LSS, FAF Inclusive Subject EFC and Origin Local charge",
+      "20": 250.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 500.0,
       "40Week": "2026-W24",
       "40Date": "2026-06-11"
     },
@@ -4842,6 +5012,16 @@
       "40Week": "2026-W24",
       "40Date": "2026-06-11"
     },
+    "PKW|HOKKAIDO": {
+      "sheet": "MY PKW,PKG",
+      "remark": "LSS, FAF Inclusive Subject EFC and Origin Local charge",
+      "20": 250.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 500.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
     "PKW|HZR": {
       "sheet": "MY PKW,PKG",
       "remark": "Including BAF, LSS, EIS Subject to EFC",
@@ -5232,6 +5412,16 @@
       "40Week": "2026-W25",
       "40Date": "2026-06-18"
     },
+    "SGN|HOKKAIDO": {
+      "sheet": "VN SGN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 150.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 300.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
     "SGN|HZR": {
       "sheet": "VN SGN",
       "remark": "Including  BAF, LSS, EIS, EFC",
@@ -5599,6 +5789,16 @@
       "20Week": "2026-W24",
       "20Date": "2026-06-11",
       "40": 100.0,
+      "40Week": "2026-W24",
+      "40Date": "2026-06-11"
+    },
+    "SIN|HOKKAIDO": {
+      "sheet": "SG SIN",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 350.0,
+      "20Week": "2026-W24",
+      "20Date": "2026-06-11",
+      "40": 700.0,
       "40Week": "2026-W24",
       "40Date": "2026-06-11"
     },
@@ -6292,6 +6492,16 @@
       "40Week": "2026-W25",
       "40Date": "2026-06-18"
     },
+    "SUB|HOKKAIDO": {
+      "sheet": "ID SUB",
+      "remark": "LSS, FAF Inclusive Subject to Local charge",
+      "20": 350.0,
+      "20Week": "2026-W25",
+      "20Date": "2026-06-18",
+      "40": 600.0,
+      "40Week": "2026-W25",
+      "40Date": "2026-06-18"
+    },
     "SUB|HPH": {
       "sheet": "ID SUB",
       "remark": "FAF,EBS,LSS Inclusive subject to D.CIC (SGN : 50/100, HPH : 100/200)",
@@ -6643,5 +6853,5 @@
       "40Date": "2026-06-18"
     }
   },
-  "source": "C:\\Users\\JKPARK\\OneDrive\\Documents\\Claude\\organizing rate file\\[SEA] Market Rate.xlsx"
+  "source": "/Users/q/Library/CloudStorage/OneDrive-개인/Documents/Claude/organizing rate file/[SEA] Market Rate.xlsx"
 }
