@@ -62,6 +62,18 @@ type RawRecord = [
   bookingCount?: number,
   teu?: number,
   bookingTeu?: number,
+  shipmentLinkIndex?: number,
+];
+
+type RawShipmentLink = [
+  vesselCode: string,
+  voyageNo: string,
+  blCount: number,
+  bookingCount: number,
+  teu: number,
+  bookingTeu: number,
+  departureStart: string,
+  departureEnd: string,
 ];
 
 type RawRateDetail = [
@@ -105,6 +117,7 @@ type MonitoringData = {
     sourceMode: 'canonical' | 'legacy-fallback';
     chargeDetailAvailable: boolean;
     usageAvailable?: boolean;
+    shipmentLinkAvailable?: boolean;
     usageSourceFile?: string;
     latestSourceDate: string;
     defaultWeek: string;
@@ -145,6 +158,7 @@ type MonitoringData = {
     approvalStatuses: string[];
     marketSources: string[];
     rateDetails: RawRateDetail[];
+    shipmentLinks?: RawShipmentLink[][];
   };
   records: RawRecord[];
 };
@@ -213,6 +227,18 @@ type RateRecord = {
   bookingCount: number | null;
   teu: number | null;
   bookingTeu: number | null;
+  shipmentLinks: ShipmentLink[];
+};
+
+type ShipmentLink = {
+  vesselCode: string;
+  voyageNo: string;
+  blCount: number;
+  bookingCount: number;
+  teu: number;
+  bookingTeu: number;
+  departureStart: string;
+  departureEnd: string;
 };
 
 type LaneBenchmark = {
@@ -262,6 +288,8 @@ type ScopeFilters = {
   specialCargoType: string[];
   fullEmptyType: string[];
   usagePresence: string[];
+  vessel: string[];
+  voyage: string[];
   staff: string[];
   company: string[];
 };
@@ -324,6 +352,8 @@ const UI_COPY = {
       usagePresence: '사용 실적',
       usageUsed: '실적 있음',
       usageUnused: '실적 없음',
+      vessel: '선박',
+      voyage: '항차',
       staff: '영업사원',
       company: '업체',
       status: '판정 Status',
@@ -333,6 +363,7 @@ const UI_COPY = {
     },
     metrics: {
       activeRates: '기간 유효 운임',
+      linkedRates: '링크 운임',
       lowCases: '저운임 확인 필요',
       marketLow: 'Market 대비 저운임 건수',
       averageLow: '기간 AVG 대비 저운임 건수',
@@ -432,6 +463,9 @@ const UI_COPY = {
       usageValue: '부킹 {bkg}건 · {bkgTeu} TEU · BL {bl}건 · {teu} TEU',
       usageNone: '미사용 (부킹·BL 없음)',
       usageUnavailable: '데이터 갱신 후 표시',
+      shipmentLink: '선박/항차 링크',
+      shipmentLinkShort: '선박/항차',
+      shipmentLinkNone: '링크 없음',
     },
     charge: {
       title: 'Charge 항목',
@@ -535,6 +569,8 @@ const UI_COPY = {
       usagePresence: 'Usage',
       usageUsed: 'Has usage',
       usageUnused: 'No usage',
+      vessel: 'Vessel',
+      voyage: 'Voyage',
       staff: 'Sales Staff',
       company: 'Company',
       status: 'Judgement Status',
@@ -544,6 +580,7 @@ const UI_COPY = {
     },
     metrics: {
       activeRates: 'Active Rates',
+      linkedRates: 'Linked Rates',
       lowCases: 'Low Freight Cases',
       marketLow: 'Below Market Count',
       averageLow: 'Below Period AVG Count',
@@ -643,6 +680,9 @@ const UI_COPY = {
       usageValue: 'Bookings {bkg} · {bkgTeu} TEU · B/L {bl} · {teu} TEU',
       usageNone: 'Unused (no booking or B/L)',
       usageUnavailable: 'Available after next data refresh',
+      shipmentLink: 'Vessel/Voyage Links',
+      shipmentLinkShort: 'Vessel/Voy.',
+      shipmentLinkNone: 'No linked B/L',
     },
     charge: {
       title: 'Charge Items',
@@ -869,6 +909,8 @@ function createDefaultFilters(data: MonitoringData): FilterState {
     specialCargoType: [],
     fullEmptyType: [],
     usagePresence: [],
+    vessel: [],
+    voyage: [],
     staff: [],
     company: [],
     status: [],
@@ -889,6 +931,8 @@ function filterScope(filters: FilterState): ScopeFilters {
     specialCargoType: filters.specialCargoType,
     fullEmptyType: filters.fullEmptyType,
     usagePresence: filters.usagePresence,
+    vessel: filters.vessel,
+    voyage: filters.voyage,
     staff: filters.staff,
     company: filters.company,
   };
@@ -907,6 +951,28 @@ function hasUsageSelection(selected: string[], record: RateRecord) {
   return !selected.length || selected.includes(recordHasUsage(record) ? 'used' : 'unused');
 }
 
+function hasShipmentFilter(filters: ScopeFilters | FilterState) {
+  return Boolean(filters.vessel.length || filters.voyage.length);
+}
+
+function shipmentMatches(link: ShipmentLink, vessel: string[], voyage: string[]) {
+  return hasSelection(vessel, link.vesselCode) && hasSelection(voyage, link.voyageNo);
+}
+
+function hasShipmentSelection(vessel: string[], voyage: string[], record: RateRecord) {
+  if (!vessel.length && !voyage.length) {
+    return true;
+  }
+  return record.shipmentLinks.some((link) => shipmentMatches(link, vessel, voyage));
+}
+
+function matchingShipmentLinks(record: RateRecord, filters?: Pick<ScopeFilters, 'vessel' | 'voyage'>) {
+  if (!filters || (!filters.vessel.length && !filters.voyage.length)) {
+    return record.shipmentLinks;
+  }
+  return record.shipmentLinks.filter((link) => shipmentMatches(link, filters.vessel, filters.voyage));
+}
+
 function activeFilterCount(filters: FilterState) {
   return (
     (filters.originCountry.length ? 1 : 0) +
@@ -919,6 +985,8 @@ function activeFilterCount(filters: FilterState) {
     (filters.specialCargoType.length ? 1 : 0) +
     (filters.fullEmptyType.length ? 1 : 0) +
     (filters.usagePresence.length ? 1 : 0) +
+    (filters.vessel.length ? 1 : 0) +
+    (filters.voyage.length ? 1 : 0) +
     (filters.staff.length ? 1 : 0) +
     (filters.company.length ? 1 : 0) +
     (filters.status.length ? 1 : 0) +
@@ -1015,6 +1083,29 @@ function formatFullEmptyType(value: string) {
   return formatCodeLabel(value, FULL_EMPTY_TYPE_LABELS);
 }
 
+function formatDepartureRange(link: ShipmentLink) {
+  if (link.departureStart && link.departureEnd && link.departureStart !== link.departureEnd) {
+    return `${formatDate(link.departureStart)} ~ ${formatDate(link.departureEnd)}`;
+  }
+  return link.departureStart ? formatDate(link.departureStart) : '';
+}
+
+function formatShipmentLinkLine(link: ShipmentLink, language: Language) {
+  const blUnit = language === 'ko' ? '건' : '';
+  const departure = formatDepartureRange(link);
+  const base = `${link.vesselCode || '-'} / ${link.voyageNo || '-'} · BL ${formatNumber(link.blCount)}${blUnit} · ${formatNumber(link.teu)} TEU`;
+  return departure ? `${base} · ${departure}` : base;
+}
+
+function formatShipmentLinkSummary(links: ShipmentLink[], language: Language) {
+  if (!links.length) {
+    return UI_COPY[language].detail.shipmentLinkNone;
+  }
+  const visible = links.slice(0, 3).map((link) => formatShipmentLinkLine(link, language));
+  const suffix = links.length > visible.length ? ` +${links.length - visible.length}` : '';
+  return `${visible.join(', ')}${suffix}`;
+}
+
 function formatPaymentLocation(value: string, language: Language) {
   const text = UI_COPY[language].charge;
   const labels: Record<string, string> = {
@@ -1072,6 +1163,7 @@ function matchesScope(record: RateRecord, filters: ScopeFilters) {
     hasSelection(filters.specialCargoType, record.specialCargoType) &&
     hasSelection(filters.fullEmptyType, record.fullEmptyType) &&
     hasUsageSelection(filters.usagePresence, record) &&
+    hasShipmentSelection(filters.vessel, filters.voyage, record) &&
     hasSelection(filters.staff, record.staff) &&
     hasSelection(filters.company, shipperKey(record))
   );
@@ -1224,6 +1316,9 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
     const lane = data.dimensions.lanes[record[3]];
     const shipper = data.dimensions.shippers[record[4]];
     const rateDetail = data.dimensions.rateDetails[record[12]];
+    const shipmentLinks = record[23] !== undefined
+      ? data.dimensions.shipmentLinks?.[record[23]] ?? []
+      : [];
     return {
       id: `${record[0]}-${record[3]}-${record[6]}-${record[7]}-${record[8]}-${index}`,
       rateApplicationNo: record[0],
@@ -1258,6 +1353,16 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
       bookingCount: typeof record[20] === 'number' ? record[20] : null,
       teu: typeof record[21] === 'number' ? record[21] : null,
       bookingTeu: typeof record[22] === 'number' ? record[22] : null,
+      shipmentLinks: shipmentLinks.map(([vesselCode, voyageNo, blCount, bookingCount, teu, bookingTeu, departureStart, departureEnd]) => ({
+        vesselCode,
+        voyageNo,
+        blCount,
+        bookingCount,
+        teu,
+        bookingTeu,
+        departureStart,
+        departureEnd,
+      })),
     };
   });
 }
@@ -1367,8 +1472,8 @@ function buildDetailRows(activeRates: RateRecord[], minimumSamples: number) {
   });
 }
 
-function buildPeriodAnalysis(records: RateRecord[], periodStart: string, periodEnd: string, minimumSamples: number) {
-  const activeRates = records.filter((record) => overlapsRange(record, periodStart, periodEnd));
+function buildPeriodAnalysis(records: RateRecord[], periodStart: string, periodEnd: string, minimumSamples: number, ignorePeriod = false) {
+  const activeRates = ignorePeriod ? records : records.filter((record) => overlapsRange(record, periodStart, periodEnd));
 
   return {
     activeRates,
@@ -1716,7 +1821,19 @@ function RateBreakdown({ detail, language }: { detail: RateDetail; language: Lan
   );
 }
 
-function RateDetailPanel({ rate, detail, language, onClose }: { rate: DetailRateRow | null; detail: RateDetail | null; language: Language; onClose: () => void }) {
+function RateDetailPanel({
+  rate,
+  detail,
+  language,
+  shipmentScope,
+  onClose,
+}: {
+  rate: DetailRateRow | null;
+  detail: RateDetail | null;
+  language: Language;
+  shipmentScope: Pick<ScopeFilters, 'vessel' | 'voyage'>;
+  onClose: () => void;
+}) {
   const text = UI_COPY[language].detail;
   if (!rate) {
     return (
@@ -1740,6 +1857,7 @@ function RateDetailPanel({ rate, detail, language, onClose }: { rate: DetailRate
         .replace('{bl}', formatNumber(rate.blCount ?? 0))
         .replace('{teu}', formatNumber(rate.teu ?? 0));
   const usageClass = usageUnavailable ? 'usage-na' : usageUnused ? 'usage-none' : 'usage-used';
+  const shipmentLinks = matchingShipmentLinks(rate, shipmentScope);
 
   return (
     <aside className="detail-panel detail-side-panel">
@@ -1763,6 +1881,7 @@ function RateDetailPanel({ rate, detail, language, onClose }: { rate: DetailRate
         <div><span>{text.salesStaff}</span><strong>{rate.staff}</strong></div>
         <div className="detail-wide"><span>{text.company}</span><strong>{rate.shipperCode || '-'} / {rate.shipperName || '-'}</strong></div>
         <div className="detail-wide"><span>{text.usage}</span><strong className={`usage-value ${usageClass}`}>{usageLabel}</strong></div>
+        <div className="detail-wide"><span>{text.shipmentLink}</span><strong>{formatShipmentLinkSummary(shipmentLinks, language)}</strong></div>
       </div>
       {detail && <RateBreakdown detail={detail} language={language} />}
     </aside>
@@ -2450,6 +2569,8 @@ function AppContent({ data }: { data: MonitoringData }) {
   const selectedRateDetail = selectedCase ? decodeRateDetail(data.dimensions.rateDetails[selectedCase.rateDetailIndex]) : null;
   const activeFilters = view === 'summary' ? summaryFilters : detailFilters;
   const setActiveFilters = view === 'summary' ? setSummaryFilters : setDetailFilters;
+  const summaryIgnoresPeriod = hasShipmentFilter(summaryFilters);
+  const detailIgnoresPeriod = hasShipmentFilter(detailFilters);
 
   const summaryScope = useMemo(() => filterScope(summaryFilters), [summaryFilters]);
   const detailScope = useMemo(() => filterScope(detailFilters), [detailFilters]);
@@ -2459,8 +2580,9 @@ function AppContent({ data }: { data: MonitoringData }) {
       summaryFilters.periodStart,
       summaryFilters.periodEnd,
       data.metadata.marketAverageFallbackMinimumSamples,
+      summaryIgnoresPeriod,
     ),
-    [data.metadata.marketAverageFallbackMinimumSamples, records, summaryFilters.periodEnd, summaryFilters.periodStart],
+    [data.metadata.marketAverageFallbackMinimumSamples, records, summaryFilters.periodEnd, summaryFilters.periodStart, summaryIgnoresPeriod],
   );
   const detailPeriodAnalysis = useMemo(
     () => buildPeriodAnalysis(
@@ -2468,8 +2590,9 @@ function AppContent({ data }: { data: MonitoringData }) {
       detailFilters.periodStart,
       detailFilters.periodEnd,
       data.metadata.marketAverageFallbackMinimumSamples,
+      detailIgnoresPeriod,
     ),
-    [data.metadata.marketAverageFallbackMinimumSamples, detailFilters.periodEnd, detailFilters.periodStart, records],
+    [data.metadata.marketAverageFallbackMinimumSamples, detailFilters.periodEnd, detailFilters.periodStart, detailIgnoresPeriod, records],
   );
   const summaryRates = useMemo(() => summaryPeriodAnalysis.activeRates.filter((rate) => matchesScope(rate, summaryScope)), [summaryPeriodAnalysis.activeRates, summaryScope]);
   // Same scope filters as summaryRates but WITHOUT the period window — used to
@@ -2506,6 +2629,7 @@ function AppContent({ data }: { data: MonitoringData }) {
         item.container,
         item.cargoProfile,
         item.approvalStatus,
+        item.shipmentLinks.map((link) => `${link.vesselCode} ${link.voyageNo}`).join(' '),
       ]
         .join(' ')
         .toLowerCase()
@@ -2523,6 +2647,7 @@ function AppContent({ data }: { data: MonitoringData }) {
   const currentFilterCount = activeFilterCount(activeFilters);
   const currentRates = view === 'summary' ? summaryRates : detailRates;
   const currentCases = view === 'summary' ? summaryCases : filteredLowCases;
+  const currentIgnoresPeriod = view === 'summary' ? summaryIgnoresPeriod : detailIgnoresPeriod;
   const toOptions = (values: string[], labelFn: (value: string) => string = (value) => value): FilterOption[] => values.map((value) => ({ value, label: labelFn(value) }));
   const originCountries = useMemo(() => unique(records.map((item) => item.porCountry)), [records]);
   const originCountryOptions = useMemo(() => toOptions(originCountries), [originCountries]);
@@ -2561,6 +2686,16 @@ function AppContent({ data }: { data: MonitoringData }) {
       { value: 'unused', label: text.filter.usageUnused },
     ],
     [text],
+  );
+  const vesselOptions = useMemo(
+    () => toOptions(unique(records.flatMap((item) => item.shipmentLinks.map((link) => link.vesselCode)))),
+    [records],
+  );
+  const voyageOptions = useMemo(
+    () => toOptions(unique(records.flatMap((item) => item.shipmentLinks
+      .filter((link) => hasSelection(activeFilters.vessel, link.vesselCode))
+      .map((link) => link.voyageNo)))),
+    [activeFilters.vessel, records],
   );
   const approvalStatuses = useMemo(() => unique(records.map((item) => item.approvalStatus)), [records]);
   const formatApprovalStatus = (value: string) => data.metadata.approvalStatusLabels[value] ? `${data.metadata.approvalStatusLabels[value]} (${value})` : value;
@@ -2964,6 +3099,8 @@ function AppContent({ data }: { data: MonitoringData }) {
             <MultiSelectFilter language={language} label={text.filter.containerType} options={containerTypeOptions} values={activeFilters.containerType} onChange={(values) => setActiveFilters((current) => ({ ...current, containerType: values }))} />
             <MultiSelectFilter language={language} className="cargo-type-filter" label={text.filter.cargoType} options={cargoTypeOptions} values={activeFilters.cargoType} onChange={(values) => setActiveFilters((current) => ({ ...current, cargoType: values, specialCargoType: [] }))} />
             <MultiSelectFilter language={language} className="usage-presence-filter" label={text.filter.usagePresence} options={usagePresenceOptions} values={activeFilters.usagePresence} onChange={(values) => setActiveFilters((current) => ({ ...current, usagePresence: values }))} />
+            <MultiSelectFilter language={language} className="vessel-filter" label={text.filter.vessel} options={vesselOptions} values={activeFilters.vessel} onChange={(values) => setActiveFilters((current) => ({ ...current, vessel: values, voyage: [] }))} />
+            <MultiSelectFilter language={language} className="voyage-filter" label={text.filter.voyage} options={voyageOptions} values={activeFilters.voyage} onChange={(values) => setActiveFilters((current) => ({ ...current, voyage: values }))} />
             <MultiSelectFilter language={language} label={text.filter.staff} options={staffFilterOptions} values={activeFilters.staff} onChange={(values) => setActiveFilters((current) => ({ ...current, staff: values }))} />
             <MultiSelectFilter language={language} className="company-filter" label={text.filter.company} options={companyOptions} values={activeFilters.company} onChange={(values) => setActiveFilters((current) => ({ ...current, company: values }))} />
             {view === 'detail' && (
@@ -3096,7 +3233,7 @@ function AppContent({ data }: { data: MonitoringData }) {
         <section className="metric-strip">
           <div>
             <CalendarDays size={18} aria-hidden="true" />
-            <span>{text.metrics.activeRates}</span>
+            <span>{currentIgnoresPeriod ? text.metrics.linkedRates : text.metrics.activeRates}</span>
             <strong>{formatNumber(currentRates.length)}</strong>
           </div>
           <div>
@@ -3333,11 +3470,14 @@ function AppContent({ data }: { data: MonitoringData }) {
                         <th>{text.detail.gap}</th>
                         <th>{text.detail.salesStaff}</th>
                         <th>{text.detail.company}</th>
+                        <th>{text.detail.shipmentLinkShort}</th>
                         <th>{text.detail.validPeriod}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {visibleCases.length ? visibleCases.map((item) => (
+                      {visibleCases.length ? visibleCases.map((item) => {
+                        const shipmentLinks = matchingShipmentLinks(item, detailScope);
+                        return (
                         <tr className={selectedCase?.id === item.id ? 'detail-selected-row' : undefined} key={item.id} onClick={() => setSelectedCase(item)}>
                           <td><StatusBadge status={item.status} language={language} /></td>
                           <td><button className="rate-link" type="button">{item.rateApplicationNo}</button></td>
@@ -3368,11 +3508,13 @@ function AppContent({ data }: { data: MonitoringData }) {
                           </td>
                           <td>{item.staff}</td>
                           <td><strong>{item.shipperCode || '-'}</strong><span>{item.shipperName || 'No company name'}</span></td>
+                          <td className="shipment-link-cell">{formatShipmentLinkSummary(shipmentLinks, language)}</td>
                           <td>{formatDate(item.effectiveStart)}<span>~ {formatDate(item.effectiveEnd)}</span></td>
                         </tr>
-                      )) : (
+                        );
+                      }) : (
                         <tr>
-                          <td colSpan={12} className="empty-cell">{text.detail.empty}</td>
+                          <td colSpan={13} className="empty-cell">{text.detail.empty}</td>
                         </tr>
                       )}
                     </tbody>
@@ -3420,7 +3562,7 @@ function AppContent({ data }: { data: MonitoringData }) {
           )}
 
           {view === 'detail' && (
-            <RateDetailPanel rate={selectedCase} detail={selectedRateDetail} language={language} onClose={() => setSelectedCase(null)} />
+            <RateDetailPanel rate={selectedCase} detail={selectedRateDetail} language={language} shipmentScope={detailScope} onClose={() => setSelectedCase(null)} />
           )}
         </section>
 

@@ -664,6 +664,14 @@ def booking_usage_key(application_no, container_size, container_type):
     )
 
 
+def first_value(row, *names):
+    for name in names:
+        value = (row.get(name, "") or "").strip()
+        if value:
+            return value
+    return ""
+
+
 def build_booking_usage(path):
     """Aggregate actual usage per (rate application, CNTR size, CNTR type).
 
@@ -674,11 +682,18 @@ def build_booking_usage(path):
     bookingCount counts every distinct booking that referenced the rate.
     """
     if path is None:
-        return {}, False
+        return {}, False, False
 
     aggregates = {}
+    shipment_link_available = False
     with path.open("r", encoding="utf-8-sig", newline="") as source:
-        for row in csv.DictReader(source):
+        reader = csv.DictReader(source)
+        fields = set(reader.fieldnames or [])
+        shipment_link_available = (
+            bool(fields & {"VESSEL_CODE", "VSL_CD", "VESSEL"})
+            and bool(fields & {"VOYAGE_NO", "VOY_NO", "VOYAGE"})
+        )
+        for row in reader:
             booking_no = (row.get("BOOKING_NO", "") or "").strip()
             if not booking_no:
                 continue
@@ -689,7 +704,7 @@ def build_booking_usage(path):
             )
             entry = aggregates.get(key)
             if entry is None:
-                entry = {"bookings": {}, "bls": set()}
+                entry = {"bookings": {}, "bls": set(), "shipmentLinks": {}}
                 aggregates[key] = entry
             has_bl = row.get("HAS_BL_FLAG", "") == "Y"
             booking = entry["bookings"].get(booking_no)
@@ -703,21 +718,56 @@ def build_booking_usage(path):
             bl_no = (row.get("BL_NO", "") or "").strip()
             if has_bl and bl_no:
                 entry["bls"].add(bl_no)
+                vessel = first_value(row, "VESSEL_CODE", "VSL_CD", "VESSEL")
+                voyage = first_value(row, "VOYAGE_NO", "VOY_NO", "VOYAGE")
+                if vessel or voyage:
+                    shipment_key = (vessel, voyage)
+                    shipment = entry["shipmentLinks"].get(shipment_key)
+                    if shipment is None:
+                        shipment = {"bookings": {}, "bls": set(), "departures": set()}
+                        entry["shipmentLinks"][shipment_key] = shipment
+                    shipment["bls"].add(bl_no)
+                    shipment_booking = shipment["bookings"].get(booking_no)
+                    if shipment_booking is None:
+                        shipment_booking = {"teu": 0.0}
+                        shipment["bookings"][booking_no] = shipment_booking
+                    shipment_booking["teu"] = max(shipment_booking["teu"], number(row.get("TOTAL_TEU")))
+                    departure_date = (row.get("DEPARTURE_DATE", "") or "").strip()
+                    if departure_date:
+                        shipment["departures"].add(departure_date)
 
     usage_map = {}
     for key, entry in aggregates.items():
         booking_teu = sum(b["teu"] for b in entry["bookings"].values())
         shipped_teu = sum(b["teu"] for b in entry["bookings"].values() if b["hasBL"])
+        shipment_links = []
+        for (vessel, voyage), shipment in entry["shipmentLinks"].items():
+            link_teu = sum(b["teu"] for b in shipment["bookings"].values())
+            departures = sorted(shipment["departures"])
+            shipment_links.append(
+                (
+                    vessel,
+                    voyage,
+                    len(shipment["bls"]),
+                    len(shipment["bookings"]),
+                    round(link_teu, 1),
+                    round(link_teu, 1),
+                    departures[0] if departures else "",
+                    departures[-1] if departures else "",
+                )
+            )
+        shipment_links.sort(key=lambda item: (item[6] or "99999999", item[0], item[1]))
         usage_map[key] = (
             len(entry["bls"]),
             len(entry["bookings"]),
             round(shipped_teu, 1),
             round(booking_teu, 1),
+            tuple(shipment_links),
         )
-    return usage_map, True
+    return usage_map, True, shipment_link_available
 
 
-booking_usage_map, booking_usage_available = build_booking_usage(BOOKING_USAGE_FILE)
+booking_usage_map, booking_usage_available, shipment_link_available = build_booking_usage(BOOKING_USAGE_FILE)
 
 dimensions = {
     "lanes": [],
@@ -734,6 +784,7 @@ dimensions = {
     "approvalStatuses": [],
     "marketSources": [],
     "rateDetails": [],
+    "shipmentLinks": [],
 }
 dimension_maps = {key: {} for key in dimensions}
 records = []
@@ -789,13 +840,13 @@ for row in dashboard_rows(RATE_FILE, rate_source_columns):
         market_source = guideline["source"] if market_rate is not None else ""
         detail = rate_detail(row)
 
-        bl_count, booking_count, teu, booking_teu = booking_usage_map.get(
+        bl_count, booking_count, teu, booking_teu, shipment_links = booking_usage_map.get(
             booking_usage_key(
                 row.get("RATE_APPLICATION_NO", ""),
                 row.get("CONTAINER_SIZE", ""),
                 row.get("CONTAINER_TYPE", ""),
             ),
-            (0, 0, 0.0, 0.0),
+            (0, 0, 0.0, 0.0, ()),
         )
 
         record_key = (
@@ -843,6 +894,7 @@ for row in dashboard_rows(RATE_FILE, rate_source_columns):
                 booking_count,
                 teu,
                 booking_teu,
+                dimension_index(dimensions["shipmentLinks"], dimension_maps["shipmentLinks"], shipment_links),
             ]
         )
 
@@ -873,6 +925,7 @@ payload = {
         "sourceMode": "canonical" if RATE_FILE.resolve() == CANONICAL_RATE_FILE.resolve() else "legacy-fallback",
         "chargeDetailAvailable": charge_detail_available,
         "usageAvailable": booking_usage_available,
+        "shipmentLinkAvailable": shipment_link_available,
         "usageSourceFile": BOOKING_USAGE_FILE.name if BOOKING_USAGE_FILE else "",
         "latestSourceDate": iso_date(latest_source_date),
         "defaultWeek": iso_date(default_week),
@@ -925,6 +978,7 @@ payload = {
             "bookingCount",
             "teu",
             "bookingTeu",
+            "shipmentLinkIndex",
         ],
         "rateDetailSchema": [
             "freightUnit",

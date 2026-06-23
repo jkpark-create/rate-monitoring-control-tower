@@ -4,10 +4,12 @@
 -- -------
 -- Produces actual booking / B/L usage per rate application + container, so the
 -- dashboard can show "부킹 N건 · TEU · BL N건 · TEU" instead of "미사용".
+-- It also carries vessel/voyage for B/L-linked rate-file lookup.
 -- build-weekly-data.py (build_booking_usage) joins this on
 --     (RATE_APPLICATION_NO, CONTAINER_SIZE, CONTAINER_TYPE)
 -- and reads ONLY these columns:
 --     RATE_APPLICATION_NO, BOOKING_NO, BL_NO,
+--     VESSEL_CODE, VOYAGE_NO,
 --     CONTAINER_SIZE, CONTAINER_TYPE, TOTAL_TEU, HAS_BL_FLAG
 -- TOTAL_TEU is collapsed per distinct BOOKING_NO (max, then summed) on the build
 -- side, so emitting the same booking-level TEU across a booking's B/L rows is safe.
@@ -37,6 +39,8 @@ WITH BOOKING_LATEST AS (
         A.BKG_NO,
         A.BKG_STS_CD,
         A.BKG_SHPR_CST_NO,
+        A.VSL_CD,
+        A.VOY_NO,
         A.CNTR_SZ_CD,
         A.CNTR_TYP_CD,
         A.CNTR_QTY,
@@ -59,6 +63,8 @@ BOOKING_AGG AS (
         B.BKG_NO,
         MAX(B.BKG_STS_CD)       AS BKG_STS_CD,
         MAX(B.BKG_SHPR_CST_NO)  AS BKG_SHPR_CST_NO,
+        MAX(B.VSL_CD)           AS VSL_CD,
+        MAX(B.VOY_NO)           AS VOY_NO,
         MAX(B.RVSD_DPO_DT)      AS RVSD_DPO_DT,
         B.CNTR_SZ_CD,
         B.CNTR_TYP_CD,
@@ -106,6 +112,8 @@ SELECT
     L.BL_NO               AS BL_NO,
     B.BKG_STS_CD          AS BOOKING_STATUS_CODE,
     B.BKG_SHPR_CST_NO     AS BOOKING_SHIPPER_CODE,
+    B.VSL_CD              AS VESSEL_CODE,
+    B.VOY_NO              AS VOYAGE_NO,
     B.RVSD_DPO_DT         AS DEPARTURE_DATE,
     B.CNTR_SZ_CD          AS CONTAINER_SIZE,
     B.CNTR_TYP_CD         AS CONTAINER_TYPE,

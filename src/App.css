@@ -251,6 +251,11 @@ main {
   flex-basis: 104px;
 }
 
+.filter-grid .vessel-filter,
+.filter-grid .voyage-filter {
+  flex-basis: 104px;
+}
+
 .filter-grid .query-filter {
   flex-basis: 148px;
 }
@@ -642,7 +647,7 @@ td span,
 
 table {
   width: 100%;
-  min-width: 1720px;
+  min-width: 1840px;
   border-collapse: collapse;
 }
 
@@ -710,6 +715,12 @@ td strong {
 .num-cell {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.shipment-link-cell {
+  max-width: 210px;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
 }
 
 table.summary-table {
