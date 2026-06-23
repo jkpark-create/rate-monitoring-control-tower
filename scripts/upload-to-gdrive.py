@@ -128,6 +128,27 @@ def create_file(at, name, data, folder_id):
     return resp['id']
 
 
+def upsert_file(at, folder_id, src, name, data=None):
+    if data is None:
+        data = src.read_bytes()
+    existing = find_file(at, name)
+    if existing:
+        fid = existing['id']
+        update_content(at, fid, data)
+        move_to_folder(at, fid, folder_id, existing.get('parents'))
+        print(f"Updated {name} ({len(data):,} bytes) -> {fid}")
+    else:
+        fid = create_file(at, name, data, folder_id)
+        print(f"Created {name} ({len(data):,} bytes) -> {fid}")
+
+    # Belt-and-suspenders: also share the file itself, in case folder permission
+    # inheritance is restricted by Workspace policy.
+    for domain in DOMAINS:
+        grant_domain_reader(at, fid, domain, 'file')
+
+    return fid
+
+
 def grant_domain_reader(at, target_id, domain, label):
     body = json.dumps({'type': 'domain', 'role': 'reader', 'domain': domain,
                        'allowFileDiscovery': False}).encode()
@@ -147,7 +168,6 @@ def main():
     name = sys.argv[2] if len(sys.argv) > 2 else 'weekly-monitoring.json'
     if not src.exists():
         raise SystemExit(f"Source file not found: {src}")
-    data = src.read_bytes()
 
     at = access_token()
 
@@ -155,22 +175,22 @@ def main():
     for domain in DOMAINS:
         grant_domain_reader(at, folder_id, domain, 'folder')
 
-    existing = find_file(at, name)
-    if existing:
-        fid = existing['id']
-        update_content(at, fid, data)
-        move_to_folder(at, fid, folder_id, existing.get('parents'))
-        print(f"Updated {name} ({len(data):,} bytes) -> {fid}")
-    else:
-        fid = create_file(at, name, data, folder_id)
-        print(f"Created {name} ({len(data):,} bytes) -> {fid}")
+    detail_id = ''
+    detail_src = src.with_name('weekly-monitoring-details.json')
+    if name == 'weekly-monitoring.json' and detail_src.exists():
+        detail_id = upsert_file(at, folder_id, detail_src, 'weekly-monitoring-details.json')
 
-    # Belt-and-suspenders: also share the file itself, in case folder permission
-    # inheritance is restricted by Workspace policy.
-    for domain in DOMAINS:
-        grant_domain_reader(at, fid, domain, 'file')
+    if detail_id:
+        payload = json.loads(src.read_text(encoding='utf-8'))
+        payload.setdefault('metadata', {})['detailDriveFileId'] = detail_id
+        data = json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+    else:
+        data = src.read_bytes()
+    fid = upsert_file(at, folder_id, src, name, data)
 
     print(f"FOLDER_ID={folder_id}")
+    if detail_id:
+        print(f"DETAIL_DRIVE_FILE_ID={detail_id}")
     print(f"DRIVE_FILE_ID={fid}")
 
 

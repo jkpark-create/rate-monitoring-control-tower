@@ -19,6 +19,7 @@ CANONICAL_RATE_FILE = ROOT / "data" / "rate-base-latest.csv"
 BASIC_TARIFF_FILE = ROOT / "data" / "basic-tariff-latest.csv"
 RATE_ROUTE_FILE = ROOT / "data" / "rate-route-latest.csv"
 OUTPUT_FILE = ROOT / "public" / "data" / "weekly-monitoring.json"
+DETAIL_OUTPUT_FILE = ROOT / "public" / "data" / "weekly-monitoring-details.json"
 
 
 def find_booking_usage_file():
@@ -123,6 +124,13 @@ def replace_file(source, target):
             time.sleep(0.5)
     shutil.copyfile(source, target)
     source.unlink(missing_ok=True)
+
+
+def write_json_atomic(payload, target):
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary_file = target.with_suffix(".json.tmp")
+    temporary_file.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    replace_file(temporary_file, target)
 
 
 def number(value, default=0.0):
@@ -895,6 +903,8 @@ for row in dashboard_rows(RATE_FILE, rate_source_columns):
                 teu,
                 booking_teu,
                 dimension_index(dimensions["shipmentLinks"], dimension_maps["shipmentLinks"], shipment_links),
+                detail[12] if detail[12] is not None else of_rate,
+                detail[13] if detail[13] is not None else (detail[12] if detail[12] is not None else of_rate),
             ]
         )
 
@@ -952,6 +962,8 @@ payload = {
         "teamBasis": "HQ route team by POR_COUNTRY / DLY_COUNTRY; same rule as -3W bkg dashboard",
         "teamOptions": list(HQ_ROUTE_TEAMS),
         "recordCount": len(records),
+        "rateDetailCount": len(dimensions["rateDetails"]),
+        "detailSourceFile": DETAIL_OUTPUT_FILE.name,
         "skippedInvalidDateRows": skipped_invalid_date_rows,
         "skippedNonOfRows": skipped_non_of_rows,
         "recordSchema": [
@@ -979,6 +991,8 @@ payload = {
             "teu",
             "bookingTeu",
             "shipmentLinkIndex",
+            "coreRate",
+            "allInRate",
         ],
         "rateDetailSchema": [
             "freightUnit",
@@ -999,17 +1013,27 @@ payload = {
         ],
     },
     "weeks": weeks,
-    "dimensions": dimensions,
+    "dimensions": {**dimensions, "rateDetails": []},
     "records": records,
 }
 
-OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-output_temp = OUTPUT_FILE.with_suffix(".json.tmp")
-output_temp.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-replace_file(output_temp, OUTPUT_FILE)
+detail_payload = {
+    "metadata": {
+        "generatedAt": payload["metadata"]["generatedAt"],
+        "sourceFile": RATE_FILE.name,
+        "rateDetailCount": len(dimensions["rateDetails"]),
+        "rateDetailSchema": payload["metadata"]["rateDetailSchema"],
+    },
+    "rateDetails": dimensions["rateDetails"],
+}
+
+write_json_atomic(payload, OUTPUT_FILE)
+write_json_atomic(detail_payload, DETAIL_OUTPUT_FILE)
 
 print(f"Wrote {OUTPUT_FILE.relative_to(ROOT)}")
+print(f"Wrote {DETAIL_OUTPUT_FILE.relative_to(ROOT)}")
 print(f"Focused O/F records: {len(records):,}")
+print(f"Rate details: {len(dimensions['rateDetails']):,}")
 print(f"Weeks: {weeks[0]['value']} ~ {weeks[-1]['value']}")
 print(f"Data window: {iso_date(first_week)} ~ {iso_date(data_window_end)}")
 print(f"Skipped invalid-date rows: {skipped_invalid_date_rows:,}")

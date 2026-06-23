@@ -234,6 +234,10 @@ main {
   flex-basis: 108px;
 }
 
+.filter-grid .route-filter {
+  flex-basis: 154px;
+}
+
 .filter-grid .company-filter {
   flex-basis: 106px;
 }

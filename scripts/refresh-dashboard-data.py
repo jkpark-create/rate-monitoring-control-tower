@@ -20,7 +20,9 @@ CANONICAL_BASIC_TARIFF_FILE = ROOT / "data" / "basic-tariff-latest.csv"
 CANONICAL_RATE_ROUTE_FILE = ROOT / "data" / "rate-route-latest.csv"
 CANONICAL_BOOKING_USAGE_FILE = ROOT / "data" / "booking-usage-latest.csv"
 PUBLIC_DATA_FILE = ROOT / "public" / "data" / "weekly-monitoring.json"
+PUBLIC_DETAIL_DATA_FILE = ROOT / "public" / "data" / "weekly-monitoring-details.json"
 DIST_DATA_FILE = ROOT / "dist" / "data" / "weekly-monitoring.json"
+DIST_DETAIL_DATA_FILE = ROOT / "dist" / "data" / "weekly-monitoring-details.json"
 REQUIRED_ORACLE_COLUMNS = {"RATE_ROW_TYPE", "CHARGE_DETAIL_LIST"}
 REFERENCE_EXTRACTS = (
     (
@@ -39,6 +41,9 @@ REFERENCE_EXTRACTS = (
         {
             "RATE_APPLICATION_NO",
             "BOOKING_NO",
+            "VESSEL_CODE",
+            "VOYAGE_NO",
+            "DEPARTURE_DATE",
             "CONTAINER_SIZE",
             "CONTAINER_TYPE",
             "TOTAL_TEU",
@@ -218,10 +223,16 @@ def publish_dist_data():
     if not (ROOT / "dist").exists():
         return
     DIST_DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
-    temporary_file = DIST_DATA_FILE.with_suffix(".json.tmp")
-    shutil.copyfile(PUBLIC_DATA_FILE, temporary_file)
-    replace_file(temporary_file, DIST_DATA_FILE)
-    log(f"Published live JSON cache to {DIST_DATA_FILE.relative_to(ROOT)}")
+    for source, target in (
+        (PUBLIC_DATA_FILE, DIST_DATA_FILE),
+        (PUBLIC_DETAIL_DATA_FILE, DIST_DETAIL_DATA_FILE),
+    ):
+        if not source.exists():
+            continue
+        temporary_file = target.with_suffix(".json.tmp")
+        shutil.copyfile(source, temporary_file)
+        replace_file(temporary_file, target)
+        log(f"Published live JSON cache to {target.relative_to(ROOT)}")
 
 
 def refresh(args):

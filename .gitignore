@@ -16,3 +16,4 @@ server.log
 # Dashboard data is served from a restricted Google Drive file, never committed/published.
 /data/
 public/data/weekly-monitoring.json
+public/data/weekly-monitoring-details.json

@@ -63,6 +63,8 @@ type RawRecord = [
   teu?: number,
   bookingTeu?: number,
   shipmentLinkIndex?: number,
+  coreRate?: number | null,
+  allInRate?: number | null,
 ];
 
 type RawShipmentLink = [
@@ -137,6 +139,9 @@ type MonitoringData = {
     teamBasis: string;
     teamOptions: string[];
     recordCount: number;
+    rateDetailCount?: number;
+    detailSourceFile?: string;
+    detailDriveFileId?: string;
     skippedInvalidDateRows: number;
     skippedNonOfRows: number;
     recordSchema: string[];
@@ -157,10 +162,21 @@ type MonitoringData = {
     fullEmptyTypes: string[];
     approvalStatuses: string[];
     marketSources: string[];
-    rateDetails: RawRateDetail[];
+    rateDetails?: RawRateDetail[];
     shipmentLinks?: RawShipmentLink[][];
   };
   records: RawRecord[];
+};
+
+type RateDetailPayload = {
+  metadata?: {
+    rateDetailCount?: number;
+    rateDetailSchema?: string[];
+  };
+  rateDetails?: RawRateDetail[];
+  dimensions?: {
+    rateDetails?: RawRateDetail[];
+  };
 };
 
 type RateDetail = {
@@ -277,7 +293,20 @@ type DetailRateRow = RateRecord & {
   isLow: boolean;
 };
 
+type PeriodAnalysis = {
+  activeRates: RateRecord[];
+  rows: DetailRateRow[];
+  cases: LowRateCase[];
+};
+
+const EMPTY_PERIOD_ANALYSIS: PeriodAnalysis = {
+  activeRates: [],
+  rows: [],
+  cases: [],
+};
+
 type ScopeFilters = {
+  route: string[];
   originCountry: string[];
   originPort: string[];
   destinationCountry: string[];
@@ -334,6 +363,8 @@ const UI_COPY = {
     dataQuality: {
       title: '이전 CSV 사용 중',
       message: '새 SQL 추출본이 연결되지 않아 charge별 통화와 금액을 확인할 수 없습니다. `npm run data:oracle`로 최신 CSV를 추출해 주세요.',
+      shipmentTitle: '선박/항차 데이터 없음',
+      shipmentMessage: '현재 사용 실적 CSV에 선박/항차 컬럼이 없어 Vessel, Voyage 필터를 만들 수 없습니다. 최신 Oracle 추출본으로 갱신해 주세요.',
     },
     filter: {
       title: '조회 조건',
@@ -346,6 +377,7 @@ const UI_COPY = {
       destinationPort: '도착지 포트',
       containerSize: 'CNTR Size',
       containerType: 'CNTR Type',
+      route: '항로',
       cargoType: 'Cargo Type',
       oogType: 'OOG Type',
       fullEmpty: 'Full / Empty',
@@ -453,6 +485,8 @@ const UI_COPY = {
       selectTitle: '운임파일을 선택해 주세요.',
       selectHint: '확인 대상 운임 목록에서 행을 클릭하면 charge 상세를 확인할 수 있습니다.',
       rateDetail: 'Rate Detail',
+      rateDetailLoading: 'Charge 상세를 불러오는 중입니다.',
+      rateDetailError: 'Charge 상세를 불러오지 못했습니다.',
       close: 'Close detail',
       validPeriodShort: 'Valid Period',
       cargoProfile: 'Cargo / OOG Type / F-E',
@@ -551,6 +585,8 @@ const UI_COPY = {
     dataQuality: {
       title: 'Legacy CSV in use',
       message: 'Charge currency and amount details are unavailable because the latest SQL extract is not connected. Run `npm run data:oracle` to extract the current CSV.',
+      shipmentTitle: 'Vessel/Voyage data unavailable',
+      shipmentMessage: 'The current usage CSV does not include vessel/voyage columns, so Vessel and Voyage filters cannot be populated. Refresh the Oracle extract.',
     },
     filter: {
       title: 'Filters',
@@ -563,6 +599,7 @@ const UI_COPY = {
       destinationPort: 'Destination Port',
       containerSize: 'CNTR Size',
       containerType: 'CNTR Type',
+      route: 'Route',
       cargoType: 'Cargo Type',
       oogType: 'OOG Type',
       fullEmpty: 'Full / Empty',
@@ -670,6 +707,8 @@ const UI_COPY = {
       selectTitle: 'Select a rate file.',
       selectHint: 'Click a row in the low freight case list to review charge details.',
       rateDetail: 'Rate Detail',
+      rateDetailLoading: 'Loading charge detail.',
+      rateDetailError: 'Could not load charge detail.',
       close: 'Close detail',
       validPeriodShort: 'Valid Period',
       cargoProfile: 'Cargo / OOG Type / F-E',
@@ -899,6 +938,7 @@ function createDefaultFilters(data: MonitoringData): FilterState {
   return {
     periodStart: data.metadata.defaultWeek,
     periodEnd: weekEnd(data.metadata.defaultWeek),
+    route: [],
     originCountry: [],
     originPort: [],
     destinationCountry: [],
@@ -921,6 +961,7 @@ function createDefaultFilters(data: MonitoringData): FilterState {
 
 function filterScope(filters: FilterState): ScopeFilters {
   return {
+    route: filters.route,
     originCountry: filters.originCountry,
     originPort: filters.originPort,
     destinationCountry: filters.destinationCountry,
@@ -940,6 +981,14 @@ function filterScope(filters: FilterState): ScopeFilters {
 
 function hasSelection(selected: string[], value: string) {
   return !selected.length || selected.includes(value);
+}
+
+function routeValue(record: Pick<RateRecord, 'laneIndex'>) {
+  return String(record.laneIndex);
+}
+
+function routeLabel(record: Pick<RateRecord, 'porCountry' | 'porPort' | 'dlyCountry' | 'dlyPort'>) {
+  return `${record.porPort} ${record.porCountry} -> ${record.dlyPort} ${record.dlyCountry}`;
 }
 
 // 사용 실적 유무: 부킹 또는 B/L 실적이 있으면 'used', 없으면 'unused'.
@@ -975,6 +1024,7 @@ function matchingShipmentLinks(record: RateRecord, filters?: Pick<ScopeFilters, 
 
 function activeFilterCount(filters: FilterState) {
   return (
+    (filters.route.length ? 1 : 0) +
     (filters.originCountry.length ? 1 : 0) +
     (filters.originPort.length ? 1 : 0) +
     (filters.destinationCountry.length ? 1 : 0) +
@@ -1153,6 +1203,7 @@ function overlapsRange(record: RateRecord, rangeStart: string, rangeEnd: string)
 
 function matchesScope(record: RateRecord, filters: ScopeFilters) {
   return (
+    hasSelection(filters.route, routeValue(record)) &&
     hasSelection(filters.originCountry, record.porCountry) &&
     hasSelection(filters.originPort, record.porPort) &&
     hasSelection(filters.destinationCountry, record.dlyCountry) &&
@@ -1315,7 +1366,9 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
   return data.records.map((record, index) => {
     const lane = data.dimensions.lanes[record[3]];
     const shipper = data.dimensions.shippers[record[4]];
-    const rateDetail = data.dimensions.rateDetails[record[12]];
+    const rateDetail = data.dimensions.rateDetails?.[record[12]];
+    const coreRate = typeof record[24] === 'number' ? record[24] : rateDetail?.[12] ?? record[8];
+    const allInRate = typeof record[25] === 'number' ? record[25] : rateDetail?.[13] ?? rateDetail?.[12] ?? record[8];
     const shipmentLinks = record[23] !== undefined
       ? data.dimensions.shipmentLinks?.[record[23]] ?? []
       : [];
@@ -1343,8 +1396,8 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
       fullEmptyType: data.dimensions.fullEmptyTypes[record[17]],
       approvalStatus: data.dimensions.approvalStatuses[record[18]],
       ofRate: record[8],
-      coreRate: rateDetail[12] ?? record[8],
-      allInRate: rateDetail[13] ?? rateDetail[12] ?? record[8],
+      coreRate,
+      allInRate,
       marketRate: record[9],
       marketSource: data.dimensions.marketSources[record[10]],
       comparisonKey: `${record[3]}|${record[13]}|${record[14]}|${record[15]}|${record[16]}|${record[17]}`,
@@ -1424,6 +1477,31 @@ function buildCases(activeRates: RateRecord[], minimumSamples: number) {
   return cases.sort((a, b) => b.gapPct - a.gapPct || b.gapAmount - a.gapAmount);
 }
 
+function buildCasesFromRows(rows: DetailRateRow[]) {
+  const cases: LowRateCase[] = [];
+  for (const row of rows) {
+    if (
+      !row.isLow
+      || row.status === 'normal'
+      || row.benchmarkRate === null
+      || row.gapAmount === null
+      || row.gapPct === null
+      || row.benchmarkSource === 'none'
+    ) {
+      continue;
+    }
+    cases.push({
+      ...row,
+      status: row.status,
+      benchmarkRate: row.benchmarkRate,
+      benchmarkSource: row.benchmarkSource,
+      gapAmount: row.gapAmount,
+      gapPct: row.gapPct,
+    });
+  }
+  return cases.sort((a, b) => b.gapPct - a.gapPct || b.gapAmount - a.gapAmount);
+}
+
 function buildDetailRows(activeRates: RateRecord[], minimumSamples: number) {
   // Search rows include every active rate file; low-freight judgement stays all-in based.
   const ofBenchmarks = new Map<string, LaneBenchmark>();
@@ -1472,12 +1550,27 @@ function buildDetailRows(activeRates: RateRecord[], minimumSamples: number) {
   });
 }
 
-function buildPeriodAnalysis(records: RateRecord[], periodStart: string, periodEnd: string, minimumSamples: number, ignorePeriod = false) {
+function buildPeriodAnalysis(
+  records: RateRecord[],
+  periodStart: string,
+  periodEnd: string,
+  minimumSamples: number,
+  ignorePeriod = false,
+  includeRows = true,
+): PeriodAnalysis {
   const activeRates = ignorePeriod ? records : records.filter((record) => overlapsRange(record, periodStart, periodEnd));
+  if (includeRows) {
+    const rows = buildDetailRows(activeRates, minimumSamples);
+    return {
+      activeRates,
+      rows,
+      cases: buildCasesFromRows(rows),
+    };
+  }
 
   return {
     activeRates,
-    rows: buildDetailRows(activeRates, minimumSamples),
+    rows: [],
     cases: buildCases(activeRates, minimumSamples),
   };
 }
@@ -1824,12 +1917,16 @@ function RateBreakdown({ detail, language }: { detail: RateDetail; language: Lan
 function RateDetailPanel({
   rate,
   detail,
+  detailStatus,
+  detailError,
   language,
   shipmentScope,
   onClose,
 }: {
   rate: DetailRateRow | null;
   detail: RateDetail | null;
+  detailStatus: 'idle' | 'loading' | 'ready' | 'error';
+  detailError?: string;
   language: Language;
   shipmentScope: Pick<ScopeFilters, 'vessel' | 'voyage'>;
   onClose: () => void;
@@ -1883,7 +1980,18 @@ function RateDetailPanel({
         <div className="detail-wide"><span>{text.usage}</span><strong className={`usage-value ${usageClass}`}>{usageLabel}</strong></div>
         <div className="detail-wide"><span>{text.shipmentLink}</span><strong>{formatShipmentLinkSummary(shipmentLinks, language)}</strong></div>
       </div>
-      {detail && <RateBreakdown detail={detail} language={language} />}
+      {detail ? (
+        <RateBreakdown detail={detail} language={language} />
+      ) : (
+        <section className="detail-charge-section">
+          <h3>{UI_COPY[language].charge.title}</h3>
+          <p className="charge-data-note">
+            {detailStatus === 'error'
+              ? `${text.rateDetailError}${detailError ? ` (${detailError})` : ''}`
+              : text.rateDetailLoading}
+          </p>
+        </section>
+      )}
     </aside>
   );
 }
@@ -2542,6 +2650,11 @@ function RateBandPanel({
 }
 
 function AppContent({ data }: { data: MonitoringData }) {
+  const auth = useContext(AuthContext);
+  const authRef = useRef(auth);
+  authRef.current = auth;
+  const detailDataRef = useRef<RawRateDetail[] | null>(data.dimensions.rateDetails?.length ? data.dimensions.rateDetails : null);
+  const detailPromiseRef = useRef<Promise<RawRateDetail[]> | null>(null);
   const records = useMemo(() => decodeRecords(data), [data]);
   const [summaryFilters, setSummaryFilters] = useState<FilterState>(() => createDefaultFilters(data));
   const [detailFilters, setDetailFilters] = useState<FilterState>(() => createDefaultFilters(data));
@@ -2566,11 +2679,118 @@ function AppContent({ data }: { data: MonitoringData }) {
     }
   });
   const text = UI_COPY[language];
-  const selectedRateDetail = selectedCase ? decodeRateDetail(data.dimensions.rateDetails[selectedCase.rateDetailIndex]) : null;
+  const [selectedRateDetailState, setSelectedRateDetailState] = useState<{
+    index: number | null;
+    status: 'idle' | 'loading' | 'ready' | 'error';
+    detail: RateDetail | null;
+    error?: string;
+  }>({ index: null, status: 'idle', detail: null });
   const activeFilters = view === 'summary' ? summaryFilters : detailFilters;
   const setActiveFilters = view === 'summary' ? setSummaryFilters : setDetailFilters;
   const summaryIgnoresPeriod = hasShipmentFilter(summaryFilters);
   const detailIgnoresPeriod = hasShipmentFilter(detailFilters);
+
+  useEffect(() => {
+    detailDataRef.current = data.dimensions.rateDetails?.length ? data.dimensions.rateDetails : null;
+    detailPromiseRef.current = null;
+    setSelectedRateDetailState({ index: null, status: 'idle', detail: null });
+  }, [data]);
+
+  const loadRateDetails = useCallback(async () => {
+    if (detailDataRef.current) {
+      return detailDataRef.current;
+    }
+    if (detailPromiseRef.current) {
+      return detailPromiseRef.current;
+    }
+
+    const useDrive = Boolean(data.metadata.detailDriveFileId);
+    const detailSourceFile = data.metadata.detailSourceFile || 'weekly-monitoring-details.json';
+    if (!useDrive && !detailSourceFile) {
+      throw new Error('Rate detail source is not configured.');
+    }
+    const url = useDrive
+      ? `https://www.googleapis.com/drive/v3/files/${data.metadata.detailDriveFileId}?alt=media`
+      : `${import.meta.env.BASE_URL}data/${detailSourceFile}?t=${Date.now()}`;
+    const runFetch = (token: string) =>
+      fetch(url, {
+        cache: 'no-store',
+        headers: useDrive && token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+    detailPromiseRef.current = (async () => {
+      let token = authRef.current?.accessToken ?? '';
+      let response = await runFetch(token);
+      if (useDrive && (response.status === 401 || response.status === 403) && authRef.current) {
+        token = await authRef.current.refresh();
+        response = await runFetch(token);
+      }
+      if (!response.ok) {
+        throw new Error(`Rate detail request failed: ${response.status}`);
+      }
+      const payload = await response.json() as RateDetailPayload;
+      const details = payload.rateDetails ?? payload.dimensions?.rateDetails ?? [];
+      if (!details.length) {
+        throw new Error('Rate detail data is empty.');
+      }
+      detailDataRef.current = details;
+      return details;
+    })();
+
+    try {
+      return await detailPromiseRef.current;
+    } catch (error) {
+      detailPromiseRef.current = null;
+      throw error;
+    }
+  }, [data.metadata.detailDriveFileId, data.metadata.detailSourceFile]);
+
+  useEffect(() => {
+    let active = true;
+    if (!selectedCase) {
+      setSelectedRateDetailState({ index: null, status: 'idle', detail: null });
+      return () => {
+        active = false;
+      };
+    }
+
+    const index = selectedCase.rateDetailIndex;
+    const inlineDetail = detailDataRef.current?.[index];
+    if (inlineDetail) {
+      setSelectedRateDetailState({ index, status: 'ready', detail: decodeRateDetail(inlineDetail) });
+      return () => {
+        active = false;
+      };
+    }
+
+    setSelectedRateDetailState({ index, status: 'loading', detail: null });
+    loadRateDetails()
+      .then((details) => {
+        if (!active) {
+          return;
+        }
+        const rawDetail = details[index];
+        if (!rawDetail) {
+          throw new Error(`Rate detail ${index} is missing.`);
+        }
+        setSelectedRateDetailState({ index, status: 'ready', detail: decodeRateDetail(rawDetail) });
+      })
+      .catch((error: unknown) => {
+        if (!active) {
+          return;
+        }
+        setSelectedRateDetailState({
+          index,
+          status: 'error',
+          detail: null,
+          error: error instanceof Error ? error.message : 'Unknown detail error',
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [loadRateDetails, selectedCase]);
 
   const summaryScope = useMemo(() => filterScope(summaryFilters), [summaryFilters]);
   const detailScope = useMemo(() => filterScope(detailFilters), [detailFilters]);
@@ -2581,18 +2801,22 @@ function AppContent({ data }: { data: MonitoringData }) {
       summaryFilters.periodEnd,
       data.metadata.marketAverageFallbackMinimumSamples,
       summaryIgnoresPeriod,
+      false,
     ),
     [data.metadata.marketAverageFallbackMinimumSamples, records, summaryFilters.periodEnd, summaryFilters.periodStart, summaryIgnoresPeriod],
   );
   const detailPeriodAnalysis = useMemo(
-    () => buildPeriodAnalysis(
-      records,
-      detailFilters.periodStart,
-      detailFilters.periodEnd,
-      data.metadata.marketAverageFallbackMinimumSamples,
-      detailIgnoresPeriod,
-    ),
-    [data.metadata.marketAverageFallbackMinimumSamples, detailFilters.periodEnd, detailFilters.periodStart, detailIgnoresPeriod, records],
+    () => view === 'detail'
+      ? buildPeriodAnalysis(
+        records,
+        detailFilters.periodStart,
+        detailFilters.periodEnd,
+        data.metadata.marketAverageFallbackMinimumSamples,
+        detailIgnoresPeriod,
+        true,
+      )
+      : EMPTY_PERIOD_ANALYSIS,
+    [data.metadata.marketAverageFallbackMinimumSamples, detailFilters.periodEnd, detailFilters.periodStart, detailIgnoresPeriod, records, view],
   );
   const summaryRates = useMemo(() => summaryPeriodAnalysis.activeRates.filter((rate) => matchesScope(rate, summaryScope)), [summaryPeriodAnalysis.activeRates, summaryScope]);
   // Same scope filters as summaryRates but WITHOUT the period window — used to
@@ -2649,6 +2873,17 @@ function AppContent({ data }: { data: MonitoringData }) {
   const currentCases = view === 'summary' ? summaryCases : filteredLowCases;
   const currentIgnoresPeriod = view === 'summary' ? summaryIgnoresPeriod : detailIgnoresPeriod;
   const toOptions = (values: string[], labelFn: (value: string) => string = (value) => value): FilterOption[] => values.map((value) => ({ value, label: labelFn(value) }));
+  const routeOptions = useMemo<FilterOption[]>(() => {
+    const routes = new Map<string, string>();
+    for (const record of records) {
+      const value = routeValue(record);
+      if (!routes.has(value)) {
+        routes.set(value, routeLabel(record));
+      }
+    }
+    return Array.from(routes, ([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [records]);
   const originCountries = useMemo(() => unique(records.map((item) => item.porCountry)), [records]);
   const originCountryOptions = useMemo(() => toOptions(originCountries), [originCountries]);
   const originPorts = useMemo(
@@ -3054,6 +3289,12 @@ function AppContent({ data }: { data: MonitoringData }) {
             <span>{text.dataQuality.message}</span>
           </aside>
         )}
+        {data.metadata.usageAvailable && !data.metadata.shipmentLinkAvailable && (
+          <aside className="data-quality-warning">
+            <strong>{text.dataQuality.shipmentTitle}</strong>
+            <span>{text.dataQuality.shipmentMessage}</span>
+          </aside>
+        )}
 
         <section className="scope-bar">
           <div className="scope-heading">
@@ -3091,6 +3332,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                 onChange={(event) => event.target.value && setActiveFilters((current) => ({ ...current, periodEnd: event.target.value }))}
               />
             </label>
+            <MultiSelectFilter language={language} className="route-filter" label={text.filter.route} options={routeOptions} values={activeFilters.route} onChange={(values) => setActiveFilters((current) => ({ ...current, route: values }))} />
             <MultiSelectFilter language={language} label={text.filter.originCountry} options={originCountryOptions} values={activeFilters.originCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, originCountry: values, originPort: [] }))} />
             <MultiSelectFilter language={language} label={text.filter.originPort} options={originPortOptions} values={activeFilters.originPort} onChange={(values) => setActiveFilters((current) => ({ ...current, originPort: values }))} />
             <MultiSelectFilter language={language} label={text.filter.destinationCountry} options={destinationCountryOptions} values={activeFilters.destinationCountry} onChange={(values) => setActiveFilters((current) => ({ ...current, destinationCountry: values, destinationPort: [] }))} />
@@ -3562,7 +3804,15 @@ function AppContent({ data }: { data: MonitoringData }) {
           )}
 
           {view === 'detail' && (
-            <RateDetailPanel rate={selectedCase} detail={selectedRateDetail} language={language} shipmentScope={detailScope} onClose={() => setSelectedCase(null)} />
+            <RateDetailPanel
+              rate={selectedCase}
+              detail={selectedRateDetailState.detail}
+              detailStatus={selectedRateDetailState.status}
+              detailError={selectedRateDetailState.error}
+              language={language}
+              shipmentScope={detailScope}
+              onClose={() => setSelectedCase(null)}
+            />
           )}
         </section>
 
@@ -3628,7 +3878,11 @@ function DashboardLoader() {
 
   useEffect(() => {
     let active = true;
+    let activeRequest: AbortController | null = null;
     const loadData = async () => {
+      activeRequest?.abort();
+      const request = new AbortController();
+      activeRequest = request;
       const useDrive = Boolean(DRIVE_FILE_ID);
       const url = useDrive
         ? `https://www.googleapis.com/drive/v3/files/${DRIVE_FILE_ID}?alt=media`
@@ -3636,6 +3890,7 @@ function DashboardLoader() {
       const runFetch = (token: string) =>
         fetch(url, {
           cache: 'no-store',
+          signal: request.signal,
           headers: useDrive && token ? { Authorization: `Bearer ${token}` } : undefined,
         });
       try {
@@ -3655,6 +3910,9 @@ function DashboardLoader() {
           setError(null);
         }
       } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          return;
+        }
         if (active) {
           setError(err instanceof Error ? err.message : 'Unknown data error');
         }
@@ -3665,6 +3923,7 @@ function DashboardLoader() {
     const refreshTimer = DATA_REFRESH_MS ? window.setInterval(loadData, DATA_REFRESH_MS) : null;
     return () => {
       active = false;
+      activeRequest?.abort();
       if (refreshTimer) {
         window.clearInterval(refreshTimer);
       }
