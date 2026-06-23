@@ -42,6 +42,7 @@ Oracle DB + Google Drive(시장 가이드) → CSV/JSON 추출 → Python 가공
 - 최근 **7개월** 출항분 대상.
 - TEU 계산: 20' = 수량 × 1, 40'/45' = 수량 × 2.
 - 확정/선적 booking(STS `01`, `04`)만 집계하며, 조인 fan-out으로 인한 중복은 `CLOS_DTM` 최신값 기준으로 제거 후 합산.
+- T/S 누락 방지를 위해 `SP002S.LEG_SEQ` 전체를 추출하고, leg별 `RTE_CD + VSL_CD + ET_VOY_NO`를 shipment link로 보존합니다.
 - 과거 확정 B/L은 `ODS_ICC.CS004R`, 현재/예정 B/L assignment는 `ODS_ICC.M_SA003I` 최신 `BASC_DT` snapshot을 함께 사용.
 
 ### 2.3 시장 가이드라인 (Google Drive)

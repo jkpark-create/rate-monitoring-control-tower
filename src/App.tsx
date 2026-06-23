@@ -77,6 +77,7 @@ type RawShipmentLink = [
   departureStart: string,
   departureEnd: string,
   routeName?: string,
+  legSeq?: string,
 ];
 
 type RawRateDetail = [
@@ -249,6 +250,7 @@ type RateRecord = {
 
 type ShipmentLink = {
   routeName: string;
+  legSeq: string;
   vesselCode: string;
   voyageNo: string;
   blCount: number;
@@ -1137,7 +1139,8 @@ function formatDepartureRange(link: ShipmentLink) {
 function formatShipmentLinkLine(link: ShipmentLink, language: Language) {
   const blUnit = language === 'ko' ? '건' : '';
   const departure = formatDepartureRange(link);
-  const routePrefix = link.routeName ? `${link.routeName} / ` : '';
+  const legPrefix = link.legSeq ? `Leg ${link.legSeq} / ` : '';
+  const routePrefix = `${legPrefix}${link.routeName ? `${link.routeName} / ` : ''}`;
   const base = `${routePrefix}${link.vesselCode || '-'} / ${link.voyageNo || '-'} · BL ${formatNumber(link.blCount)}${blUnit} · ${formatNumber(link.teu)} TEU`;
   return departure ? `${base} · ${departure}` : base;
 }
@@ -1400,8 +1403,9 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
       bookingCount: typeof record[20] === 'number' ? record[20] : null,
       teu: typeof record[21] === 'number' ? record[21] : null,
       bookingTeu: typeof record[22] === 'number' ? record[22] : null,
-      shipmentLinks: shipmentLinks.map(([vesselCode, voyageNo, blCount, bookingCount, teu, bookingTeu, departureStart, departureEnd, routeName]) => ({
+      shipmentLinks: shipmentLinks.map(([vesselCode, voyageNo, blCount, bookingCount, teu, bookingTeu, departureStart, departureEnd, routeName, legSeq]) => ({
         routeName: routeName ?? '',
+        legSeq: legSeq ?? '',
         vesselCode,
         voyageNo,
         blCount,
@@ -2885,12 +2889,16 @@ function AppContent({ data }: { data: MonitoringData }) {
     const scope = optionScope(...excluded);
     return optionUniverse.filter((record) => matchesScope(record, scope));
   }, [optionScope, optionUniverse]);
+  const shipmentOptionRecords = useCallback((...excluded: (keyof ScopeFilters)[]) => {
+    const scope = optionScope(...excluded);
+    return records.filter((record) => matchesScope(record, scope));
+  }, [optionScope, records]);
   const routeOptions = useMemo<FilterOption[]>(() => {
     const scope = optionScope('route');
-    return toOptions(unique(optionRecords('route')
+    return toOptions(unique(shipmentOptionRecords('route')
       .flatMap((item) => matchingShipmentLinks(item, scope).map(routeValue))
       .filter(Boolean)));
-  }, [optionRecords, optionScope]);
+  }, [optionScope, shipmentOptionRecords]);
   const originCountries = useMemo(() => unique(optionRecords('originCountry').map((item) => item.porCountry)), [optionRecords]);
   const originCountryOptions = useMemo(() => toOptions(originCountries), [originCountries]);
   const originPorts = useMemo(
@@ -2936,18 +2944,18 @@ function AppContent({ data }: { data: MonitoringData }) {
   const vesselOptions = useMemo(
     () => {
       const scope = optionScope('vessel');
-      return toOptions(unique(optionRecords('vessel')
+      return toOptions(unique(shipmentOptionRecords('vessel')
         .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.vesselCode))));
     },
-    [optionRecords, optionScope],
+    [optionScope, shipmentOptionRecords],
   );
   const voyageOptions = useMemo(
     () => {
       const scope = optionScope('voyage');
-      return toOptions(unique(optionRecords('voyage')
+      return toOptions(unique(shipmentOptionRecords('voyage')
         .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.voyageNo))));
     },
-    [optionRecords, optionScope],
+    [optionScope, shipmentOptionRecords],
   );
   const approvalStatuses = useMemo(() => unique(records.map((item) => item.approvalStatus)), [records]);
   const formatApprovalStatus = (value: string) => data.metadata.approvalStatusLabels[value] ? `${data.metadata.approvalStatusLabels[value]} (${value})` : value;

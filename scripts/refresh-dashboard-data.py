@@ -41,6 +41,8 @@ REFERENCE_EXTRACTS = (
         {
             "RATE_APPLICATION_NO",
             "BOOKING_NO",
+            "ROUTE_NAME",
+            "LEG_SEQ",
             "VESSEL_CODE",
             "VOYAGE_NO",
             "DEPARTURE_DATE",

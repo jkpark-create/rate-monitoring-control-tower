@@ -9,7 +9,7 @@
 --     (RATE_APPLICATION_NO, CONTAINER_SIZE, CONTAINER_TYPE)
 -- and reads ONLY these columns:
 --     RATE_APPLICATION_NO, BOOKING_NO, BL_NO,
---     ROUTE_NAME, VESSEL_CODE, VOYAGE_NO,
+--     ROUTE_NAME, LEG_SEQ, VESSEL_CODE, VOYAGE_NO,
 --     CONTAINER_SIZE, CONTAINER_TYPE, TOTAL_TEU, HAS_BL_FLAG
 -- TOTAL_TEU is collapsed per distinct BOOKING_NO (max, then summed) on the build
 -- side, so emitting the same booking-level TEU across a booking's B/L rows is safe.
@@ -40,6 +40,7 @@ WITH BOOKING_LATEST AS (
         A.BKG_STS_CD,
         A.BKG_SHPR_CST_NO,
         A.RTE_CD,
+        A.LEG_SEQ,
         A.VSL_CD,
         A.ET_VOY_NO AS VOY_NO,
         A.CNTR_SZ_CD,
@@ -51,20 +52,20 @@ WITH BOOKING_LATEST AS (
             ORDER BY A.CLOS_DTM DESC
         ) AS RN
     FROM DW_SALES.SP002S A
-    WHERE A.LEG_SEQ = 1
-      AND A.FRT_APP_NO IS NOT NULL
+    WHERE A.FRT_APP_NO IS NOT NULL
       AND A.BKG_STS_CD IN ('01', '04')   -- confirmed / on-board; excludes cancelled bookings
       AND A.RVSD_DPO_DT >= TO_CHAR(ADD_MONTHS(SYSDATE, -7), 'YYYYMMDD')
 ),
 
 BOOKING_AGG AS (
-    -- One row per (rate application, booking, container size/type).
+    -- One row per (rate application, booking, leg, container size/type).
     SELECT
         B.FRT_APP_NO,
         B.BKG_NO,
         MAX(B.BKG_STS_CD)       AS BKG_STS_CD,
         MAX(B.BKG_SHPR_CST_NO)  AS BKG_SHPR_CST_NO,
         MAX(B.RTE_CD)           AS RTE_CD,
+        B.LEG_SEQ,
         MAX(B.VSL_CD)           AS VSL_CD,
         MAX(B.VOY_NO)           AS VOY_NO,
         MAX(B.RVSD_DPO_DT)      AS RVSD_DPO_DT,
@@ -84,6 +85,7 @@ BOOKING_AGG AS (
     GROUP BY
         B.FRT_APP_NO,
         B.BKG_NO,
+        B.LEG_SEQ,
         B.CNTR_SZ_CD,
         B.CNTR_TYP_CD
 ),
@@ -115,6 +117,7 @@ SELECT
     B.BKG_STS_CD          AS BOOKING_STATUS_CODE,
     B.BKG_SHPR_CST_NO     AS BOOKING_SHIPPER_CODE,
     B.RTE_CD              AS ROUTE_NAME,
+    B.LEG_SEQ             AS LEG_SEQ,
     B.VSL_CD              AS VESSEL_CODE,
     B.VOY_NO              AS VOYAGE_NO,
     B.RVSD_DPO_DT         AS DEPARTURE_DATE,

@@ -680,6 +680,13 @@ def first_value(row, *names):
     return ""
 
 
+def sortable_leg_seq(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 9999
+
+
 def build_booking_usage(path):
     """Aggregate actual usage per (rate application, CNTR size, CNTR type).
 
@@ -727,10 +734,11 @@ def build_booking_usage(path):
             if has_bl and bl_no:
                 entry["bls"].add(bl_no)
                 route_name = first_value(row, "ROUTE_NAME", "ROUTE_CODE", "RTE_CD", "ROUTE")
+                leg_seq = first_value(row, "LEG_SEQ", "LEG")
                 vessel = first_value(row, "VESSEL_CODE", "VSL_CD", "VESSEL")
                 voyage = first_value(row, "VOYAGE_NO", "VOY_NO", "VOYAGE")
-                if route_name or vessel or voyage:
-                    shipment_key = (route_name, vessel, voyage)
+                if route_name or leg_seq or vessel or voyage:
+                    shipment_key = (leg_seq, route_name, vessel, voyage)
                     shipment = entry["shipmentLinks"].get(shipment_key)
                     if shipment is None:
                         shipment = {"bookings": {}, "bls": set(), "departures": set()}
@@ -750,7 +758,7 @@ def build_booking_usage(path):
         booking_teu = sum(b["teu"] for b in entry["bookings"].values())
         shipped_teu = sum(b["teu"] for b in entry["bookings"].values() if b["hasBL"])
         shipment_links = []
-        for (route_name, vessel, voyage), shipment in entry["shipmentLinks"].items():
+        for (leg_seq, route_name, vessel, voyage), shipment in entry["shipmentLinks"].items():
             link_teu = sum(b["teu"] for b in shipment["bookings"].values())
             departures = sorted(shipment["departures"])
             shipment_links.append(
@@ -764,9 +772,10 @@ def build_booking_usage(path):
                     departures[0] if departures else "",
                     departures[-1] if departures else "",
                     route_name,
+                    leg_seq,
                 )
             )
-        shipment_links.sort(key=lambda item: (item[6] or "99999999", item[8], item[0], item[1]))
+        shipment_links.sort(key=lambda item: (item[6] or "99999999", sortable_leg_seq(item[9]), item[8], item[0], item[1]))
         usage_map[key] = (
             len(entry["bls"]),
             len(entry["bookings"]),
