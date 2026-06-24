@@ -38,8 +38,9 @@
 -- B/L-linked rates are not missed.
 
 WITH BOOKING_LATEST AS (
-    -- Keep the most recent snapshot row per booking container leg.
-    -- Mirrors the proven dedup in the weekly booking query (Script-2).
+    -- Keep the most recent snapshot row per booking container leg before status
+    -- filtering. Filtering status first can resurrect an older active snapshot
+    -- after a booking has since moved to an inactive/cancelled status.
     SELECT
         A.FRT_APP_NO,
         A.BKG_NO,
@@ -66,8 +67,7 @@ WITH BOOKING_LATEST AS (
             ORDER BY A.CLOS_DTM DESC
         ) AS RN
     FROM DW_SALES.SP002S A
-    WHERE A.BKG_STS_CD IN ('01', '04')   -- confirmed / on-board; excludes cancelled bookings
-      AND A.RVSD_DPO_DT >= TO_CHAR(ADD_MONTHS(SYSDATE, -7), 'YYYYMMDD')
+    WHERE A.RVSD_DPO_DT >= TO_CHAR(ADD_MONTHS(SYSDATE, -7), 'YYYYMMDD')
 ),
 
 BOOKING_AGG AS (
@@ -103,6 +103,7 @@ BOOKING_AGG AS (
         SUM(CASE WHEN B.CNTR_TYP_CD = 'HC'          THEN NVL(B.CNTR_QTY, 0) * 2 ELSE 0 END) AS TEU_HC
     FROM BOOKING_LATEST B
     WHERE B.RN = 1
+      AND B.BKG_STS_CD IN ('01', '04')   -- confirmed / on-board; excludes inactive/cancelled bookings
     GROUP BY
         B.FRT_APP_NO,
         B.BKG_NO,
