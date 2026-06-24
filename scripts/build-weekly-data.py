@@ -733,33 +733,70 @@ def build_booking_usage(path):
             bl_no = (row.get("BL_NO", "") or "").strip()
             if has_bl and bl_no:
                 entry["bls"].add(bl_no)
-                route_name = first_value(row, "ROUTE_NAME", "ROUTE_CODE", "RTE_CD", "ROUTE")
-                leg_seq = first_value(row, "LEG_SEQ", "LEG")
-                vessel = first_value(row, "VESSEL_CODE", "VSL_CD", "VESSEL")
-                voyage = first_value(row, "VOYAGE_NO", "VOY_NO", "VOYAGE")
-                if route_name or leg_seq or vessel or voyage:
-                    shipment_key = (leg_seq, route_name, vessel, voyage)
-                    shipment = entry["shipmentLinks"].get(shipment_key)
-                    if shipment is None:
-                        shipment = {"bookings": {}, "bls": set(), "departures": set()}
-                        entry["shipmentLinks"][shipment_key] = shipment
+            route_name = first_value(row, "ROUTE_NAME", "ROUTE_CODE", "RTE_CD", "ROUTE")
+            leg_seq = first_value(row, "LEG_SEQ", "LEG")
+            vessel = first_value(row, "VESSEL_CODE", "VSL_CD", "VESSEL")
+            voyage = first_value(row, "VOYAGE_NO", "VOY_NO", "VOYAGE")
+            booking_por_country = first_value(row, "POR_COUNTRY", "POR_CTR_CD")
+            booking_por_port = first_value(row, "POR_PORT", "POR_PLC_CD")
+            leg_origin_country = first_value(row, "LEG_ORIGIN_COUNTRY", "POL_CTR_CD")
+            leg_origin_port = first_value(row, "LEG_ORIGIN_PORT", "POL_PORT_CD")
+            leg_destination_country = first_value(row, "LEG_DESTINATION_COUNTRY", "POD_CTR_CD")
+            leg_destination_port = first_value(row, "LEG_DESTINATION_PORT", "POD_PORT_CD")
+            booking_dly_country = first_value(row, "DLY_COUNTRY", "DLY_CTR_CD")
+            booking_dly_port = first_value(row, "DLY_PORT", "DLY_PLC_CD")
+            if route_name or leg_seq or vessel or voyage:
+                shipment_key = (
+                    leg_seq,
+                    route_name,
+                    vessel,
+                    voyage,
+                    booking_por_country,
+                    booking_por_port,
+                    leg_origin_country,
+                    leg_origin_port,
+                    leg_destination_country,
+                    leg_destination_port,
+                    booking_dly_country,
+                    booking_dly_port,
+                )
+                shipment = entry["shipmentLinks"].get(shipment_key)
+                if shipment is None:
+                    shipment = {"bookings": {}, "bls": set(), "departures": set()}
+                    entry["shipmentLinks"][shipment_key] = shipment
+                if has_bl and bl_no:
                     shipment["bls"].add(bl_no)
-                    shipment_booking = shipment["bookings"].get(booking_no)
-                    if shipment_booking is None:
-                        shipment_booking = {"teu": 0.0}
-                        shipment["bookings"][booking_no] = shipment_booking
-                    shipment_booking["teu"] = max(shipment_booking["teu"], number(row.get("TOTAL_TEU")))
-                    departure_date = (row.get("DEPARTURE_DATE", "") or "").strip()
-                    if departure_date:
-                        shipment["departures"].add(departure_date)
+                shipment_booking = shipment["bookings"].get(booking_no)
+                if shipment_booking is None:
+                    shipment_booking = {"teu": 0.0, "hasBL": False}
+                    shipment["bookings"][booking_no] = shipment_booking
+                shipment_booking["teu"] = max(shipment_booking["teu"], number(row.get("TOTAL_TEU")))
+                shipment_booking["hasBL"] = shipment_booking["hasBL"] or has_bl
+                departure_date = (row.get("DEPARTURE_DATE", "") or "").strip()
+                if departure_date:
+                    shipment["departures"].add(departure_date)
 
     usage_map = {}
     for key, entry in aggregates.items():
         booking_teu = sum(b["teu"] for b in entry["bookings"].values())
         shipped_teu = sum(b["teu"] for b in entry["bookings"].values() if b["hasBL"])
         shipment_links = []
-        for (leg_seq, route_name, vessel, voyage), shipment in entry["shipmentLinks"].items():
-            link_teu = sum(b["teu"] for b in shipment["bookings"].values())
+        for (
+            leg_seq,
+            route_name,
+            vessel,
+            voyage,
+            booking_por_country,
+            booking_por_port,
+            leg_origin_country,
+            leg_origin_port,
+            leg_destination_country,
+            leg_destination_port,
+            booking_dly_country,
+            booking_dly_port,
+        ), shipment in entry["shipmentLinks"].items():
+            link_booking_teu = sum(b["teu"] for b in shipment["bookings"].values())
+            link_shipped_teu = sum(b["teu"] for b in shipment["bookings"].values() if b["hasBL"])
             departures = sorted(shipment["departures"])
             shipment_links.append(
                 (
@@ -767,15 +804,23 @@ def build_booking_usage(path):
                     voyage,
                     len(shipment["bls"]),
                     len(shipment["bookings"]),
-                    round(link_teu, 1),
-                    round(link_teu, 1),
+                    round(link_shipped_teu, 1),
+                    round(link_booking_teu, 1),
                     departures[0] if departures else "",
                     departures[-1] if departures else "",
                     route_name,
                     leg_seq,
+                    booking_por_country,
+                    booking_por_port,
+                    leg_origin_country,
+                    leg_origin_port,
+                    leg_destination_country,
+                    leg_destination_port,
+                    booking_dly_country,
+                    booking_dly_port,
                 )
             )
-        shipment_links.sort(key=lambda item: (item[6] or "99999999", sortable_leg_seq(item[9]), item[8], item[0], item[1]))
+        shipment_links.sort(key=lambda item: (item[6] or "99999999", sortable_leg_seq(item[9]), item[11], item[15], item[8], item[0], item[1]))
         usage_map[key] = (
             len(entry["bls"]),
             len(entry["bookings"]),

@@ -112,7 +112,8 @@ Booking 사용량은 `RATE_APPLICATION_NO + CONTAINER_SIZE + CONTAINER_TYPE` 기
 
 - `DW_SALES.SP002S`에서 최근 7개월 출항분의 확정/선적 booking을 추출합니다.
 - booking container snapshot은 `CLOS_DTM` 최신값 기준으로 dedupe합니다.
-- T/S booking도 배별 분석에서 빠지지 않도록 `LEG_SEQ = 1`로 제한하지 않고 전체 leg의 `RTE_CD + VSL_CD + ET_VOY_NO`를 shipment link로 보존합니다.
+- T/S booking도 배별 분석에서 빠지지 않도록 `LEG_SEQ = 1`로 제한하지 않고 전체 leg의 `RTE_CD + VSL_CD + ET_VOY_NO + POR/POL/POD/DLY`를 shipment link로 보존합니다.
+- B/L이 아직 생성되지 않은 booking도 배/항차 필터에서 확인되도록 shipment link는 booking 기준으로 만들며, 화면에는 BL 수·TEU와 booking 수·TEU를 분리해 표시합니다.
 - TEU는 20' = 수량 x 1, 40'/45' = 수량 x 2로 계산합니다.
 - `CS004R`은 과거 확정 B/L mapping, `M_SA003I`는 현재/예정 B/L assignment를 보완합니다.
 - Python 빌더는 booking별 `TOTAL_TEU`를 최대값으로 접어 조인 fan-out에 따른 TEU 중복 합산을 방지합니다.

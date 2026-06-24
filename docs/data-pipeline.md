@@ -36,13 +36,15 @@ Oracle DB + Google Drive(시장 가이드) → CSV/JSON 추출 → Python 가공
 - 운임 등록 레코드 본체. O/F 및 각종 부대비(THC, LSS, FAF, WRS, EFC, CIS, SEC 등)를 추출.
 - 유효기간 범위: 오늘 기준 **과거 6개월 ~ 미래 13개월**.
 - `APV_STS='03'`(승인) 상태의 O/F 적용건만 스코프로 사용.
+- HQ route team 전체(`BIZ_TEAM_CAT_CD IN ('O', 'E', 'I', 'J')`, OBT/EST/IST/JBT)를 추출해 배/항차 사용 운임이 특정 팀 코드 때문에 누락되지 않게 합니다.
 
 ### 2.2 Booking 사용량 (Oracle)
 - 운임 적용 단위별 **실제 사용량**(BL 수, Booking 수, TEU)을 제공.
 - 최근 **7개월** 출항분 대상.
 - TEU 계산: 20' = 수량 × 1, 40'/45' = 수량 × 2.
 - 확정/선적 booking(STS `01`, `04`)만 집계하며, 조인 fan-out으로 인한 중복은 `CLOS_DTM` 최신값 기준으로 제거 후 합산.
-- T/S 누락 방지를 위해 `SP002S.LEG_SEQ` 전체를 추출하고, leg별 `RTE_CD + VSL_CD + ET_VOY_NO`를 shipment link로 보존합니다.
+- T/S 누락 방지를 위해 `SP002S.LEG_SEQ` 전체를 추출하고, leg별 `RTE_CD + VSL_CD + ET_VOY_NO + POR/POL/POD/DLY`를 shipment link로 보존합니다.
+- B/L이 아직 생성되지 않은 booking도 vessel/voyage 필터에서 확인되도록 shipment link는 booking 기준으로 생성하고, BL 수·TEU와 booking 수·TEU를 분리해 저장합니다.
 - 과거 확정 B/L은 `ODS_ICC.CS004R`, 현재/예정 B/L assignment는 `ODS_ICC.M_SA003I` 최신 `BASC_DT` snapshot을 함께 사용.
 
 ### 2.3 시장 가이드라인 (Google Drive)

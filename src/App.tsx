@@ -78,6 +78,14 @@ type RawShipmentLink = [
   departureEnd: string,
   routeName?: string,
   legSeq?: string,
+  bookingPorCountry?: string,
+  bookingPorPort?: string,
+  legOriginCountry?: string,
+  legOriginPort?: string,
+  legDestinationCountry?: string,
+  legDestinationPort?: string,
+  bookingDlyCountry?: string,
+  bookingDlyPort?: string,
 ];
 
 type RawRateDetail = [
@@ -251,6 +259,14 @@ type RateRecord = {
 type ShipmentLink = {
   routeName: string;
   legSeq: string;
+  bookingPorCountry: string;
+  bookingPorPort: string;
+  legOriginCountry: string;
+  legOriginPort: string;
+  legDestinationCountry: string;
+  legDestinationPort: string;
+  bookingDlyCountry: string;
+  bookingDlyPort: string;
   vesselCode: string;
   voyageNo: string;
   blCount: number;
@@ -987,6 +1003,27 @@ function routeValue(link: Pick<ShipmentLink, 'routeName'>) {
   return link.routeName.trim();
 }
 
+function locationLabel(port: string, country: string) {
+  const value = [port, country].filter(Boolean).join(' ');
+  return value.trim();
+}
+
+function rateLaneLabel(record: Pick<RateRecord, 'porCountry' | 'porPort' | 'dlyCountry' | 'dlyPort'>) {
+  return `${locationLabel(record.porPort, record.porCountry)} -> ${locationLabel(record.dlyPort, record.dlyCountry)}`;
+}
+
+function shipmentCargoLaneLabel(link: ShipmentLink) {
+  const origin = locationLabel(link.bookingPorPort, link.bookingPorCountry) || locationLabel(link.legOriginPort, link.legOriginCountry);
+  const destination = locationLabel(link.bookingDlyPort, link.bookingDlyCountry) || locationLabel(link.legDestinationPort, link.legDestinationCountry);
+  return origin && destination ? `${origin} -> ${destination}` : '';
+}
+
+function shipmentLegLaneLabel(link: ShipmentLink) {
+  const origin = locationLabel(link.legOriginPort, link.legOriginCountry);
+  const destination = locationLabel(link.legDestinationPort, link.legDestinationCountry);
+  return origin && destination ? `${origin} -> ${destination}` : '';
+}
+
 // 사용 실적 유무: 부킹 또는 B/L 실적이 있으면 'used', 없으면 'unused'.
 function recordHasUsage(record: RateRecord) {
   return (record.bookingCount ?? 0) > 0 || (record.blCount ?? 0) > 0;
@@ -996,7 +1033,7 @@ function hasUsageSelection(selected: string[], record: RateRecord) {
   return !selected.length || selected.includes(recordHasUsage(record) ? 'used' : 'unused');
 }
 
-function hasShipmentFilter(filters: ScopeFilters | FilterState) {
+function hasShipmentFilter(filters: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'> | Pick<FilterState, 'route' | 'vessel' | 'voyage'>) {
   return Boolean(filters.route.length || filters.vessel.length || filters.voyage.length);
 }
 
@@ -1016,6 +1053,14 @@ function matchingShipmentLinks(record: RateRecord, filters?: Pick<ScopeFilters, 
     return record.shipmentLinks;
   }
   return record.shipmentLinks.filter((link) => shipmentMatches(link, filters.route, filters.vessel, filters.voyage));
+}
+
+function shipmentAnalysisLaneLabels(record: RateRecord, filters: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>) {
+  if (!hasShipmentFilter(filters)) {
+    return [rateLaneLabel(record)];
+  }
+  const labels = unique(matchingShipmentLinks(record, filters).map(shipmentCargoLaneLabel).filter(Boolean));
+  return labels.length ? labels : [rateLaneLabel(record)];
 }
 
 function activeFilterCount(filters: FilterState) {
@@ -1138,10 +1183,15 @@ function formatDepartureRange(link: ShipmentLink) {
 
 function formatShipmentLinkLine(link: ShipmentLink, language: Language) {
   const blUnit = language === 'ko' ? '건' : '';
+  const bookingUnit = language === 'ko' ? '건' : '';
   const departure = formatDepartureRange(link);
   const legPrefix = link.legSeq ? `Leg ${link.legSeq} / ` : '';
-  const routePrefix = `${legPrefix}${link.routeName ? `${link.routeName} / ` : ''}`;
-  const base = `${routePrefix}${link.vesselCode || '-'} / ${link.voyageNo || '-'} · BL ${formatNumber(link.blCount)}${blUnit} · ${formatNumber(link.teu)} TEU`;
+  const routePrefix = `${legPrefix}${link.routeName ? `${link.routeName} / ` : ''}${link.vesselCode || '-'} / ${link.voyageNo || '-'}`;
+  const cargoLane = shipmentCargoLaneLabel(link);
+  const legLane = shipmentLegLaneLabel(link);
+  const laneLabel = cargoLane && legLane && cargoLane !== legLane ? `${cargoLane} · ${legLane}` : cargoLane || legLane;
+  const volume = `BKG ${formatNumber(link.bookingCount)}${bookingUnit} ${formatNumber(link.bookingTeu)} TEU · BL ${formatNumber(link.blCount)}${blUnit} ${formatNumber(link.teu)} TEU`;
+  const base = [laneLabel, routePrefix, volume].filter(Boolean).join(' · ');
   return departure ? `${base} · ${departure}` : base;
 }
 
@@ -1151,6 +1201,13 @@ function formatShipmentLinkSummary(links: ShipmentLink[], language: Language) {
   }
   const visible = links.slice(0, 3).map((link) => formatShipmentLinkLine(link, language));
   const suffix = links.length > visible.length ? ` +${links.length - visible.length}` : '';
+  return `${visible.join(', ')}${suffix}`;
+}
+
+function formatShipmentLaneSummary(links: ShipmentLink[]) {
+  const labels = unique(links.map(shipmentCargoLaneLabel).filter(Boolean));
+  const visible = labels.slice(0, 2);
+  const suffix = labels.length > visible.length ? ` +${labels.length - visible.length}` : '';
   return `${visible.join(', ')}${suffix}`;
 }
 
@@ -1403,9 +1460,36 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
       bookingCount: typeof record[20] === 'number' ? record[20] : null,
       teu: typeof record[21] === 'number' ? record[21] : null,
       bookingTeu: typeof record[22] === 'number' ? record[22] : null,
-      shipmentLinks: shipmentLinks.map(([vesselCode, voyageNo, blCount, bookingCount, teu, bookingTeu, departureStart, departureEnd, routeName, legSeq]) => ({
+      shipmentLinks: shipmentLinks.map(([
+        vesselCode,
+        voyageNo,
+        blCount,
+        bookingCount,
+        teu,
+        bookingTeu,
+        departureStart,
+        departureEnd,
+        routeName,
+        legSeq,
+        bookingPorCountry,
+        bookingPorPort,
+        legOriginCountry,
+        legOriginPort,
+        legDestinationCountry,
+        legDestinationPort,
+        bookingDlyCountry,
+        bookingDlyPort,
+      ]) => ({
         routeName: routeName ?? '',
         legSeq: legSeq ?? '',
+        bookingPorCountry: bookingPorCountry ?? '',
+        bookingPorPort: bookingPorPort ?? '',
+        legOriginCountry: legOriginCountry ?? '',
+        legOriginPort: legOriginPort ?? '',
+        legDestinationCountry: legDestinationCountry ?? '',
+        legDestinationPort: legDestinationPort ?? '',
+        bookingDlyCountry: bookingDlyCountry ?? '',
+        bookingDlyPort: bookingDlyPort ?? '',
         vesselCode,
         voyageNo,
         blCount,
@@ -2028,6 +2112,7 @@ function RateLaneScatter({
   setAxis,
   containerCombo,
   setContainerCombo,
+  shipmentScope,
 }: {
   rates: RateRecord[];
   volumeRates: RateRecord[];
@@ -2039,6 +2124,7 @@ function RateLaneScatter({
   setAxis: (axis: RateScatterAxis) => void;
   containerCombo: string;
   setContainerCombo: (combo: string) => void;
+  shipmentScope: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>;
 }) {
   const text = UI_COPY[language].summary;
   const statusText = UI_COPY[language].status;
@@ -2081,10 +2167,32 @@ function RateLaneScatter({
 
   const model = useMemo(() => {
     const comboRates = rates.filter((record) => `${record.containerSize}|${record.containerType}` === containerCombo);
-    const laneKeyOf = (record: RateRecord) => (axis === 'origin'
-      ? (record.porPort || record.porCountry)
-      : (record.dlyPort || record.dlyCountry));
-    const laneCountryOf = (record: RateRecord) => (axis === 'origin' ? record.porCountry : record.dlyCountry);
+    const useShipmentLane = hasShipmentFilter(shipmentScope);
+    const laneEntriesOf = (record: RateRecord) => {
+      if (!useShipmentLane) {
+        const key = axis === 'origin'
+          ? (record.porPort || record.porCountry)
+          : (record.dlyPort || record.dlyCountry);
+        const country = axis === 'origin' ? record.porCountry : record.dlyCountry;
+        return key ? [{ key, country, volume: record.teu ?? 0 }] : [];
+      }
+      const entries = matchingShipmentLinks(record, shipmentScope).map((link) => {
+        const key = axis === 'origin'
+          ? (link.bookingPorPort || link.legOriginPort || record.porPort || record.porCountry)
+          : (link.bookingDlyPort || link.legDestinationPort || record.dlyPort || record.dlyCountry);
+        const country = axis === 'origin'
+          ? (link.bookingPorCountry || link.legOriginCountry || record.porCountry)
+          : (link.bookingDlyCountry || link.legDestinationCountry || record.dlyCountry);
+        return { key, country, volume: link.bookingTeu || link.teu || record.teu || 0 };
+      }).filter((entry) => entry.key);
+      const deduped = new Map<string, { key: string; country: string; volume: number }>();
+      for (const entry of entries) {
+        const current = deduped.get(entry.key) ?? { key: entry.key, country: entry.country, volume: 0 };
+        current.volume += entry.volume;
+        deduped.set(entry.key, current);
+      }
+      return Array.from(deduped.values());
+    };
 
     // Lane volume for the X-axis ordering comes from volumeRates, which applies
     // the same scope filters but IGNORES the period window — so a lane is ranked
@@ -2095,22 +2203,18 @@ function RateLaneScatter({
       if (`${record.containerSize}|${record.containerType}` !== containerCombo) {
         continue;
       }
-      const key = laneKeyOf(record);
-      if (!key) {
-        continue;
+      for (const entry of laneEntriesOf(record)) {
+        volumeByLane.set(entry.key, (volumeByLane.get(entry.key) ?? 0) + entry.volume);
       }
-      volumeByLane.set(key, (volumeByLane.get(key) ?? 0) + (record.teu ?? 0));
     }
 
     const counts = new Map<string, { key: string; country: string; count: number }>();
     for (const record of comboRates) {
-      const key = laneKeyOf(record);
-      if (!key) {
-        continue;
+      for (const entry of laneEntriesOf(record)) {
+        const current = counts.get(entry.key) ?? { key: entry.key, country: entry.country, count: 0 };
+        current.count += 1;
+        counts.set(entry.key, current);
       }
-      const current = counts.get(key) ?? { key, country: laneCountryOf(record), count: 0 };
-      current.count += 1;
-      counts.set(key, current);
     }
     // Order lanes by lane BL volume (TEU) descending, falling back to rate count
     // then key so lanes with no usage data still sort deterministically.
@@ -2127,22 +2231,23 @@ function RateLaneScatter({
     let valueSum = 0;
     let valueCount = 0;
     for (const record of comboRates) {
-      const key = laneKeyOf(record);
-      const index = laneIndex.get(key);
-      if (index === undefined) {
-        continue;
+      for (const entry of laneEntriesOf(record)) {
+        const index = laneIndex.get(entry.key);
+        if (index === undefined) {
+          continue;
+        }
+        const value = valueOf(record);
+        if (!Number.isFinite(value)) {
+          continue;
+        }
+        const status: DetailStatus = caseStatusById.get(record.id) ?? 'normal';
+        const point = { x: index + scatterJitter(`${record.id}|${entry.key}`), y: value, rate: record, status };
+        const bucket = pointsByStatus.get(status) ?? [];
+        bucket.push(point);
+        pointsByStatus.set(status, bucket);
+        valueSum += value;
+        valueCount += 1;
       }
-      const value = valueOf(record);
-      if (!Number.isFinite(value)) {
-        continue;
-      }
-      const status: DetailStatus = caseStatusById.get(record.id) ?? 'normal';
-      const point = { x: index + scatterJitter(record.id), y: value, rate: record, status };
-      const bucket = pointsByStatus.get(status) ?? [];
-      bucket.push(point);
-      pointsByStatus.set(status, bucket);
-      valueSum += value;
-      valueCount += 1;
     }
 
     return {
@@ -2152,7 +2257,7 @@ function RateLaneScatter({
       pointCount: valueCount,
       averageValue: valueCount ? valueSum / valueCount : null,
     };
-  }, [rates, volumeRates, containerCombo, axis, metric, caseStatusById]);
+  }, [rates, volumeRates, containerCombo, axis, metric, caseStatusById, shipmentScope]);
 
   const laneTick = (value: number) => model.lanes[value]?.key ?? '';
 
@@ -2213,10 +2318,12 @@ function RateLaneScatter({
                   }
                   const point = payload[0].payload as { rate: RateRecord; status: DetailStatus };
                   const rate = point.rate;
+                  const shipmentLanes = formatShipmentLaneSummary(matchingShipmentLinks(rate, shipmentScope));
                   return (
                     <div className="rate-scatter-tip">
                       <strong>{rate.rateApplicationNo}</strong>
                       <span>{rate.porPort} {rate.porCountry} → {rate.dlyPort} {rate.dlyCountry}</span>
+                      {shipmentLanes && <span>{shipmentLanes}</span>}
                       <span>{formatMoney(valueOf(rate))} · {statusText[point.status]}</span>
                       <span>{rate.shipperCode || '-'} / {rate.shipperName || 'No company name'} · {rate.staff || '-'}</span>
                     </div>
@@ -2276,6 +2383,7 @@ function RateBandPanel({
   setScatterAxis,
   scatterContainer,
   setScatterContainer,
+  shipmentScope,
 }: {
   rates: RateRecord[];
   volumeRates: RateRecord[];
@@ -2290,6 +2398,7 @@ function RateBandPanel({
   setScatterAxis: (axis: RateScatterAxis) => void;
   scatterContainer: string;
   setScatterContainer: (combo: string) => void;
+  shipmentScope: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>;
 }) {
   const text = UI_COPY[language].summary;
   const detailText = UI_COPY[language].detail;
@@ -2475,6 +2584,7 @@ function RateBandPanel({
           setAxis={setScatterAxis}
           containerCombo={scatterContainer}
           setContainerCombo={setScatterContainer}
+          shipmentScope={shipmentScope}
         />
       ) : (
       <>
@@ -2852,7 +2962,13 @@ function AppContent({ data }: { data: MonitoringData }) {
         item.container,
         item.cargoProfile,
         item.approvalStatus,
-        item.shipmentLinks.map((link) => `${link.routeName} ${link.vesselCode} ${link.voyageNo}`).join(' '),
+        item.shipmentLinks.map((link) => [
+          link.routeName,
+          link.vesselCode,
+          link.voyageNo,
+          shipmentCargoLaneLabel(link),
+          shipmentLegLaneLabel(link),
+        ].join(' ')).join(' '),
       ]
         .join(' ')
         .toLowerCase()
@@ -3024,31 +3140,33 @@ function AppContent({ data }: { data: MonitoringData }) {
   const laneSummary = useMemo(() => {
     const lanes = new Map<string, { lane: string; count: number; lowShipperCount: number; marketLow: number; averageLow: number; marketMapped: number; activeCount: number; shipperKeys: Set<string> }>();
     for (const item of summaryCases) {
-      const lane = `${item.porPort} ${item.porCountry} -> ${item.dlyPort} ${item.dlyCountry}`;
-      const current = lanes.get(lane) ?? { lane, count: 0, lowShipperCount: 0, marketLow: 0, averageLow: 0, marketMapped: 0, activeCount: 0, shipperKeys: new Set<string>() };
-      current.count += 1;
-      current.marketLow += item.status === 'market' ? 1 : 0;
-      current.averageLow += item.status === 'average' ? 1 : 0;
-      const shipper = shipperKey(item);
-      if (shipper) {
-        current.shipperKeys.add(shipper);
+      for (const lane of shipmentAnalysisLaneLabels(item, summaryScope)) {
+        const current = lanes.get(lane) ?? { lane, count: 0, lowShipperCount: 0, marketLow: 0, averageLow: 0, marketMapped: 0, activeCount: 0, shipperKeys: new Set<string>() };
+        current.count += 1;
+        current.marketLow += item.status === 'market' ? 1 : 0;
+        current.averageLow += item.status === 'average' ? 1 : 0;
+        const shipper = shipperKey(item);
+        if (shipper) {
+          current.shipperKeys.add(shipper);
+        }
+        lanes.set(lane, current);
       }
-      lanes.set(lane, current);
     }
     for (const item of summaryRates) {
-      const lane = `${item.porPort} ${item.porCountry} -> ${item.dlyPort} ${item.dlyCountry}`;
-      const current = lanes.get(lane);
-      if (!current) {
-        continue;
+      for (const lane of shipmentAnalysisLaneLabels(item, summaryScope)) {
+        const current = lanes.get(lane);
+        if (!current) {
+          continue;
+        }
+        current.activeCount += 1;
+        current.marketMapped += item.marketRate !== null ? 1 : 0;
       }
-      current.activeCount += 1;
-      current.marketMapped += item.marketRate !== null ? 1 : 0;
     }
     return Array.from(lanes.values())
       .map(({ shipperKeys, ...lane }) => ({ ...lane, lowShipperCount: shipperKeys.size }))
       .sort((a, b) => b.count - a.count || b.lowShipperCount - a.lowShipperCount || a.lane.localeCompare(b.lane))
       .slice(0, 10);
-  }, [summaryCases, summaryRates]);
+  }, [summaryCases, summaryRates, summaryScope]);
 
   const originCountrySummary = useMemo(
     () => buildGroupSummary(
@@ -3589,6 +3707,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                     setScatterAxis={setRateScatterAxis}
                     scatterContainer={rateScatterContainer}
                     setScatterContainer={setRateScatterContainer}
+                    shipmentScope={summaryScope}
                   />
                 )}
 
@@ -3752,7 +3871,10 @@ function AppContent({ data }: { data: MonitoringData }) {
                         <tr className={selectedCase?.id === item.id ? 'detail-selected-row' : undefined} key={item.id} onClick={() => setSelectedCase(item)}>
                           <td><StatusBadge status={item.status} language={language} /></td>
                           <td><button className="rate-link" type="button">{item.rateApplicationNo}</button></td>
-                          <td><strong>{item.porPort} {item.porCountry} → {item.dlyPort} {item.dlyCountry}</strong></td>
+                          <td>
+                            <strong>{item.porPort} {item.porCountry} → {item.dlyPort} {item.dlyCountry}</strong>
+                            {formatShipmentLaneSummary(shipmentLinks) && <span>{formatShipmentLaneSummary(shipmentLinks)}</span>}
+                          </td>
                           <td>{item.container}<span>{formatCargoProfile(item.cargoProfile)}</span></td>
                           <td className="money-cell">{formatMoney(item.ofRate)}<span>all-in {formatMoney(item.allInRate)}</span></td>
                           <td className="money-cell">
