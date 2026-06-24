@@ -21,8 +21,10 @@ CANONICAL_RATE_ROUTE_FILE = ROOT / "data" / "rate-route-latest.csv"
 CANONICAL_BOOKING_USAGE_FILE = ROOT / "data" / "booking-usage-latest.csv"
 PUBLIC_DATA_FILE = ROOT / "public" / "data" / "weekly-monitoring.json"
 PUBLIC_DETAIL_DATA_FILE = ROOT / "public" / "data" / "weekly-monitoring-details.json"
+PUBLIC_SHIPMENT_VOLUME_FILE = ROOT / "public" / "data" / "shipment-volumes.json"
 DIST_DATA_FILE = ROOT / "dist" / "data" / "weekly-monitoring.json"
 DIST_DETAIL_DATA_FILE = ROOT / "dist" / "data" / "weekly-monitoring-details.json"
+DIST_SHIPMENT_VOLUME_FILE = ROOT / "dist" / "data" / "shipment-volumes.json"
 REQUIRED_ORACLE_COLUMNS = {"RATE_ROW_TYPE", "CHARGE_DETAIL_LIST"}
 REFERENCE_EXTRACTS = (
     (
@@ -236,6 +238,7 @@ def publish_dist_data():
     for source, target in (
         (PUBLIC_DATA_FILE, DIST_DATA_FILE),
         (PUBLIC_DETAIL_DATA_FILE, DIST_DETAIL_DATA_FILE),
+        (PUBLIC_SHIPMENT_VOLUME_FILE, DIST_SHIPMENT_VOLUME_FILE),
     ):
         if not source.exists():
             continue
@@ -269,6 +272,7 @@ def refresh(args):
     if source_file.exists():
         build_env["RATE_BASE_CSV"] = str(source_file)
     run([sys.executable, str(ROOT / "scripts" / "build-weekly-data.py")], env=build_env)
+    run([sys.executable, str(ROOT / "scripts" / "build-shipment-volumes.py")], env=build_env)
 
     if args.build:
         npm = "npm.cmd" if os.name == "nt" else "npm"

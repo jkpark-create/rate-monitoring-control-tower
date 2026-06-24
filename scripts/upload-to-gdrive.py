@@ -176,13 +176,21 @@ def main():
         grant_domain_reader(at, folder_id, domain, 'folder')
 
     detail_id = ''
+    shipment_volume_id = ''
     detail_src = src.with_name('weekly-monitoring-details.json')
     if name == 'weekly-monitoring.json' and detail_src.exists():
         detail_id = upsert_file(at, folder_id, detail_src, 'weekly-monitoring-details.json')
+    shipment_volume_src = src.with_name('shipment-volumes.json')
+    if name == 'weekly-monitoring.json' and shipment_volume_src.exists():
+        shipment_volume_id = upsert_file(at, folder_id, shipment_volume_src, 'shipment-volumes.json')
 
-    if detail_id:
+    if detail_id or shipment_volume_id:
         payload = json.loads(src.read_text(encoding='utf-8'))
-        payload.setdefault('metadata', {})['detailDriveFileId'] = detail_id
+        metadata = payload.setdefault('metadata', {})
+        if detail_id:
+            metadata['detailDriveFileId'] = detail_id
+        if shipment_volume_id:
+            metadata['shipmentVolumeDriveFileId'] = shipment_volume_id
         data = json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
     else:
         data = src.read_bytes()
@@ -191,6 +199,8 @@ def main():
     print(f"FOLDER_ID={folder_id}")
     if detail_id:
         print(f"DETAIL_DRIVE_FILE_ID={detail_id}")
+    if shipment_volume_id:
+        print(f"SHIPMENT_VOLUME_DRIVE_FILE_ID={shipment_volume_id}")
     print(f"DRIVE_FILE_ID={fid}")
 
 

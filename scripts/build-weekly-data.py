@@ -20,6 +20,7 @@ BASIC_TARIFF_FILE = ROOT / "data" / "basic-tariff-latest.csv"
 RATE_ROUTE_FILE = ROOT / "data" / "rate-route-latest.csv"
 OUTPUT_FILE = ROOT / "public" / "data" / "weekly-monitoring.json"
 DETAIL_OUTPUT_FILE = ROOT / "public" / "data" / "weekly-monitoring-details.json"
+SHIPMENT_VOLUME_OUTPUT_FILE = ROOT / "public" / "data" / "shipment-volumes.json"
 
 
 def find_booking_usage_file():
@@ -742,25 +743,32 @@ def build_booking_usage(path):
             booking_no = (row.get("BOOKING_NO", "") or "").strip()
             if not booking_no:
                 continue
+            has_bl = row.get("HAS_BL_FLAG", "") == "Y"
+            bl_no = (row.get("BL_NO", "") or "").strip()
+            app_no = first_value(row, "RATE_APPLICATION_NO", "FRT_APP_NO")
+            if not app_no:
+                continue
             key = booking_usage_key(
-                row.get("RATE_APPLICATION_NO", ""),
+                app_no,
                 row.get("CONTAINER_SIZE", ""),
                 row.get("CONTAINER_TYPE", ""),
             )
             entry = aggregates.get(key)
             if entry is None:
-                entry = {"bookings": {}, "bls": set(), "shipmentLinks": {}}
+                entry = {
+                    "bookings": set(),
+                    "bls": set(),
+                    "shipmentLinks": {},
+                    "bookingTeu": 0.0,
+                    "shippedTeu": 0.0,
+                }
                 aggregates[key] = entry
-            has_bl = row.get("HAS_BL_FLAG", "") == "Y"
-            booking = entry["bookings"].get(booking_no)
-            if booking is None:
-                booking = {"teu": 0.0, "hasBL": False}
-                entry["bookings"][booking_no] = booking
-            # Duplicate rows carry the same booking-level TOTAL_TEU; take the max
-            # (not the sum) so a fanned-out join does not inflate the volume.
-            booking["teu"] = max(booking["teu"], number(row.get("TOTAL_TEU")))
-            booking["hasBL"] = booking["hasBL"] or has_bl
-            bl_no = (row.get("BL_NO", "") or "").strip()
+            if booking_no not in entry["bookings"]:
+                entry["bookings"].add(booking_no)
+                booking_teu = number(row.get("TOTAL_TEU"))
+                entry["bookingTeu"] += booking_teu
+                if has_bl:
+                    entry["shippedTeu"] += booking_teu
             if has_bl and bl_no:
                 entry["bls"].add(bl_no)
             route_name = first_value(row, "ROUTE_NAME", "ROUTE_CODE", "RTE_CD", "ROUTE")
@@ -776,6 +784,7 @@ def build_booking_usage(path):
             booking_dly_country = first_value(row, "DLY_COUNTRY", "DLY_CTR_CD")
             booking_dly_port = first_value(row, "DLY_PORT", "DLY_PLC_CD")
             if route_name or leg_seq or vessel or voyage:
+                departure_date = (row.get("DEPARTURE_DATE", "") or "").strip()
                 shipment_key = (
                     leg_seq,
                     route_name,
@@ -792,24 +801,31 @@ def build_booking_usage(path):
                 )
                 shipment = entry["shipmentLinks"].get(shipment_key)
                 if shipment is None:
-                    shipment = {"bookings": {}, "bls": set(), "departures": set()}
+                    shipment = {
+                        "bookings": set(),
+                        "bls": set(),
+                        "departureStart": "",
+                        "departureEnd": "",
+                        "bookingTeu": 0.0,
+                        "shippedTeu": 0.0,
+                    }
                     entry["shipmentLinks"][shipment_key] = shipment
                 if has_bl and bl_no:
                     shipment["bls"].add(bl_no)
-                shipment_booking = shipment["bookings"].get(booking_no)
-                if shipment_booking is None:
-                    shipment_booking = {"teu": 0.0, "hasBL": False}
-                    shipment["bookings"][booking_no] = shipment_booking
-                shipment_booking["teu"] = max(shipment_booking["teu"], number(row.get("TOTAL_TEU")))
-                shipment_booking["hasBL"] = shipment_booking["hasBL"] or has_bl
-                departure_date = (row.get("DEPARTURE_DATE", "") or "").strip()
+                if booking_no not in shipment["bookings"]:
+                    shipment["bookings"].add(booking_no)
+                    shipment_teu = number(row.get("TOTAL_TEU"))
+                    shipment["bookingTeu"] += shipment_teu
+                    if has_bl:
+                        shipment["shippedTeu"] += shipment_teu
                 if departure_date:
-                    shipment["departures"].add(departure_date)
+                    if not shipment["departureStart"] or departure_date < shipment["departureStart"]:
+                        shipment["departureStart"] = departure_date
+                    if not shipment["departureEnd"] or departure_date > shipment["departureEnd"]:
+                        shipment["departureEnd"] = departure_date
 
     usage_map = {}
     for key, entry in aggregates.items():
-        booking_teu = sum(b["teu"] for b in entry["bookings"].values())
-        shipped_teu = sum(b["teu"] for b in entry["bookings"].values() if b["hasBL"])
         shipment_links = []
         for (
             leg_seq,
@@ -825,19 +841,16 @@ def build_booking_usage(path):
             booking_dly_country,
             booking_dly_port,
         ), shipment in entry["shipmentLinks"].items():
-            link_booking_teu = sum(b["teu"] for b in shipment["bookings"].values())
-            link_shipped_teu = sum(b["teu"] for b in shipment["bookings"].values() if b["hasBL"])
-            departures = sorted(shipment["departures"])
             shipment_links.append(
                 (
                     vessel,
                     voyage,
                     len(shipment["bls"]),
                     len(shipment["bookings"]),
-                    round(link_shipped_teu, 1),
-                    round(link_booking_teu, 1),
-                    departures[0] if departures else "",
-                    departures[-1] if departures else "",
+                    round(shipment["shippedTeu"], 1),
+                    round(shipment["bookingTeu"], 1),
+                    shipment["departureStart"],
+                    shipment["departureEnd"],
                     route_name,
                     leg_seq,
                     booking_por_country,
@@ -854,8 +867,8 @@ def build_booking_usage(path):
         usage_map[key] = (
             len(entry["bls"]),
             len(entry["bookings"]),
-            round(shipped_teu, 1),
-            round(booking_teu, 1),
+            round(entry["shippedTeu"], 1),
+            round(entry["bookingTeu"], 1),
             tuple(shipment_links),
         )
     return usage_map, True, shipment_link_available
@@ -1069,6 +1082,7 @@ payload = {
         "usageAvailable": booking_usage_available,
         "shipmentLinkAvailable": shipment_link_available,
         "usageSourceFile": BOOKING_USAGE_FILE.name if BOOKING_USAGE_FILE else "",
+        "shipmentVolumeSourceFile": SHIPMENT_VOLUME_OUTPUT_FILE.name,
         "latestSourceDate": iso_date(latest_source_date),
         "defaultWeek": iso_date(default_week),
         "availableStartDate": iso_date(first_week),

@@ -17,3 +17,4 @@ server.log
 /data/
 public/data/weekly-monitoring.json
 public/data/weekly-monitoring-details.json
+public/data/shipment-volumes.json

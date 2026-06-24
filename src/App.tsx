@@ -88,6 +88,29 @@ type RawShipmentLink = [
   bookingDlyPort?: string,
 ];
 
+type RawShipmentVolume = [
+  routeName: string,
+  vesselCode: string,
+  voyageNo: string,
+  legSeq: string,
+  bookingPorCountry: string,
+  bookingPorPort: string,
+  legOriginCountry: string,
+  legOriginPort: string,
+  legDestinationCountry: string,
+  legDestinationPort: string,
+  bookingDlyCountry: string,
+  bookingDlyPort: string,
+  containerSize: string,
+  containerType: string,
+  blCount: number,
+  bookingCount: number,
+  teu: number,
+  bookingTeu: number,
+  departureStart: string,
+  departureEnd: string,
+];
+
 type RawRateDetail = [
   freightUnit: string,
   prepaidCollect: string,
@@ -131,6 +154,8 @@ type MonitoringData = {
     usageAvailable?: boolean;
     shipmentLinkAvailable?: boolean;
     usageSourceFile?: string;
+    shipmentVolumeSourceFile?: string;
+    shipmentVolumeDriveFileId?: string;
     latestSourceDate: string;
     defaultWeek: string;
     availableStartDate: string;
@@ -149,6 +174,7 @@ type MonitoringData = {
     teamBasis: string;
     teamOptions: string[];
     recordCount: number;
+    shipmentVolumeCount?: number;
     rateDetailCount?: number;
     detailSourceFile?: string;
     detailDriveFileId?: string;
@@ -156,6 +182,7 @@ type MonitoringData = {
     skippedNonOfRows: number;
     recordSchema: string[];
     rateDetailSchema: string[];
+    shipmentVolumeSchema?: string[];
   };
   weeks: { value: string; label: string }[];
   dimensions: {
@@ -176,6 +203,15 @@ type MonitoringData = {
     shipmentLinks?: RawShipmentLink[][];
   };
   records: RawRecord[];
+  shipmentVolumes?: RawShipmentVolume[];
+};
+
+type ShipmentVolumePayload = {
+  metadata?: {
+    shipmentVolumeCount?: number;
+    shipmentVolumeSchema?: string[];
+  };
+  shipmentVolumes?: RawShipmentVolume[];
 };
 
 type RateDetailPayload = {
@@ -269,6 +305,29 @@ type ShipmentLink = {
   bookingDlyPort: string;
   vesselCode: string;
   voyageNo: string;
+  blCount: number;
+  bookingCount: number;
+  teu: number;
+  bookingTeu: number;
+  departureStart: string;
+  departureEnd: string;
+};
+
+type ShipmentVolume = {
+  routeName: string;
+  legSeq: string;
+  bookingPorCountry: string;
+  bookingPorPort: string;
+  legOriginCountry: string;
+  legOriginPort: string;
+  legDestinationCountry: string;
+  legDestinationPort: string;
+  bookingDlyCountry: string;
+  bookingDlyPort: string;
+  vesselCode: string;
+  voyageNo: string;
+  containerSize: string;
+  containerType: string;
   blCount: number;
   bookingCount: number;
   teu: number;
@@ -1037,29 +1096,66 @@ function hasShipmentFilter(filters: Pick<ScopeFilters, 'route' | 'vessel' | 'voy
   return Boolean(filters.route.length || filters.vessel.length || filters.voyage.length);
 }
 
+function hasShipmentLocationFilter(filters: Pick<ScopeFilters, 'originCountry' | 'originPort' | 'destinationCountry' | 'destinationPort'>) {
+  return Boolean(filters.originCountry.length || filters.originPort.length || filters.destinationCountry.length || filters.destinationPort.length);
+}
+
 function shipmentMatches(link: ShipmentLink, route: string[], vessel: string[], voyage: string[]) {
   return hasSelection(route, routeValue(link)) && hasSelection(vessel, link.vesselCode) && hasSelection(voyage, link.voyageNo);
 }
 
-function hasShipmentSelection(route: string[], vessel: string[], voyage: string[], record: RateRecord) {
-  if (!route.length && !vessel.length && !voyage.length) {
+function hasAnySelection(selected: string[], ...values: string[]) {
+  return !selected.length || values.some((value) => selected.includes(value));
+}
+
+function shipmentMatchesScope(link: ShipmentLink, filters: ScopeFilters) {
+  return (
+    shipmentMatches(link, filters.route, filters.vessel, filters.voyage) &&
+    hasAnySelection(filters.originCountry, link.legOriginCountry, link.bookingPorCountry) &&
+    hasAnySelection(filters.originPort, link.legOriginPort, link.bookingPorPort) &&
+    hasAnySelection(filters.destinationCountry, link.legDestinationCountry, link.bookingDlyCountry) &&
+    hasAnySelection(filters.destinationPort, link.legDestinationPort, link.bookingDlyPort)
+  );
+}
+
+function shipmentVolumeMatchesScope(volume: ShipmentVolume, filters: ScopeFilters) {
+  return (
+    shipmentMatches(volume, filters.route, filters.vessel, filters.voyage) &&
+    hasAnySelection(filters.originCountry, volume.legOriginCountry, volume.bookingPorCountry) &&
+    hasAnySelection(filters.originPort, volume.legOriginPort, volume.bookingPorPort) &&
+    hasAnySelection(filters.destinationCountry, volume.legDestinationCountry, volume.bookingDlyCountry) &&
+    hasAnySelection(filters.destinationPort, volume.legDestinationPort, volume.bookingDlyPort) &&
+    hasSelection(filters.containerSize, volume.containerSize) &&
+    hasSelection(filters.containerType, volume.containerType)
+  );
+}
+
+function hasShipmentSelection(filters: ScopeFilters, record: RateRecord) {
+  if (!hasShipmentFilter(filters) && !hasShipmentLocationFilter(filters)) {
     return true;
   }
-  return record.shipmentLinks.some((link) => shipmentMatches(link, route, vessel, voyage));
+  return record.shipmentLinks.some((link) => shipmentMatchesScope(link, filters));
 }
 
-function matchingShipmentLinks(record: RateRecord, filters?: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>) {
-  if (!filters || (!filters.route.length && !filters.vessel.length && !filters.voyage.length)) {
+function matchingShipmentLinks(record: RateRecord, filters?: ScopeFilters) {
+  if (!filters || (!hasShipmentFilter(filters) && !hasShipmentLocationFilter(filters))) {
     return record.shipmentLinks;
   }
-  return record.shipmentLinks.filter((link) => shipmentMatches(link, filters.route, filters.vessel, filters.voyage));
+  return record.shipmentLinks.filter((link) => shipmentMatchesScope(link, filters));
 }
 
-function shipmentAnalysisLaneLabels(record: RateRecord, filters: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>) {
+function matchingShipmentVolumes(volumes: ShipmentVolume[], filters: ScopeFilters) {
+  if (!hasShipmentFilter(filters) && !hasShipmentLocationFilter(filters)) {
+    return [];
+  }
+  return volumes.filter((volume) => shipmentVolumeMatchesScope(volume, filters));
+}
+
+function shipmentAnalysisLaneLabels(record: RateRecord, filters: ScopeFilters) {
   if (!hasShipmentFilter(filters)) {
     return [rateLaneLabel(record)];
   }
-  const labels = unique(matchingShipmentLinks(record, filters).map(shipmentCargoLaneLabel).filter(Boolean));
+  const labels = unique(matchingShipmentLinks(record, filters).map(shipmentLegLaneLabel).filter(Boolean));
   return labels.length ? labels : [rateLaneLabel(record)];
 }
 
@@ -1257,18 +1353,19 @@ function overlapsRange(record: RateRecord, rangeStart: string, rangeEnd: string)
 }
 
 function matchesScope(record: RateRecord, filters: ScopeFilters) {
+  const shipmentMode = hasShipmentFilter(filters);
   return (
-    hasSelection(filters.originCountry, record.porCountry) &&
-    hasSelection(filters.originPort, record.porPort) &&
-    hasSelection(filters.destinationCountry, record.dlyCountry) &&
-    hasSelection(filters.destinationPort, record.dlyPort) &&
+    (shipmentMode || hasSelection(filters.originCountry, record.porCountry)) &&
+    (shipmentMode || hasSelection(filters.originPort, record.porPort)) &&
+    (shipmentMode || hasSelection(filters.destinationCountry, record.dlyCountry)) &&
+    (shipmentMode || hasSelection(filters.destinationPort, record.dlyPort)) &&
     hasSelection(filters.containerSize, record.containerSize) &&
     hasSelection(filters.containerType, record.containerType) &&
     hasSelection(filters.cargoType, record.cargoType) &&
     hasSelection(filters.specialCargoType, record.specialCargoType) &&
     hasSelection(filters.fullEmptyType, record.fullEmptyType) &&
     hasUsageSelection(filters.usagePresence, record) &&
-    hasShipmentSelection(filters.route, filters.vessel, filters.voyage, record) &&
+    (!shipmentMode || hasShipmentSelection(filters, record)) &&
     hasSelection(filters.staff, record.staff) &&
     hasSelection(filters.company, shipperKey(record))
   );
@@ -1541,6 +1638,52 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
       })),
     };
   });
+}
+
+function decodeShipmentVolumes(payload: ShipmentVolumePayload | MonitoringData): ShipmentVolume[] {
+  return (payload.shipmentVolumes ?? []).map(([
+    routeName,
+    vesselCode,
+    voyageNo,
+    legSeq,
+    bookingPorCountry,
+    bookingPorPort,
+    legOriginCountry,
+    legOriginPort,
+    legDestinationCountry,
+    legDestinationPort,
+    bookingDlyCountry,
+    bookingDlyPort,
+    containerSize,
+    containerType,
+    blCount,
+    bookingCount,
+    teu,
+    bookingTeu,
+    departureStart,
+    departureEnd,
+  ]) => ({
+    routeName: routeName ?? '',
+    legSeq: legSeq ?? '',
+    bookingPorCountry: bookingPorCountry ?? '',
+    bookingPorPort: bookingPorPort ?? '',
+    legOriginCountry: legOriginCountry ?? '',
+    legOriginPort: legOriginPort ?? '',
+    legDestinationCountry: legDestinationCountry ?? '',
+    legDestinationPort: legDestinationPort ?? '',
+    bookingDlyCountry: bookingDlyCountry ?? '',
+    bookingDlyPort: bookingDlyPort ?? '',
+    vesselCode: vesselCode ?? '',
+    voyageNo: voyageNo ?? '',
+    containerSize: containerSize ?? '',
+    containerType: containerType ?? '',
+    blCount: typeof blCount === 'number' ? blCount : 0,
+    bookingCount: typeof bookingCount === 'number' ? bookingCount : 0,
+    teu: typeof teu === 'number' ? teu : 0,
+    bookingTeu: typeof bookingTeu === 'number' ? bookingTeu : 0,
+    departureStart: departureStart ?? '',
+    departureEnd: departureEnd ?? '',
+  }));
 }
 
 function buildCases(activeRates: RateRecord[], minimumSamples: number) {
@@ -2059,7 +2202,7 @@ function RateDetailPanel({
   detailStatus: 'idle' | 'loading' | 'ready' | 'error';
   detailError?: string;
   language: Language;
-  shipmentScope: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>;
+  shipmentScope: ScopeFilters;
   onClose: () => void;
 }) {
   const text = UI_COPY[language].detail;
@@ -2154,6 +2297,7 @@ function scatterJitter(id: string) {
 function RateLaneScatter({
   rates,
   volumeRates,
+  shipmentVolumes,
   cases,
   metric,
   language,
@@ -2166,6 +2310,7 @@ function RateLaneScatter({
 }: {
   rates: RateRecord[];
   volumeRates: RateRecord[];
+  shipmentVolumes: ShipmentVolume[];
   cases: LowRateCase[];
   metric: RateBandMetric;
   language: Language;
@@ -2174,7 +2319,7 @@ function RateLaneScatter({
   setAxis: (axis: RateScatterAxis) => void;
   containerCombo: string;
   setContainerCombo: (combo: string) => void;
-  shipmentScope: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>;
+  shipmentScope: ScopeFilters;
 }) {
   const text = UI_COPY[language].summary;
   const statusText = UI_COPY[language].status;
@@ -2217,6 +2362,7 @@ function RateLaneScatter({
 
   const model = useMemo(() => {
     const comboRates = rates.filter((record) => `${record.containerSize}|${record.containerType}` === containerCombo);
+    const comboShipmentVolumes = shipmentVolumes.filter((volume) => `${volume.containerSize}|${volume.containerType}` === containerCombo);
     const useShipmentLane = hasShipmentFilter(shipmentScope);
     const laneEntriesOf = (record: RateRecord) => {
       if (!useShipmentLane) {
@@ -2228,11 +2374,11 @@ function RateLaneScatter({
       }
       const entries = matchingShipmentLinks(record, shipmentScope).map((link) => {
         const key = axis === 'origin'
-          ? (link.bookingPorPort || link.legOriginPort || record.porPort || record.porCountry)
-          : (link.bookingDlyPort || link.legDestinationPort || record.dlyPort || record.dlyCountry);
+          ? (link.legOriginPort || link.bookingPorPort || record.porPort || record.porCountry)
+          : (link.legDestinationPort || link.bookingDlyPort || record.dlyPort || record.dlyCountry);
         const country = axis === 'origin'
-          ? (link.bookingPorCountry || link.legOriginCountry || record.porCountry)
-          : (link.bookingDlyCountry || link.legDestinationCountry || record.dlyCountry);
+          ? (link.legOriginCountry || link.bookingPorCountry || record.porCountry)
+          : (link.legDestinationCountry || link.bookingDlyCountry || record.dlyCountry);
         return { key, country, volume: link.bookingTeu || link.teu || record.teu || 0 };
       }).filter((entry) => entry.key);
       const deduped = new Map<string, { key: string; country: string; volume: number }>();
@@ -2243,18 +2389,36 @@ function RateLaneScatter({
       }
       return Array.from(deduped.values());
     };
+    const laneEntryOfShipmentVolume = (volume: ShipmentVolume) => {
+      const key = axis === 'origin'
+        ? (volume.legOriginPort || volume.bookingPorPort)
+        : (volume.legDestinationPort || volume.bookingDlyPort);
+      const country = axis === 'origin'
+        ? (volume.legOriginCountry || volume.bookingPorCountry)
+        : (volume.legDestinationCountry || volume.bookingDlyCountry);
+      return key ? { key, country, volume: volume.bookingTeu || volume.teu || 0 } : null;
+    };
 
     // Lane volume for the X-axis ordering comes from volumeRates, which applies
     // the same scope filters but IGNORES the period window — so a lane is ranked
     // by its full BL TEU regardless of which weeks its rate files are valid in.
     // Restricted to the selected container combo to match the dots on screen.
     const volumeByLane = new Map<string, number>();
-    for (const record of volumeRates) {
-      if (`${record.containerSize}|${record.containerType}` !== containerCombo) {
-        continue;
+    if (useShipmentLane && comboShipmentVolumes.length) {
+      for (const volume of comboShipmentVolumes) {
+        const entry = laneEntryOfShipmentVolume(volume);
+        if (entry) {
+          volumeByLane.set(entry.key, (volumeByLane.get(entry.key) ?? 0) + entry.volume);
+        }
       }
-      for (const entry of laneEntriesOf(record)) {
-        volumeByLane.set(entry.key, (volumeByLane.get(entry.key) ?? 0) + entry.volume);
+    } else {
+      for (const record of volumeRates) {
+        if (`${record.containerSize}|${record.containerType}` !== containerCombo) {
+          continue;
+        }
+        for (const entry of laneEntriesOf(record)) {
+          volumeByLane.set(entry.key, (volumeByLane.get(entry.key) ?? 0) + entry.volume);
+        }
       }
     }
 
@@ -2263,6 +2427,16 @@ function RateLaneScatter({
       for (const entry of laneEntriesOf(record)) {
         const current = counts.get(entry.key) ?? { key: entry.key, country: entry.country, count: 0 };
         current.count += 1;
+        counts.set(entry.key, current);
+      }
+    }
+    if (useShipmentLane && comboShipmentVolumes.length) {
+      for (const volume of comboShipmentVolumes) {
+        const entry = laneEntryOfShipmentVolume(volume);
+        if (!entry) {
+          continue;
+        }
+        const current = counts.get(entry.key) ?? { key: entry.key, country: entry.country, count: 0 };
         counts.set(entry.key, current);
       }
     }
@@ -2309,7 +2483,7 @@ function RateLaneScatter({
       averageValue: valueCount ? valueSum / valueCount : null,
       chartMinWidth: Math.max(SCATTER_MIN_CHART_WIDTH, lanes.length * SCATTER_WIDTH_PER_LANE + 120),
     };
-  }, [rates, volumeRates, containerCombo, axis, metric, caseStatusById, shipmentScope]);
+  }, [rates, volumeRates, shipmentVolumes, containerCombo, axis, metric, caseStatusById, shipmentScope]);
 
   const laneTick = (value: number) => model.lanes[value]?.key ?? '';
 
@@ -2426,6 +2600,7 @@ function RateLaneScatter({
 function RateBandPanel({
   rates,
   volumeRates,
+  shipmentVolumes,
   cases,
   language,
   onInspectRate,
@@ -2441,6 +2616,7 @@ function RateBandPanel({
 }: {
   rates: RateRecord[];
   volumeRates: RateRecord[];
+  shipmentVolumes: ShipmentVolume[];
   cases: LowRateCase[];
   language: Language;
   onInspectRate: (rate: RateRecord) => void;
@@ -2452,7 +2628,7 @@ function RateBandPanel({
   setScatterAxis: (axis: RateScatterAxis) => void;
   scatterContainer: string;
   setScatterContainer: (combo: string) => void;
-  shipmentScope: Pick<ScopeFilters, 'route' | 'vessel' | 'voyage'>;
+  shipmentScope: ScopeFilters;
 }) {
   const text = UI_COPY[language].summary;
   const detailText = UI_COPY[language].detail;
@@ -2630,6 +2806,7 @@ function RateBandPanel({
         <RateLaneScatter
           rates={rates}
           volumeRates={volumeRates}
+          shipmentVolumes={shipmentVolumes}
           cases={cases}
           metric={metric}
           language={language}
@@ -2812,7 +2989,7 @@ function RateBandPanel({
   );
 }
 
-function AppContent({ data }: { data: MonitoringData }) {
+function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentVolumes: ShipmentVolume[] }) {
   const auth = useContext(AuthContext);
   const authRef = useRef(auth);
   authRef.current = auth;
@@ -3006,6 +3183,12 @@ function AppContent({ data }: { data: MonitoringData }) {
       : [],
     [rateBandChartMode, records, summaryDim, summaryScope],
   );
+  const summaryShipmentVolumes = useMemo(
+    () => summaryDim === 'rateband' && rateBandChartMode === 'scatter' && hasShipmentFilter(summaryScope)
+      ? matchingShipmentVolumes(shipmentVolumes, summaryScope)
+      : [],
+    [rateBandChartMode, shipmentVolumes, summaryDim, summaryScope],
+  );
   const summaryCases = summaryPeriodAnalysis.cases;
   const detailRates = detailPeriodAnalysis.activeRates;
   const detailCases = detailPeriodAnalysis.cases;
@@ -3083,31 +3266,58 @@ function AppContent({ data }: { data: MonitoringData }) {
     const scope = optionScope(...excluded);
     return records.filter((record) => matchesScope(record, scope));
   }, [optionScope, records]);
+  const shipmentOptionVolumes = useCallback((...excluded: (keyof ScopeFilters)[]) => {
+    const scope = optionScope(...excluded);
+    if (!hasShipmentFilter(scope)) {
+      return [];
+    }
+    return matchingShipmentVolumes(shipmentVolumes, scope);
+  }, [optionScope, shipmentVolumes]);
   const routeOptions = useMemo<FilterOption[]>(() => {
     const scope = optionScope('route');
-    return toOptions(unique(shipmentOptionRecords('route')
-      .flatMap((item) => matchingShipmentLinks(item, scope).map(routeValue))
-      .filter(Boolean)));
-  }, [optionScope, shipmentOptionRecords]);
-  const originCountries = useMemo(() => unique(optionRecords('originCountry').map((item) => item.porCountry)), [optionRecords]);
+    return toOptions(unique([
+      ...shipmentOptionRecords('route')
+        .flatMap((item) => matchingShipmentLinks(item, scope).map(routeValue)),
+      ...shipmentOptionVolumes('route').map(routeValue),
+    ].filter(Boolean)));
+  }, [optionScope, shipmentOptionRecords, shipmentOptionVolumes]);
+  const originCountries = useMemo(() => unique([
+    ...optionRecords('originCountry').map((item) => item.porCountry),
+    ...shipmentOptionVolumes('originCountry').flatMap((item) => [item.legOriginCountry, item.bookingPorCountry]),
+  ].filter(Boolean)), [optionRecords, shipmentOptionVolumes]);
   const originCountryOptions = useMemo(() => toOptions(originCountries), [originCountries]);
   const originPorts = useMemo(
-    () => unique(optionRecords('originPort').map((item) => item.porPort)),
-    [optionRecords],
+    () => unique([
+      ...optionRecords('originPort').map((item) => item.porPort),
+      ...shipmentOptionVolumes('originPort').flatMap((item) => [item.legOriginPort, item.bookingPorPort]),
+    ].filter(Boolean)),
+    [optionRecords, shipmentOptionVolumes],
   );
   const originPortOptions = useMemo(() => toOptions(originPorts), [originPorts]);
-  const destinationCountries = useMemo(() => unique(optionRecords('destinationCountry').map((item) => item.dlyCountry)), [optionRecords]);
+  const destinationCountries = useMemo(() => unique([
+    ...optionRecords('destinationCountry').map((item) => item.dlyCountry),
+    ...shipmentOptionVolumes('destinationCountry').flatMap((item) => [item.legDestinationCountry, item.bookingDlyCountry]),
+  ].filter(Boolean)), [optionRecords, shipmentOptionVolumes]);
   const destinationCountryOptions = useMemo(() => toOptions(destinationCountries), [destinationCountries]);
   const destinationPorts = useMemo(
-    () => unique(optionRecords('destinationPort').map((item) => item.dlyPort)),
-    [optionRecords],
+    () => unique([
+      ...optionRecords('destinationPort').map((item) => item.dlyPort),
+      ...shipmentOptionVolumes('destinationPort').flatMap((item) => [item.legDestinationPort, item.bookingDlyPort]),
+    ].filter(Boolean)),
+    [optionRecords, shipmentOptionVolumes],
   );
   const destinationPortOptions = useMemo(() => toOptions(destinationPorts), [destinationPorts]);
-  const containerSizes = useMemo(() => unique(optionRecords('containerSize').map((item) => item.containerSize)), [optionRecords]);
+  const containerSizes = useMemo(() => unique([
+    ...optionRecords('containerSize').map((item) => item.containerSize),
+    ...shipmentOptionVolumes('containerSize').map((item) => item.containerSize),
+  ].filter(Boolean)), [optionRecords, shipmentOptionVolumes]);
   const containerSizeOptions = useMemo(() => toOptions(containerSizes), [containerSizes]);
   const containerTypes = useMemo(
-    () => unique(optionRecords('containerType').map((item) => item.containerType)),
-    [optionRecords],
+    () => unique([
+      ...optionRecords('containerType').map((item) => item.containerType),
+      ...shipmentOptionVolumes('containerType').map((item) => item.containerType),
+    ].filter(Boolean)),
+    [optionRecords, shipmentOptionVolumes],
   );
   const containerTypeOptions = useMemo(() => toOptions(containerTypes), [containerTypes]);
   const cargoTypes = useMemo(() => unique(optionRecords('cargoType').map((item) => item.cargoType)), [optionRecords]);
@@ -3134,18 +3344,24 @@ function AppContent({ data }: { data: MonitoringData }) {
   const vesselOptions = useMemo(
     () => {
       const scope = optionScope('vessel');
-      return toOptions(unique(shipmentOptionRecords('vessel')
-        .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.vesselCode))));
+      return toOptions(unique([
+        ...shipmentOptionRecords('vessel')
+          .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.vesselCode)),
+        ...shipmentOptionVolumes('vessel').map((item) => item.vesselCode),
+      ].filter(Boolean)));
     },
-    [optionScope, shipmentOptionRecords],
+    [optionScope, shipmentOptionRecords, shipmentOptionVolumes],
   );
   const voyageOptions = useMemo(
     () => {
       const scope = optionScope('voyage');
-      return toOptions(unique(shipmentOptionRecords('voyage')
-        .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.voyageNo))));
+      return toOptions(unique([
+        ...shipmentOptionRecords('voyage')
+          .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.voyageNo)),
+        ...shipmentOptionVolumes('voyage').map((item) => item.voyageNo),
+      ].filter(Boolean)));
     },
-    [optionScope, shipmentOptionRecords],
+    [optionScope, shipmentOptionRecords, shipmentOptionVolumes],
   );
   const approvalStatuses = useMemo(() => unique(records.map((item) => item.approvalStatus)), [records]);
   const formatApprovalStatus = (value: string) => data.metadata.approvalStatusLabels[value] ? `${data.metadata.approvalStatusLabels[value]} (${value})` : value;
@@ -3770,6 +3986,7 @@ function AppContent({ data }: { data: MonitoringData }) {
                   <RateBandPanel
                     rates={summaryRates}
                     volumeRates={summaryVolumeRates}
+                    shipmentVolumes={summaryShipmentVolumes}
                     cases={summaryCases}
                     language={language}
                     onInspectRate={inspectRateFromSummary}
@@ -4098,6 +4315,7 @@ function DashboardLoader() {
   const authRef = useRef(auth);
   authRef.current = auth;
   const [data, setData] = useState<MonitoringData | null>(null);
+  const [shipmentVolumes, setShipmentVolumes] = useState<ShipmentVolume[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -4132,6 +4350,40 @@ function DashboardLoader() {
         if (active) {
           setData(nextData);
           setError(null);
+        }
+        const volumeDriveId = String(nextData.metadata.shipmentVolumeDriveFileId ?? '').trim();
+        const volumeSourceFile = nextData.metadata.shipmentVolumeSourceFile || 'shipment-volumes.json';
+        const volumeUseDrive = Boolean(volumeDriveId);
+        const volumeUrl = volumeUseDrive
+          ? `https://www.googleapis.com/drive/v3/files/${volumeDriveId}?alt=media`
+          : `${import.meta.env.BASE_URL}data/${volumeSourceFile}?t=${Date.now()}`;
+        const runVolumeFetch = (volumeToken: string) =>
+          fetch(volumeUrl, {
+            cache: 'no-store',
+            signal: request.signal,
+            headers: volumeUseDrive && volumeToken ? { Authorization: `Bearer ${volumeToken}` } : undefined,
+          });
+        try {
+          let volumeResponse = await runVolumeFetch(token);
+          if (volumeUseDrive && (volumeResponse.status === 401 || volumeResponse.status === 403) && authRef.current) {
+            token = await authRef.current.refresh();
+            volumeResponse = await runVolumeFetch(token);
+          }
+          if (volumeResponse.ok) {
+            const volumePayload = await volumeResponse.json() as ShipmentVolumePayload;
+            if (active) {
+              setShipmentVolumes(decodeShipmentVolumes(volumePayload));
+            }
+          } else if (active) {
+            setShipmentVolumes([]);
+          }
+        } catch (volumeError: unknown) {
+          if (volumeError instanceof DOMException && volumeError.name === 'AbortError') {
+            return;
+          }
+          if (active) {
+            setShipmentVolumes([]);
+          }
         }
       } catch (err: unknown) {
         if (err instanceof DOMException && err.name === 'AbortError') {
@@ -4173,7 +4425,7 @@ function DashboardLoader() {
     );
   }
 
-  return <AppContent data={data} />;
+  return <AppContent data={data} shipmentVolumes={shipmentVolumes} />;
 }
 
 export function App() {

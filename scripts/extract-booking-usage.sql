@@ -32,6 +32,10 @@
 -- Window: bookings departing within the last 7 months (covers all rate
 -- applications currently in dashboard scope; matches the ~6-month span of the
 -- original 2026-05-27 export with margin).
+--
+-- FRT_APP_NO may be NULL for real booked / B/L-linked vessel cargo. Keep those
+-- rows in the extract so build-weekly-data.py can publish full vessel/voyage
+-- leg volumes without turning unlinked bookings into fake rate records.
 
 WITH BOOKING_LATEST AS (
     -- Keep the most recent snapshot row per booking container leg.
@@ -62,8 +66,7 @@ WITH BOOKING_LATEST AS (
             ORDER BY A.CLOS_DTM DESC
         ) AS RN
     FROM DW_SALES.SP002S A
-    WHERE A.FRT_APP_NO IS NOT NULL
-      AND A.BKG_STS_CD IN ('01', '04')   -- confirmed / on-board; excludes cancelled bookings
+    WHERE A.BKG_STS_CD IN ('01', '04')   -- confirmed / on-board; excludes cancelled bookings
       AND A.RVSD_DPO_DT >= TO_CHAR(ADD_MONTHS(SYSDATE, -7), 'YYYYMMDD')
 ),
 
