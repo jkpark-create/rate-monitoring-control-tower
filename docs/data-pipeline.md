@@ -26,7 +26,7 @@ Oracle DB + Google Drive(시장 가이드) → CSV/JSON 추출 → Python 가공
 | 구분 | 소스 | 대상 테이블 / 파일 | 추출 방법 |
 |------|------|------|------|
 | 운임 본문 | Oracle | `DW_SALES.SP301I`, `ODS_ICC.SA202D`, `ODS_ICC.SA215I` | `extract-rate-base.sql` |
-| Booking 사용량 | Oracle | `DW_SALES.SP002S`, `ODS_ICC.CS004R`, `ODS_ICC.M_SA003I` | `extract-booking-usage.sql` |
+| Booking 사용량 | Oracle | `DW_SALES.SP002S`, `ODS_ICC.CS004R`, `ODS_ICC.M_SA003I`, `ODS_ICC.CS101M` | `extract-booking-usage.sql` |
 | Basic Tariff(EFC) | Oracle | `DW_SALES.SP301I02` | `extract-basic-tariff.sql` |
 | 운임 적용 항로 | Oracle | `ODS_ICC.SA201M` | `extract-rate-route.sql` |
 | CN/HK 시장가이드 | Google Drive | `[CN_HK] Market Rate.xlsx` | Drive API 다운로드 → 파싱 |
@@ -46,6 +46,7 @@ Oracle DB + Google Drive(시장 가이드) → CSV/JSON 추출 → Python 가공
 - T/S 누락 방지를 위해 `SP002S.LEG_SEQ` 전체를 추출하고, leg별 `RTE_CD + VSL_CD + ET_VOY_NO + POR/POL/POD/DLY`를 shipment link로 보존합니다.
 - B/L이 아직 생성되지 않은 booking도 vessel/voyage 필터에서 확인되도록 shipment link는 booking 기준으로 생성하고, BL 수·TEU와 booking 수·TEU를 분리해 저장합니다.
 - 과거 확정 B/L은 `ODS_ICC.CS004R`, 현재/예정 B/L assignment는 `ODS_ICC.M_SA003I` 최신 `BASC_DT` snapshot을 함께 사용.
+- `SP002S.FRT_APP_NO`가 비어 있어도 B/L Master Freight에 운임이 링크된 경우가 있어 `ODS_ICC.CS101M.FRT_APP_NO`로 보강합니다.
 
 ### 2.3 시장 가이드라인 (Google Drive)
 - **CN/HK:** AB 등급(고가치) 고객 운임을 사용. 사이드 프로젝트 `organizing rate file`의 파서를 재사용.
@@ -61,7 +62,7 @@ Oracle DB + Google Drive(시장 가이드) → CSV/JSON 추출 → Python 가공
 | `extract-rate-base.sql` | SP301I, SA202D, SA215I | `data/rate-base-latest.csv` (70+ 컬럼) |
 | `extract-basic-tariff.sql` | SP301I02 | `data/basic-tariff-latest.csv` |
 | `extract-rate-route.sql` | SA201M | `data/rate-route-latest.csv` |
-| `extract-booking-usage.sql` | SP002S, CS004R, M_SA003I | `data/booking-usage-latest.csv` |
+| `extract-booking-usage.sql` | SP002S, CS004R, M_SA003I, CS101M | `data/booking-usage-latest.csv` |
 
 `extract-rate-base.sql`은 `UNION ALL`로 다음 행 타입을 결합합니다.
 - `OCEAN_FREIGHT` — 기본 O/F (USD > 0)

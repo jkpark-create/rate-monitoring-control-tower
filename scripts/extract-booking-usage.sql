@@ -33,9 +33,9 @@
 -- applications currently in dashboard scope; matches the ~6-month span of the
 -- original 2026-05-27 export with margin).
 --
--- FRT_APP_NO may be NULL for real booked / B/L-linked vessel cargo. Keep those
--- rows in the extract so build-weekly-data.py can publish full vessel/voyage
--- leg volumes without turning unlinked bookings into fake rate records.
+-- FRT_APP_NO may be NULL in SP002S even after B/L Master Freight has linked a
+-- rate file. Keep those rows, then fall back to B/L Master (CS101M) so
+-- B/L-linked rates are not missed.
 
 WITH BOOKING_LATEST AS (
     -- Keep the most recent snapshot row per booking container leg.
@@ -129,10 +129,24 @@ BKG_BL AS (
     WHERE BL_NO IS NOT NULL
       AND CNCL_DT IS NULL
       AND BASC_DT = (SELECT MAX(BASC_DT) FROM ODS_ICC.M_SA003I)
+),
+
+BL_RATE AS (
+    SELECT
+        L.BKG_NO,
+        L.BL_NO,
+        MAX(C.FRT_APP_NO) AS FRT_APP_NO
+    FROM BKG_BL L
+    LEFT JOIN ODS_ICC.CS101M C
+        ON C.BL_NO = L.BL_NO
+       AND C.FRT_APP_NO IS NOT NULL
+    GROUP BY
+        L.BKG_NO,
+        L.BL_NO
 )
 
 SELECT
-    B.FRT_APP_NO          AS RATE_APPLICATION_NO,
+    COALESCE(B.FRT_APP_NO, L.FRT_APP_NO) AS RATE_APPLICATION_NO,
     B.BKG_NO              AS BOOKING_NO,
     L.BL_NO               AS BL_NO,
     B.BKG_STS_CD          AS BOOKING_STATUS_CODE,
@@ -159,5 +173,5 @@ SELECT
     B.TOTAL_TEU           AS TOTAL_TEU,
     CASE WHEN L.BL_NO IS NOT NULL THEN 'Y' ELSE 'N' END AS HAS_BL_FLAG
 FROM BOOKING_AGG B
-LEFT JOIN BKG_BL L
+LEFT JOIN BL_RATE L
     ON L.BKG_NO = B.BKG_NO;
