@@ -900,6 +900,15 @@ table.summary-company-table td:not(:first-child) {
   padding: 6px 16px 4px;
 }
 
+.rate-band-scatter-chart {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.rate-band-scatter-canvas {
+  min-width: 100%;
+}
+
 .rate-band-table {
   min-width: 0;
 }

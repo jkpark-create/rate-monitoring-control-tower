@@ -2084,6 +2084,8 @@ type RateBandChartMode = 'histogram' | 'scatter';
 type RateScatterAxis = 'origin' | 'destination';
 
 const SCATTER_MAX_LANES = 30;
+const SCATTER_MIN_CHART_WIDTH = 860;
+const SCATTER_WIDTH_PER_LANE = 46;
 const SCATTER_STATUS_ORDER: DetailStatus[] = ['normal', 'average', 'market'];
 const SCATTER_STATUS_COLORS: Record<DetailStatus, string> = {
   normal: '#1f7a5a',
@@ -2223,7 +2225,8 @@ function RateLaneScatter({
         || b.count - a.count
         || a.key.localeCompare(b.key),
     );
-    const lanes = sortedLanes.slice(0, SCATTER_MAX_LANES);
+    const laneLimit = useShipmentLane ? sortedLanes.length : SCATTER_MAX_LANES;
+    const lanes = sortedLanes.slice(0, laneLimit);
     const hiddenLanes = sortedLanes.length - lanes.length;
     const laneIndex = new Map(lanes.map((lane, index) => [lane.key, index]));
 
@@ -2256,6 +2259,7 @@ function RateLaneScatter({
       pointsByStatus,
       pointCount: valueCount,
       averageValue: valueCount ? valueSum / valueCount : null,
+      chartMinWidth: Math.max(SCATTER_MIN_CHART_WIDTH, lanes.length * SCATTER_WIDTH_PER_LANE + 120),
     };
   }, [rates, volumeRates, containerCombo, axis, metric, caseStatusById, shipmentScope]);
 
@@ -2287,8 +2291,9 @@ function RateLaneScatter({
       <p className="summary-drill-note">{text.rateBandScatterNote}</p>
 
       {model.pointCount ? (
-        <div className="rate-band-chart">
-          <ResponsiveContainer width="100%" height={340}>
+        <div className="rate-band-chart rate-band-scatter-chart">
+          <div className="rate-band-scatter-canvas" style={{ minWidth: model.chartMinWidth }}>
+            <ResponsiveContainer width="100%" height={340}>
             <ScatterChart margin={{ top: 12, right: 20, bottom: 28, left: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#eef1f0" />
               <XAxis
@@ -2357,7 +2362,8 @@ function RateLaneScatter({
                 />
               ))}
             </ScatterChart>
-          </ResponsiveContainer>
+            </ResponsiveContainer>
+          </div>
           {model.hiddenLanes > 0 && (
             <p className="rate-scatter-foot">{text.rateBandMoreLanes(model.hiddenLanes)}</p>
           )}
