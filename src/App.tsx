@@ -1274,6 +1274,46 @@ function matchesScope(record: RateRecord, filters: ScopeFilters) {
   );
 }
 
+function equivalentRateKey(record: RateRecord) {
+  return [
+    record.rateApplicationNo,
+    record.effectiveStart,
+    record.laneIndex,
+    record.shipperIndex,
+    record.staff,
+    record.team,
+    record.container,
+    record.cargoProfile,
+    record.containerSize,
+    record.containerType,
+    record.cargoType,
+    record.specialCargoType,
+    record.fullEmptyType,
+    record.approvalStatus,
+    record.ofRate,
+    record.coreRate,
+    record.allInRate,
+    record.marketRate ?? '',
+    record.marketSource,
+    record.blCount ?? '',
+    record.bookingCount ?? '',
+    record.teu ?? '',
+    record.bookingTeu ?? '',
+  ].join('|');
+}
+
+function dedupeEquivalentRates(records: RateRecord[]) {
+  const byKey = new Map<string, RateRecord>();
+  for (const record of records) {
+    const key = equivalentRateKey(record);
+    const current = byKey.get(key);
+    if (!current || record.effectiveEnd > current.effectiveEnd) {
+      byKey.set(key, record);
+    }
+  }
+  return Array.from(byKey.values());
+}
+
 function unique(values: string[]) {
   return Array.from(new Set(values.filter(Boolean))).sort();
 }
@@ -1642,6 +1682,14 @@ function buildPeriodAnalysis(
   includeRows = true,
 ): PeriodAnalysis {
   const activeRates = ignorePeriod ? records : records.filter((record) => overlapsRange(record, periodStart, periodEnd));
+  return buildAnalysisFromActiveRates(activeRates, minimumSamples, includeRows);
+}
+
+function buildAnalysisFromActiveRates(
+  activeRates: RateRecord[],
+  minimumSamples: number,
+  includeRows = true,
+): PeriodAnalysis {
   if (includeRows) {
     const rows = buildDetailRows(activeRates, minimumSamples);
     return {
@@ -2770,7 +2818,7 @@ function AppContent({ data }: { data: MonitoringData }) {
   authRef.current = auth;
   const detailDataRef = useRef<RawRateDetail[] | null>(data.dimensions.rateDetails?.length ? data.dimensions.rateDetails : null);
   const detailPromiseRef = useRef<Promise<RawRateDetail[]> | null>(null);
-  const records = useMemo(() => decodeRecords(data), [data]);
+  const records = useMemo(() => dedupeEquivalentRates(decodeRecords(data)), [data]);
   const [summaryFilters, setSummaryFilters] = useState<FilterState>(() => createDefaultFilters(data));
   const [detailFilters, setDetailFilters] = useState<FilterState>(() => createDefaultFilters(data));
   const [page, setPage] = useState(1);
@@ -2909,39 +2957,59 @@ function AppContent({ data }: { data: MonitoringData }) {
 
   const summaryScope = useMemo(() => filterScope(summaryFilters), [summaryFilters]);
   const detailScope = useMemo(() => filterScope(detailFilters), [detailFilters]);
+  const summaryActiveRates = useMemo(
+    () => {
+      const periodRates = summaryIgnoresPeriod
+        ? records
+        : records.filter((rate) => overlapsRange(rate, summaryFilters.periodStart, summaryFilters.periodEnd));
+      return periodRates.filter((rate) => matchesScope(rate, summaryScope));
+    },
+    [records, summaryFilters.periodEnd, summaryFilters.periodStart, summaryIgnoresPeriod, summaryScope],
+  );
   const summaryPeriodAnalysis = useMemo(
-    () => buildPeriodAnalysis(
-      records,
-      summaryFilters.periodStart,
-      summaryFilters.periodEnd,
+    () => buildAnalysisFromActiveRates(
+      summaryActiveRates,
       data.metadata.marketAverageFallbackMinimumSamples,
-      summaryIgnoresPeriod,
       false,
     ),
-    [data.metadata.marketAverageFallbackMinimumSamples, records, summaryFilters.periodEnd, summaryFilters.periodStart, summaryIgnoresPeriod],
+    [data.metadata.marketAverageFallbackMinimumSamples, summaryActiveRates],
+  );
+  const detailActiveRates = useMemo(
+    () => {
+      if (view !== 'detail') {
+        return [];
+      }
+      const periodRates = detailIgnoresPeriod
+        ? records
+        : records.filter((rate) => overlapsRange(rate, detailFilters.periodStart, detailFilters.periodEnd));
+      return periodRates.filter((rate) => matchesScope(rate, detailScope));
+    },
+    [detailFilters.periodEnd, detailFilters.periodStart, detailIgnoresPeriod, detailScope, records, view],
   );
   const detailPeriodAnalysis = useMemo(
     () => view === 'detail'
-      ? buildPeriodAnalysis(
-        records,
-        detailFilters.periodStart,
-        detailFilters.periodEnd,
+      ? buildAnalysisFromActiveRates(
+        detailActiveRates,
         data.metadata.marketAverageFallbackMinimumSamples,
-        detailIgnoresPeriod,
         true,
       )
       : EMPTY_PERIOD_ANALYSIS,
-    [data.metadata.marketAverageFallbackMinimumSamples, detailFilters.periodEnd, detailFilters.periodStart, detailIgnoresPeriod, records, view],
+    [data.metadata.marketAverageFallbackMinimumSamples, detailActiveRates, view],
   );
-  const summaryRates = useMemo(() => summaryPeriodAnalysis.activeRates.filter((rate) => matchesScope(rate, summaryScope)), [summaryPeriodAnalysis.activeRates, summaryScope]);
+  const summaryRates = summaryPeriodAnalysis.activeRates;
   // Same scope filters as summaryRates but WITHOUT the period window — used to
   // rank the scatter X-axis by each lane's full booking volume regardless of
   // which weeks a rate file happens to be valid in.
-  const summaryVolumeRates = useMemo(() => records.filter((rate) => matchesScope(rate, summaryScope)), [records, summaryScope]);
-  const summaryCases = useMemo(() => summaryPeriodAnalysis.cases.filter((item) => matchesScope(item, summaryScope)), [summaryPeriodAnalysis.cases, summaryScope]);
-  const detailRates = useMemo(() => detailPeriodAnalysis.activeRates.filter((rate) => matchesScope(rate, detailScope)), [detailPeriodAnalysis.activeRates, detailScope]);
-  const detailCases = useMemo(() => detailPeriodAnalysis.cases.filter((item) => matchesScope(item, detailScope)), [detailPeriodAnalysis.cases, detailScope]);
-  const detailRows = useMemo(() => detailPeriodAnalysis.rows.filter((item) => matchesScope(item, detailScope)), [detailPeriodAnalysis.rows, detailScope]);
+  const summaryVolumeRates = useMemo(
+    () => summaryDim === 'rateband' && rateBandChartMode === 'scatter'
+      ? records.filter((rate) => matchesScope(rate, summaryScope))
+      : [],
+    [rateBandChartMode, records, summaryDim, summaryScope],
+  );
+  const summaryCases = summaryPeriodAnalysis.cases;
+  const detailRates = detailPeriodAnalysis.activeRates;
+  const detailCases = detailPeriodAnalysis.cases;
+  const detailRows = detailPeriodAnalysis.rows;
   const filteredCases = useMemo(() => {
     const normalizedQuery = detailFilters.query.trim().toLowerCase();
     // 확인대상(target): 저운임 확인 대상만. All: 전체 운임 조회.
@@ -3415,7 +3483,7 @@ function AppContent({ data }: { data: MonitoringData }) {
             <strong>{text.source.source}</strong>
             <span title={data.metadata.sourceFile}>{data.metadata.sourceFile}</span>
             <span>{text.source.role}</span>
-            <span>{formatNumber(data.metadata.recordCount)} {text.source.records}</span>
+            <span>{formatNumber(records.length)} {text.source.records}</span>
             <span>{text.source.updated} {formatDate(data.metadata.latestSourceDate)}</span>
             <span>{text.source.cache} {data.metadata.generatedAt.replace('T', ' ')}</span>
           </aside>

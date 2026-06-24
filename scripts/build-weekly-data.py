@@ -171,6 +171,17 @@ def parse_date(value):
     return None
 
 
+def parse_datetime(value):
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(value[:19], fmt)
+        except ValueError:
+            pass
+    return None
+
+
 def iso_date(value):
     return value.isoformat()
 
@@ -277,20 +288,39 @@ def charge_basket_from_items(items):
 
 
 def dedupe_basket(basket):
-    """Collapse a '+'-joined charge basket to distinct codes, preserving order.
+    """Collapse a '+'-joined charge basket to distinct codes in canonical order.
 
     The basket arrives as a raw LISTAGG (no DISTINCT, so a code charged in two
     currencies or PP/CC splits repeats) and is then concatenated across rate
     components (so shared codes like DCF repeat again). Both produce the
     duplicated 'O/F+CAC+CAC+...+DCF+DCF+DCF' seen in the detail panel.
+    Different effective-end versions of the same rate can also list identical
+    charge codes in a different source order, so canonical ordering keeps those
+    rows equivalent for dedupe.
     """
-    codes = []
-    seen = set()
-    for code in basket.split("+"):
-        if code and code not in seen:
-            seen.add(code)
-            codes.append(code)
+    codes = sorted(set(filter(None, basket.split("+"))), key=charge_code_sort_key)
     return "+".join(codes)
+
+
+def charge_code_sort_key(code):
+    return (0 if code == "O/F" else 1, code)
+
+
+def charge_item_sort_key(item):
+    code, currency, local_amount, usd_amount, payment_code, category, applied_to_comparison, source, application_type = item
+    local_sort = -1 if local_amount is None else local_amount
+    usd_sort = -1 if usd_amount is None else usd_amount
+    return (
+        charge_code_sort_key(code),
+        0 if applied_to_comparison else 1,
+        category,
+        currency,
+        payment_code,
+        source,
+        application_type,
+        local_sort,
+        usd_sort,
+    )
 
 
 def fallback_charge_items(row):
@@ -329,7 +359,7 @@ def fallback_charge_items(row):
                 "UNKNOWN",
             )
         )
-    return tuple(items)
+    return tuple(sorted(items, key=charge_item_sort_key))
 
 
 def charge_items(row):
@@ -369,7 +399,7 @@ def charge_items(row):
                     application_type,
                 )
             )
-    return tuple(items)
+    return tuple(sorted(items, key=charge_item_sort_key))
 
 
 def rate_detail(row):
@@ -851,16 +881,57 @@ dimensions = {
     "shipmentLinks": [],
 }
 dimension_maps = {key: {} for key in dimensions}
-records = []
-seen_records = set()
+record_candidates = {}
+deduped_rate_rows = 0
 skipped_invalid_date_rows = 0
 skipped_non_of_rows = 0
 latest_source_date = None
 
 rate_source_columns = source_columns(RATE_FILE)
 charge_detail_available = "CHARGE_DETAIL_LIST" in rate_source_columns
+
+
+def record_preference_key(entry):
+    return (
+        entry["source_update"] or datetime.min,
+        entry["effective_end"],
+    )
+
+
+def build_record(entry):
+    return [
+        entry["rate_application_no"],
+        iso_date(entry["effective_start"]),
+        iso_date(entry["effective_end"]),
+        dimension_index(dimensions["lanes"], dimension_maps["lanes"], entry["lane"]),
+        dimension_index(dimensions["shippers"], dimension_maps["shippers"], entry["shipper"]),
+        dimension_index(dimensions["staff"], dimension_maps["staff"], entry["staff"]),
+        dimension_index(dimensions["containers"], dimension_maps["containers"], entry["container"]),
+        dimension_index(dimensions["cargoProfiles"], dimension_maps["cargoProfiles"], entry["cargo"]),
+        entry["of_rate"],
+        entry["market_rate"],
+        dimension_index(dimensions["marketSources"], dimension_maps["marketSources"], entry["market_source"]),
+        dimension_index(dimensions["teams"], dimension_maps["teams"], entry["team"]),
+        dimension_index(dimensions["rateDetails"], dimension_maps["rateDetails"], entry["detail"]),
+        dimension_index(dimensions["containerSizes"], dimension_maps["containerSizes"], entry["container_size"]),
+        dimension_index(dimensions["containerTypes"], dimension_maps["containerTypes"], entry["container_type"]),
+        dimension_index(dimensions["cargoTypes"], dimension_maps["cargoTypes"], entry["cargo_type"]),
+        dimension_index(dimensions["specialCargoTypes"], dimension_maps["specialCargoTypes"], entry["special_cargo_type"]),
+        dimension_index(dimensions["fullEmptyTypes"], dimension_maps["fullEmptyTypes"], entry["full_empty_type"]),
+        dimension_index(dimensions["approvalStatuses"], dimension_maps["approvalStatuses"], entry["approval_status"]),
+        entry["bl_count"],
+        entry["booking_count"],
+        entry["teu"],
+        entry["booking_teu"],
+        dimension_index(dimensions["shipmentLinks"], dimension_maps["shipmentLinks"], entry["shipment_links"]),
+        entry["detail"][12] if entry["detail"][12] is not None else entry["of_rate"],
+        entry["detail"][13] if entry["detail"][13] is not None else (entry["detail"][12] if entry["detail"][12] is not None else entry["of_rate"]),
+    ]
+
+
 for row in dashboard_rows(RATE_FILE, rate_source_columns):
         update_text = row.get("LAST_UPDATE_DATETIME", "")[:10]
+        source_update = parse_datetime(row.get("LAST_UPDATE_DATETIME", ""))
         try:
             update_date = datetime.strptime(update_text, "%Y-%m-%d").date()
             latest_source_date = max(latest_source_date, update_date) if latest_source_date else update_date
@@ -916,7 +987,6 @@ for row in dashboard_rows(RATE_FILE, rate_source_columns):
         record_key = (
             row.get("RATE_APPLICATION_NO", ""),
             effective_start,
-            effective_end,
             lane,
             shipper,
             staff,
@@ -928,41 +998,46 @@ for row in dashboard_rows(RATE_FILE, rate_source_columns):
             market_rate,
             market_source,
             detail,
+            bl_count,
+            booking_count,
+            teu,
+            booking_teu,
+            shipment_links,
         )
-        if record_key in seen_records:
-            continue
-        seen_records.add(record_key)
-
-        records.append(
-            [
-                row.get("RATE_APPLICATION_NO", ""),
-                iso_date(effective_start),
-                iso_date(effective_end),
-                dimension_index(dimensions["lanes"], dimension_maps["lanes"], lane),
-                dimension_index(dimensions["shippers"], dimension_maps["shippers"], shipper),
-                dimension_index(dimensions["staff"], dimension_maps["staff"], staff),
-                dimension_index(dimensions["containers"], dimension_maps["containers"], container),
-                dimension_index(dimensions["cargoProfiles"], dimension_maps["cargoProfiles"], cargo),
-                of_rate,
-                market_rate,
-                dimension_index(dimensions["marketSources"], dimension_maps["marketSources"], market_source),
-                dimension_index(dimensions["teams"], dimension_maps["teams"], team),
-                dimension_index(dimensions["rateDetails"], dimension_maps["rateDetails"], detail),
-                dimension_index(dimensions["containerSizes"], dimension_maps["containerSizes"], container_size),
-                dimension_index(dimensions["containerTypes"], dimension_maps["containerTypes"], container_type),
-                dimension_index(dimensions["cargoTypes"], dimension_maps["cargoTypes"], cargo_type),
-                dimension_index(dimensions["specialCargoTypes"], dimension_maps["specialCargoTypes"], special_cargo_type),
-                dimension_index(dimensions["fullEmptyTypes"], dimension_maps["fullEmptyTypes"], full_empty_type),
-                dimension_index(dimensions["approvalStatuses"], dimension_maps["approvalStatuses"], approval_status),
-                bl_count,
-                booking_count,
-                teu,
-                booking_teu,
-                dimension_index(dimensions["shipmentLinks"], dimension_maps["shipmentLinks"], shipment_links),
-                detail[12] if detail[12] is not None else of_rate,
-                detail[13] if detail[13] is not None else (detail[12] if detail[12] is not None else of_rate),
-            ]
-        )
+        entry = {
+            "rate_application_no": row.get("RATE_APPLICATION_NO", ""),
+            "effective_start": effective_start,
+            "effective_end": effective_end,
+            "lane": lane,
+            "shipper": shipper,
+            "staff": staff,
+            "team": team,
+            "container": container,
+            "cargo": cargo,
+            "approval_status": approval_status,
+            "container_size": container_size,
+            "container_type": container_type,
+            "cargo_type": cargo_type,
+            "special_cargo_type": special_cargo_type,
+            "full_empty_type": full_empty_type,
+            "of_rate": of_rate,
+            "market_rate": market_rate,
+            "market_source": market_source,
+            "detail": detail,
+            "bl_count": bl_count,
+            "booking_count": booking_count,
+            "teu": teu,
+            "booking_teu": booking_teu,
+            "shipment_links": shipment_links,
+            "source_update": source_update,
+        }
+        current = record_candidates.get(record_key)
+        if current is None:
+            record_candidates[record_key] = entry
+        else:
+            deduped_rate_rows += 1
+            if record_preference_key(entry) > record_preference_key(current):
+                record_candidates[record_key] = entry
 
 if latest_source_date is None:
     latest_source_date = date.today()
@@ -982,6 +1057,7 @@ while cursor <= default_week:
 
 window_end = default_week + timedelta(days=6)
 data_window_end = window_end + timedelta(days=FUTURE_WINDOW_DAYS)
+records = [build_record(entry) for entry in record_candidates.values()]
 records = [record for record in records if record[1] <= iso_date(data_window_end) and record[2] >= iso_date(first_week)]
 
 payload = {
@@ -1019,6 +1095,7 @@ payload = {
         "teamOptions": list(HQ_ROUTE_TEAMS),
         "recordCount": len(records),
         "rateDetailCount": len(dimensions["rateDetails"]),
+        "dedupedEquivalentRateRows": deduped_rate_rows,
         "detailSourceFile": DETAIL_OUTPUT_FILE.name,
         "skippedInvalidDateRows": skipped_invalid_date_rows,
         "skippedNonOfRows": skipped_non_of_rows,
