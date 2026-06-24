@@ -1096,6 +1096,10 @@ function hasShipmentFilter(filters: Pick<ScopeFilters, 'route' | 'vessel' | 'voy
   return Boolean(filters.route.length || filters.vessel.length || filters.voyage.length);
 }
 
+function usesCargoLaneForShipmentScope(filters: Pick<ScopeFilters, 'vessel' | 'voyage'>) {
+  return Boolean(filters.vessel.length || filters.voyage.length);
+}
+
 function hasShipmentLocationFilter(filters: Pick<ScopeFilters, 'originCountry' | 'originPort' | 'destinationCountry' | 'destinationPort'>) {
   return Boolean(filters.originCountry.length || filters.originPort.length || filters.destinationCountry.length || filters.destinationPort.length);
 }
@@ -1155,7 +1159,8 @@ function shipmentAnalysisLaneLabels(record: RateRecord, filters: ScopeFilters) {
   if (!hasShipmentFilter(filters)) {
     return [rateLaneLabel(record)];
   }
-  const labels = unique(matchingShipmentLinks(record, filters).map(shipmentLegLaneLabel).filter(Boolean));
+  const labelFn = usesCargoLaneForShipmentScope(filters) ? shipmentCargoLaneLabel : shipmentLegLaneLabel;
+  const labels = unique(matchingShipmentLinks(record, filters).map(labelFn).filter(Boolean));
   return labels.length ? labels : [rateLaneLabel(record)];
 }
 
@@ -2364,6 +2369,7 @@ function RateLaneScatter({
     const comboRates = rates.filter((record) => `${record.containerSize}|${record.containerType}` === containerCombo);
     const comboShipmentVolumes = shipmentVolumes.filter((volume) => `${volume.containerSize}|${volume.containerType}` === containerCombo);
     const useShipmentLane = hasShipmentFilter(shipmentScope);
+    const useCargoLane = usesCargoLaneForShipmentScope(shipmentScope);
     const laneEntriesOf = (record: RateRecord) => {
       if (!useShipmentLane) {
         const key = axis === 'origin'
@@ -2374,11 +2380,19 @@ function RateLaneScatter({
       }
       const entries = matchingShipmentLinks(record, shipmentScope).map((link) => {
         const key = axis === 'origin'
-          ? (link.legOriginPort || link.bookingPorPort || record.porPort || record.porCountry)
-          : (link.legDestinationPort || link.bookingDlyPort || record.dlyPort || record.dlyCountry);
+          ? (useCargoLane
+            ? (link.bookingPorPort || link.legOriginPort || record.porPort || record.porCountry)
+            : (link.legOriginPort || link.bookingPorPort || record.porPort || record.porCountry))
+          : (useCargoLane
+            ? (link.bookingDlyPort || link.legDestinationPort || record.dlyPort || record.dlyCountry)
+            : (link.legDestinationPort || link.bookingDlyPort || record.dlyPort || record.dlyCountry));
         const country = axis === 'origin'
-          ? (link.legOriginCountry || link.bookingPorCountry || record.porCountry)
-          : (link.legDestinationCountry || link.bookingDlyCountry || record.dlyCountry);
+          ? (useCargoLane
+            ? (link.bookingPorCountry || link.legOriginCountry || record.porCountry)
+            : (link.legOriginCountry || link.bookingPorCountry || record.porCountry))
+          : (useCargoLane
+            ? (link.bookingDlyCountry || link.legDestinationCountry || record.dlyCountry)
+            : (link.legDestinationCountry || link.bookingDlyCountry || record.dlyCountry));
         return { key, country, volume: link.bookingTeu || link.teu || record.teu || 0 };
       }).filter((entry) => entry.key);
       const deduped = new Map<string, { key: string; country: string; volume: number }>();
@@ -2391,11 +2405,19 @@ function RateLaneScatter({
     };
     const laneEntryOfShipmentVolume = (volume: ShipmentVolume) => {
       const key = axis === 'origin'
-        ? (volume.legOriginPort || volume.bookingPorPort)
-        : (volume.legDestinationPort || volume.bookingDlyPort);
+        ? (useCargoLane
+          ? (volume.bookingPorPort || volume.legOriginPort)
+          : (volume.legOriginPort || volume.bookingPorPort))
+        : (useCargoLane
+          ? (volume.bookingDlyPort || volume.legDestinationPort)
+          : (volume.legDestinationPort || volume.bookingDlyPort));
       const country = axis === 'origin'
-        ? (volume.legOriginCountry || volume.bookingPorCountry)
-        : (volume.legDestinationCountry || volume.bookingDlyCountry);
+        ? (useCargoLane
+          ? (volume.bookingPorCountry || volume.legOriginCountry)
+          : (volume.legOriginCountry || volume.bookingPorCountry))
+        : (useCargoLane
+          ? (volume.bookingDlyCountry || volume.legDestinationCountry)
+          : (volume.legDestinationCountry || volume.bookingDlyCountry));
       return key ? { key, country, volume: volume.bookingTeu || volume.teu || 0 } : null;
     };
 
