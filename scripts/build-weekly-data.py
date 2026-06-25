@@ -804,12 +804,21 @@ def build_booking_usage(path):
                     shipment = {
                         "bookings": set(),
                         "bls": set(),
+                        "bookingDetails": {},
                         "departureStart": "",
                         "departureEnd": "",
                         "bookingTeu": 0.0,
                         "shippedTeu": 0.0,
                     }
                     entry["shipmentLinks"][shipment_key] = shipment
+                booking_detail_key = (booking_no, bl_no)
+                if booking_detail_key not in shipment["bookingDetails"]:
+                    shipment["bookingDetails"][booking_detail_key] = {
+                        "bookingNo": booking_no,
+                        "blNo": bl_no,
+                        "teu": number(row.get("TOTAL_TEU")),
+                        "hasBl": has_bl,
+                    }
                 if has_bl and bl_no:
                     shipment["bls"].add(bl_no)
                 if booking_no not in shipment["bookings"]:
@@ -841,6 +850,18 @@ def build_booking_usage(path):
             booking_dly_country,
             booking_dly_port,
         ), shipment in entry["shipmentLinks"].items():
+            booking_details = tuple(
+                (
+                    detail["bookingNo"],
+                    detail["blNo"],
+                    round(detail["teu"], 1),
+                    detail["hasBl"],
+                )
+                for detail in sorted(
+                    shipment["bookingDetails"].values(),
+                    key=lambda item: (item["bookingNo"], item["blNo"]),
+                )
+            )
             shipment_links.append(
                 (
                     vessel,
@@ -861,6 +882,7 @@ def build_booking_usage(path):
                     leg_destination_port,
                     booking_dly_country,
                     booking_dly_port,
+                    booking_details,
                 )
             )
         shipment_links.sort(key=lambda item: (item[6] or "99999999", sortable_leg_seq(item[9]), item[11], item[15], item[8], item[0], item[1]))
@@ -1157,6 +1179,33 @@ payload = {
             "coreRate",
             "allInRate",
             "chargeItems",
+        ],
+        "shipmentLinkSchema": [
+            "vesselCode",
+            "voyageNo",
+            "blCount",
+            "bookingCount",
+            "teu",
+            "bookingTeu",
+            "departureStart",
+            "departureEnd",
+            "routeName",
+            "legSeq",
+            "bookingPorCountry",
+            "bookingPorPort",
+            "legOriginCountry",
+            "legOriginPort",
+            "legDestinationCountry",
+            "legDestinationPort",
+            "bookingDlyCountry",
+            "bookingDlyPort",
+            "bookingDetails",
+        ],
+        "shipmentLinkBookingDetailSchema": [
+            "bookingNo",
+            "blNo",
+            "teu",
+            "hasBl",
         ],
     },
     "weeks": weeks,

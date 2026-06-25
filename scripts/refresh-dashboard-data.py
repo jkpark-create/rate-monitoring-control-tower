@@ -43,6 +43,7 @@ REFERENCE_EXTRACTS = (
         {
             "RATE_APPLICATION_NO",
             "BOOKING_NO",
+            "BL_NO",
             "ROUTE_NAME",
             "LEG_SEQ",
             "POR_COUNTRY",

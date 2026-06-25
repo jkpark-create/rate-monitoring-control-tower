@@ -721,12 +721,6 @@ td strong {
   font-variant-numeric: tabular-nums;
 }
 
-.shipment-link-cell {
-  max-width: 210px;
-  overflow-wrap: anywhere;
-  line-height: 1.35;
-}
-
 table.summary-table {
   width: 100%;
   min-width: 900px;
@@ -1322,6 +1316,183 @@ tr.rate-band-case:hover td {
   color: #806316;
 }
 
+.shipment-drilldown-section {
+  min-width: 0;
+  margin-top: 14px;
+}
+
+.shipment-drilldown-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid #dce3e0;
+  border-radius: 6px;
+  background: #f8faf9;
+  color: #34404a;
+  text-align: left;
+}
+
+.shipment-drilldown-toggle:disabled {
+  cursor: default;
+}
+
+.shipment-drilldown-toggle > span:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.shipment-drilldown-toggle span span,
+.shipment-link-route span,
+.shipment-link-volume span,
+.shipment-booking-heading span {
+  display: block;
+  color: #6b7780;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.shipment-drilldown-toggle strong {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.shipment-drilldown-action {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  color: #52646f;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.shipment-drilldown-action svg {
+  transition: transform 0.16s ease;
+}
+
+.shipment-drilldown-toggle[aria-expanded="true"] .shipment-drilldown-action svg {
+  transform: rotate(90deg);
+}
+
+.shipment-drilldown-body {
+  margin-top: 8px;
+}
+
+.shipment-drilldown-body > p {
+  margin: 0 0 7px;
+  color: #6b7780;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.shipment-link-list {
+  display: grid;
+  gap: 5px;
+}
+
+.shipment-link-row {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #dce3e0;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #34404a;
+  text-align: left;
+}
+
+.shipment-link-row.active {
+  border-color: #7bb49c;
+  background: #eff8f4;
+  box-shadow: inset 3px 0 #1f7a5a;
+}
+
+.shipment-link-route,
+.shipment-link-volume {
+  min-width: 0;
+}
+
+.shipment-link-route strong,
+.shipment-link-volume strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.shipment-link-volume {
+  text-align: right;
+}
+
+.shipment-booking-panel {
+  overflow: hidden;
+  margin-top: 8px;
+  border: 1px solid #dce3e0;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.shipment-booking-heading {
+  padding: 8px;
+  border-bottom: 1px solid #e6ebe9;
+  background: #f8faf9;
+}
+
+.shipment-booking-heading strong {
+  display: block;
+  color: #34404a;
+  font-size: 12px;
+}
+
+.shipment-booking-list {
+  max-height: 230px;
+  overflow: auto;
+}
+
+.shipment-booking-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 54px;
+  gap: 1px;
+  border-bottom: 1px solid #e6ebe9;
+  background: #e6ebe9;
+}
+
+.shipment-booking-row:last-child {
+  border-bottom: 0;
+}
+
+.shipment-booking-row > div {
+  min-width: 0;
+  padding: 7px 8px;
+  background: #ffffff;
+}
+
+.shipment-booking-row span,
+.shipment-booking-row strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.shipment-booking-row span {
+  color: #6b7780;
+}
+
+.shipment-booking-row strong {
+  margin-top: 2px;
+  color: #34404a;
+}
+
 .detail-meta-grid {
   display: grid;
   overflow: hidden;
@@ -1651,6 +1822,22 @@ tr.rate-band-case:hover td {
 
   .metric-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shipment-drilldown-toggle,
+  .shipment-link-row,
+  .shipment-booking-row {
+    grid-template-columns: 1fr;
+  }
+
+  .shipment-drilldown-toggle {
+    display: grid;
+  }
+
+  .shipment-drilldown-action,
+  .shipment-link-volume {
+    justify-content: flex-start;
+    text-align: left;
   }
 
   .lane-list {

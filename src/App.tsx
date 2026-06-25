@@ -86,6 +86,14 @@ type RawShipmentLink = [
   legDestinationPort?: string,
   bookingDlyCountry?: string,
   bookingDlyPort?: string,
+  bookingDetails?: RawShipmentBooking[],
+];
+
+type RawShipmentBooking = [
+  bookingNo: string,
+  blNo: string,
+  teu: number,
+  hasBl?: boolean,
 ];
 
 type RawShipmentVolume = [
@@ -182,6 +190,8 @@ type MonitoringData = {
     skippedNonOfRows: number;
     recordSchema: string[];
     rateDetailSchema: string[];
+    shipmentLinkSchema?: string[];
+    shipmentLinkBookingDetailSchema?: string[];
     shipmentVolumeSchema?: string[];
   };
   weeks: { value: string; label: string }[];
@@ -311,6 +321,14 @@ type ShipmentLink = {
   bookingTeu: number;
   departureStart: string;
   departureEnd: string;
+  bookingDetails: ShipmentBooking[];
+};
+
+type ShipmentBooking = {
+  bookingNo: string;
+  blNo: string;
+  teu: number;
+  hasBl: boolean;
 };
 
 type ShipmentVolume = {
@@ -575,9 +593,19 @@ const UI_COPY = {
       usageValue: '부킹 {bkg}건 · {bkgTeu} TEU · BL {bl}건 · {teu} TEU',
       usageNone: '미사용 (부킹·BL 없음)',
       usageUnavailable: '데이터 갱신 후 표시',
-      shipmentLink: '선박/항차 링크',
-      shipmentLinkShort: '선박/항차',
       shipmentLinkNone: '링크 없음',
+      linkedTeu: '연결 TEU',
+      linkedTeuAction: '항로/모선/항차별 보기',
+      linkedTeuSummary: '부킹 {bkg}건 · {bkgTeu} TEU · B/L {bl}건 · {teu} TEU',
+      linkedTeuNone: '연결 TEU 없음',
+      linkedRouteVessel: '항로 / 모선 / 항차',
+      linkedVolume: '적용 물량',
+      linkedBookingDetails: '부킹 / B/L 번호',
+      linkedSelectHint: '항로 행을 선택하면 연결된 부킹번호와 B/L번호가 표시됩니다.',
+      bookingNo: '부킹번호',
+      blNo: 'B/L번호',
+      noBl: 'B/L 미생성',
+      bookingDetailsUnavailable: '부킹/B/L 번호는 데이터 갱신 후 표시됩니다.',
     },
     charge: {
       title: 'Charge 항목',
@@ -795,9 +823,19 @@ const UI_COPY = {
       usageValue: 'Bookings {bkg} · {bkgTeu} TEU · B/L {bl} · {teu} TEU',
       usageNone: 'Unused (no booking or B/L)',
       usageUnavailable: 'Available after next data refresh',
-      shipmentLink: 'Vessel/Voyage Links',
-      shipmentLinkShort: 'Vessel/Voy.',
       shipmentLinkNone: 'No linked B/L',
+      linkedTeu: 'Linked TEU',
+      linkedTeuAction: 'Show by route / vessel / voyage',
+      linkedTeuSummary: 'Bookings {bkg} · {bkgTeu} TEU · B/L {bl} · {teu} TEU',
+      linkedTeuNone: 'No linked TEU',
+      linkedRouteVessel: 'Route / Vessel / Voyage',
+      linkedVolume: 'Applied Volume',
+      linkedBookingDetails: 'Booking / B/L Numbers',
+      linkedSelectHint: 'Select a route row to show the linked booking and B/L numbers.',
+      bookingNo: 'Booking No.',
+      blNo: 'B/L No.',
+      noBl: 'No B/L',
+      bookingDetailsUnavailable: 'Booking and B/L numbers are available after the next data refresh.',
     },
     charge: {
       title: 'Charge Items',
@@ -1104,7 +1142,7 @@ function hasShipmentLocationFilter(filters: Pick<ScopeFilters, 'originCountry' |
   return Boolean(filters.originCountry.length || filters.originPort.length || filters.destinationCountry.length || filters.destinationPort.length);
 }
 
-function shipmentMatches(link: ShipmentLink, route: string[], vessel: string[], voyage: string[]) {
+function shipmentMatches(link: Pick<ShipmentLink, 'routeName' | 'vesselCode' | 'voyageNo'>, route: string[], vessel: string[], voyage: string[]) {
   return hasSelection(route, routeValue(link)) && hasSelection(vessel, link.vesselCode) && hasSelection(voyage, link.voyageNo);
 }
 
@@ -1275,34 +1313,51 @@ function formatFullEmptyType(value: string) {
   return formatCodeLabel(value, FULL_EMPTY_TYPE_LABELS);
 }
 
-function formatDepartureRange(link: ShipmentLink) {
-  if (link.departureStart && link.departureEnd && link.departureStart !== link.departureEnd) {
-    return `${formatDate(link.departureStart)} ~ ${formatDate(link.departureEnd)}`;
-  }
-  return link.departureStart ? formatDate(link.departureStart) : '';
+function shipmentLinkKey(link: ShipmentLink, index: number) {
+  return [
+    index,
+    link.routeName,
+    link.legSeq,
+    link.vesselCode,
+    link.voyageNo,
+    link.bookingPorPort,
+    link.legOriginPort,
+    link.legDestinationPort,
+    link.bookingDlyPort,
+  ].join('|');
 }
 
-function formatShipmentLinkLine(link: ShipmentLink, language: Language) {
-  const blUnit = language === 'ko' ? '건' : '';
-  const bookingUnit = language === 'ko' ? '건' : '';
-  const departure = formatDepartureRange(link);
-  const legPrefix = link.legSeq ? `Leg ${link.legSeq} / ` : '';
-  const routePrefix = `${legPrefix}${link.routeName ? `${link.routeName} / ` : ''}${link.vesselCode || '-'} / ${link.voyageNo || '-'}`;
-  const cargoLane = shipmentCargoLaneLabel(link);
-  const legLane = shipmentLegLaneLabel(link);
-  const laneLabel = cargoLane && legLane && cargoLane !== legLane ? `${cargoLane} · ${legLane}` : cargoLane || legLane;
-  const volume = `BKG ${formatNumber(link.bookingCount)}${bookingUnit} ${formatNumber(link.bookingTeu)} TEU · BL ${formatNumber(link.blCount)}${blUnit} ${formatNumber(link.teu)} TEU`;
-  const base = [laneLabel, routePrefix, volume].filter(Boolean).join(' · ');
-  return departure ? `${base} · ${departure}` : base;
+function shipmentLinkRouteLabel(link: ShipmentLink) {
+  return [link.routeName || '-', link.legSeq ? `Leg ${link.legSeq}` : ''].filter(Boolean).join(' · ');
 }
 
-function formatShipmentLinkSummary(links: ShipmentLink[], language: Language) {
+function shipmentLinkVesselVoyageLabel(link: ShipmentLink) {
+  return `${link.vesselCode || '-'} / ${link.voyageNo || '-'}`;
+}
+
+function shipmentLinkTotals(links: ShipmentLink[]) {
+  return links.reduce(
+    (totals, link) => ({
+      blCount: totals.blCount + link.blCount,
+      bookingCount: totals.bookingCount + link.bookingCount,
+      teu: totals.teu + link.teu,
+      bookingTeu: totals.bookingTeu + link.bookingTeu,
+    }),
+    { blCount: 0, bookingCount: 0, teu: 0, bookingTeu: 0 },
+  );
+}
+
+function formatLinkedTeuSummary(links: ShipmentLink[], language: Language) {
+  const text = UI_COPY[language].detail;
   if (!links.length) {
-    return UI_COPY[language].detail.shipmentLinkNone;
+    return text.linkedTeuNone;
   }
-  const visible = links.slice(0, 3).map((link) => formatShipmentLinkLine(link, language));
-  const suffix = links.length > visible.length ? ` +${links.length - visible.length}` : '';
-  return `${visible.join(', ')}${suffix}`;
+  const totals = shipmentLinkTotals(links);
+  return text.linkedTeuSummary
+    .replace('{bkg}', formatNumber(totals.bookingCount))
+    .replace('{bkgTeu}', formatNumber(totals.bookingTeu))
+    .replace('{bl}', formatNumber(totals.blCount))
+    .replace('{teu}', formatNumber(totals.teu));
 }
 
 function formatShipmentLaneSummary(links: ShipmentLink[]) {
@@ -1621,6 +1676,7 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
         legDestinationPort,
         bookingDlyCountry,
         bookingDlyPort,
+        bookingDetails,
       ]) => ({
         routeName: routeName ?? '',
         legSeq: legSeq ?? '',
@@ -1640,6 +1696,12 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
         bookingTeu,
         departureStart,
         departureEnd,
+        bookingDetails: (bookingDetails ?? []).map(([bookingNo, blNo, teu, hasBl = Boolean(blNo)]) => ({
+          bookingNo: bookingNo ?? '',
+          blNo: blNo ?? '',
+          teu: typeof teu === 'number' ? teu : 0,
+          hasBl,
+        })),
       })),
     };
   });
@@ -2193,6 +2255,115 @@ function RateBreakdown({ detail, language }: { detail: RateDetail; language: Lan
   );
 }
 
+function ShipmentLinkDrilldown({ rate, links, language }: { rate: DetailRateRow; links: ShipmentLink[]; language: Language }) {
+  const text = UI_COPY[language].detail;
+  const [expanded, setExpanded] = useState(false);
+  const [selectedLinkKey, setSelectedLinkKey] = useState<string | null>(null);
+  const linkSignature = links.map((link, index) => shipmentLinkKey(link, index)).join('~');
+
+  useEffect(() => {
+    setExpanded(false);
+    setSelectedLinkKey(null);
+  }, [rate.id, linkSignature]);
+
+  const linkEntries = links.map((link, index) => ({
+    key: shipmentLinkKey(link, index),
+    link,
+  }));
+  const selectedEntry = linkEntries.find((entry) => entry.key === selectedLinkKey) ?? null;
+
+  function toggleExpanded() {
+    const nextExpanded = !expanded;
+    setExpanded(nextExpanded);
+    if (nextExpanded && !selectedLinkKey && linkEntries.length) {
+      setSelectedLinkKey(linkEntries[0].key);
+    }
+  }
+
+  return (
+    <section className="shipment-drilldown-section">
+      <button
+        className="shipment-drilldown-toggle"
+        type="button"
+        onClick={toggleExpanded}
+        disabled={!links.length}
+        aria-expanded={expanded}
+      >
+        <span>
+          <span>{text.linkedTeu}</span>
+          <strong>{formatLinkedTeuSummary(links, language)}</strong>
+        </span>
+        <span className="shipment-drilldown-action">
+          {links.length ? text.linkedTeuAction : text.shipmentLinkNone}
+          <ChevronRight size={15} aria-hidden="true" />
+        </span>
+      </button>
+
+      {expanded && links.length ? (
+        <div className="shipment-drilldown-body">
+          <p>{text.linkedSelectHint}</p>
+          <div className="shipment-link-list">
+            {linkEntries.map(({ key, link }) => {
+              const selected = key === selectedLinkKey;
+              const cargoLane = shipmentCargoLaneLabel(link);
+              const legLane = shipmentLegLaneLabel(link);
+              const laneLabel = cargoLane && legLane && cargoLane !== legLane ? `${cargoLane} · ${legLane}` : cargoLane || legLane || '-';
+              return (
+                <button
+                  className={`shipment-link-row${selected ? ' active' : ''}`}
+                  type="button"
+                  key={key}
+                  onClick={() => setSelectedLinkKey(key)}
+                >
+                  <span className="shipment-link-route">
+                    <strong>{shipmentLinkRouteLabel(link)}</strong>
+                    <span>{shipmentLinkVesselVoyageLabel(link)} · {laneLabel}</span>
+                  </span>
+                  <span className="shipment-link-volume">
+                    <strong>{formatNumber(link.bookingTeu)} TEU</strong>
+                    <span>B/L {formatNumber(link.teu)} TEU · {formatNumber(link.bookingCount)} BKG</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {selectedEntry ? (
+            <div className="shipment-booking-panel">
+              <div className="shipment-booking-heading">
+                <strong>{text.linkedBookingDetails}</strong>
+                <span>{shipmentLinkRouteLabel(selectedEntry.link)} · {shipmentLinkVesselVoyageLabel(selectedEntry.link)}</span>
+              </div>
+              {selectedEntry.link.bookingDetails.length ? (
+                <div className="shipment-booking-list">
+                  {selectedEntry.link.bookingDetails.map((booking, index) => (
+                    <div className="shipment-booking-row" key={`${booking.bookingNo}-${booking.blNo}-${index}`}>
+                      <div>
+                        <span>{text.bookingNo}</span>
+                        <strong>{booking.bookingNo || '-'}</strong>
+                      </div>
+                      <div>
+                        <span>{text.blNo}</span>
+                        <strong>{booking.blNo || text.noBl}</strong>
+                      </div>
+                      <div>
+                        <span>TEU</span>
+                        <strong>{formatNumber(booking.teu)}</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="charge-data-note">{text.bookingDetailsUnavailable}</p>
+              )}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function RateDetailPanel({
   rate,
   detail,
@@ -2257,7 +2428,6 @@ function RateDetailPanel({
         <div><span>{text.salesStaff}</span><strong>{rate.staff}</strong></div>
         <div className="detail-wide"><span>{text.company}</span><strong>{rate.shipperCode || '-'} / {rate.shipperName || '-'}</strong></div>
         <div className="detail-wide"><span>{text.usage}</span><strong className={`usage-value ${usageClass}`}>{usageLabel}</strong></div>
-        <div className="detail-wide"><span>{text.shipmentLink}</span><strong>{formatShipmentLinkSummary(shipmentLinks, language)}</strong></div>
       </div>
       {detail ? (
         <RateBreakdown detail={detail} language={language} />
@@ -2271,6 +2441,7 @@ function RateDetailPanel({
           </p>
         </section>
       )}
+      <ShipmentLinkDrilldown rate={rate} links={shipmentLinks} language={language} />
     </aside>
   );
 }
@@ -4173,7 +4344,6 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
                         <th>{text.detail.gap}</th>
                         <th>{text.detail.salesStaff}</th>
                         <th>{text.detail.company}</th>
-                        <th>{text.detail.shipmentLinkShort}</th>
                         <th>{text.detail.validPeriod}</th>
                       </tr>
                     </thead>
@@ -4214,13 +4384,12 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
                           </td>
                           <td>{item.staff}</td>
                           <td><strong>{item.shipperCode || '-'}</strong><span>{item.shipperName || 'No company name'}</span></td>
-                          <td className="shipment-link-cell">{formatShipmentLinkSummary(shipmentLinks, language)}</td>
                           <td>{formatDate(item.effectiveStart)}<span>~ {formatDate(item.effectiveEnd)}</span></td>
                         </tr>
                         );
                       }) : (
                         <tr>
-                          <td colSpan={13} className="empty-cell">{text.detail.empty}</td>
+                          <td colSpan={12} className="empty-cell">{text.detail.empty}</td>
                         </tr>
                       )}
                     </tbody>
