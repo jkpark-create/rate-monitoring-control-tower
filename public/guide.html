@@ -172,6 +172,35 @@
       background: #fff;
     }
     .mini-card h3 { margin-top: 0; }
+    .guide-figure {
+      margin: 16px 0;
+      padding: 12px;
+      border: 1px solid #dce3e0;
+      border-radius: 10px;
+      background: #ffffff;
+    }
+    .guide-figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid #d8e1dd;
+      border-radius: 8px;
+      background: #eef2f0;
+    }
+    .guide-figure figcaption {
+      margin-top: 9px;
+      color: #53616a;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .figure-legend {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 18px;
+      margin-top: 10px;
+      padding-left: 24px;
+      font-size: 13px;
+    }
     .footer { margin: 24px 270px 0 0; color: #687580; font-size: 12px; text-align: center; }
     .en { display: none; }
     body.lang-en .ko { display: none; }
@@ -195,7 +224,7 @@
         grid-template-columns: 1fr;
         margin: 18px 0;
       }
-      .grid-2, .logic-flow { grid-template-columns: 1fr; }
+      .grid-2, .logic-flow, .figure-legend { grid-template-columns: 1fr; }
       .topbar { align-items: flex-start; flex-direction: column; }
       .actions { justify-content: flex-start; }
       section.card, .hero { padding: 16px; }
@@ -286,6 +315,20 @@
         <li><strong>조치 판단:</strong> Market 저운임인지 기간 AVG 저운임인지, Gap 금액이 큰지, WAIVE/Basic Tariff 등 상세 조회 항목인지 확인 후 담당자 확인 대상을 정합니다.</li>
       </ol>
       <div class="callout warning"><strong>집계/상세 필터 분리:</strong> 집계 탭에서 보던 조건과 상세 탭에서 검토하는 조건은 별도로 유지됩니다. 상세에서 조건을 바꿔도 집계로 돌아오면 기존 집계 조건이 유지됩니다.</div>
+      <h3>화면 지도</h3>
+      <p>아래 이미지는 공개 가이드에 넣기 위해 실제 화주명과 번호를 사용하지 않은 마스킹 예시입니다. 번호를 기준으로 화면 영역과 설명을 함께 보면 됩니다.</p>
+      <figure class="guide-figure">
+        <img src="./assets/guide-dashboard-map.svg" alt="대시보드 주요 영역 번호 안내 이미지" />
+        <figcaption>집계 화면에서 먼저 확인할 영역입니다.</figcaption>
+        <ol class="figure-legend">
+          <li><strong>Source / Cache:</strong> 사용 중인 데이터 파일과 캐시 시각입니다.</li>
+          <li><strong>Filters:</strong> 기간, 구간, 장비, 사용 실적, 업체, 운임번호를 좁히는 영역입니다.</li>
+          <li><strong>KPI:</strong> 전체 규모와 저운임 발생 규모를 빠르게 확인합니다.</li>
+          <li><strong>Aggregated Analysis:</strong> 운임대별 분포와 저운임 위치를 봅니다.</li>
+          <li><strong>Focus Lanes:</strong> 확인 대상이 큰 Lane부터 상세로 들어갑니다.</li>
+          <li><strong>User Guide:</strong> 현재 문서로 돌아오는 버튼입니다.</li>
+        </ol>
+      </figure>
     </section>
 
     <section class="card en" id="workflow-en">
@@ -301,6 +344,20 @@
         <li><strong>Decide action:</strong> Check whether the case is Market Low or Period AVG Low, the gap amount, and whether charge items are comparison-applied or detail-only.</li>
       </ol>
       <div class="callout warning"><strong>Separated filters:</strong> Summary and Detail filters are maintained separately. Changing detail filters does not overwrite the Summary view.</div>
+      <h3>Screen Map</h3>
+      <p>The image below is a masked example for the public guide. Use the numbered markers to connect each UI area with its explanation.</p>
+      <figure class="guide-figure">
+        <img src="./assets/guide-dashboard-map.svg" alt="Numbered guide image for the dashboard overview" />
+        <figcaption>Main areas to read first in the Summary view.</figcaption>
+        <ol class="figure-legend">
+          <li><strong>Source / Cache:</strong> Current source file and cache timestamp.</li>
+          <li><strong>Filters:</strong> Narrow by period, lane, equipment, usage, company, and Rate No.</li>
+          <li><strong>KPI:</strong> Quick read of total scope and low-rate volume.</li>
+          <li><strong>Aggregated Analysis:</strong> Rate-band distribution and low-rate position.</li>
+          <li><strong>Focus Lanes:</strong> Start review from high-volume or high-count lanes.</li>
+          <li><strong>User Guide:</strong> Opens this guide from the dashboard.</li>
+        </ol>
+      </figure>
     </section>
 
     <section class="card ko" id="filters">
@@ -420,6 +477,18 @@
         <li>항로 행을 선택하면 아래 `부킹 / B/L 번호` 영역에 Booking No., B/L No., TEU가 표시됩니다.</li>
         <li>B/L이 아직 생성되지 않은 booking은 Booking No.와 TEU를 표시하고 B/L 칸은 `B/L 미생성`으로 표시합니다.</li>
       </ol>
+      <figure class="guide-figure">
+        <img src="./assets/guide-detail-map.svg" alt="상세 검토와 Booking/B/L 번호 조회 영역 번호 안내 이미지" />
+        <figcaption>상세 화면에서는 행 선택 후 오른쪽 패널에서 운임 구성과 사용 실적을 함께 확인합니다.</figcaption>
+        <ol class="figure-legend">
+          <li><strong>상세 탭:</strong> 확인 대상 운임 목록으로 전환합니다.</li>
+          <li><strong>운임 행:</strong> Rate No. 행을 클릭해 오른쪽 상세 패널을 엽니다.</li>
+          <li><strong>Rate Detail:</strong> Lane, 화물 조건, 등록 O/F, 비교 기준을 확인합니다.</li>
+          <li><strong>Linked TEU:</strong> 사용 실적 요약을 열어 항로별로 나눠 봅니다.</li>
+          <li><strong>Route / Vessel / Voyage:</strong> 배/항차 행을 선택해 상세 번호 목록을 바꿉니다.</li>
+          <li><strong>Booking / B/L Numbers:</strong> Booking No., B/L No., TEU를 확인합니다.</li>
+        </ol>
+      </figure>
       <div class="callout"><strong>갱신 조건:</strong> 이 기능은 최신 booking usage CSV와 shipment link metadata가 있는 캐시에서 동작합니다. 숫자는 보이는데 번호 목록이 `데이터 갱신 후 표시`로 나오면 운영 JSON 업로드가 최신인지 확인합니다.</div>
       <h3>Charge 항목 해석</h3>
       <ul>
@@ -454,6 +523,18 @@
         <li>Select a route row to show Booking No., B/L No., and TEU in the `Booking / B/L Numbers` area.</li>
         <li>If a B/L has not been created yet, the Booking No. and TEU are shown and the B/L field displays `No B/L`.</li>
       </ol>
+      <figure class="guide-figure">
+        <img src="./assets/guide-detail-map.svg" alt="Numbered guide image for detail review and Booking/B/L number drilldown" />
+        <figcaption>In Detail view, select a row and use the right panel to connect rate composition with actual usage.</figcaption>
+        <ol class="figure-legend">
+          <li><strong>Detail tab:</strong> Switch to the rate review list.</li>
+          <li><strong>Rate row:</strong> Click a Rate No. row to open the side panel.</li>
+          <li><strong>Rate Detail:</strong> Check lane, cargo condition, registered O/F, and benchmark.</li>
+          <li><strong>Linked TEU:</strong> Open usage by route/vessel/voyage.</li>
+          <li><strong>Route / Vessel / Voyage:</strong> Select a row to change the number list.</li>
+          <li><strong>Booking / B/L Numbers:</strong> Review Booking No., B/L No., and TEU.</li>
+        </ol>
+      </figure>
       <div class="callout"><strong>Refresh requirement:</strong> This feature requires a current cache with booking usage and shipment link metadata. If counts appear but the number list says it is available after refresh, check that the production JSON upload is current.</div>
       <h3>Charge Interpretation</h3>
       <ul>

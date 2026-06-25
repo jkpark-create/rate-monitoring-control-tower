@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Annotated dashboard overview</title>
+  <desc id="desc">A simplified dashboard screenshot map with numbered callouts for source, filters, KPI, summary chart, focus lanes, and guide navigation.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#1f2b33" flood-opacity="0.16"/>
+    </filter>
+    <style>
+      .screen { fill: #f6f8f7; stroke: #cfdad6; stroke-width: 1; }
+      .panel { fill: #ffffff; stroke: #d8e1dd; stroke-width: 1; }
+      .muted { fill: #64717b; font: 500 15px "Segoe UI", Arial, sans-serif; }
+      .small { fill: #52606a; font: 600 13px "Segoe UI", Arial, sans-serif; }
+      .label { fill: #1e2933; font: 800 16px "Segoe UI", Arial, sans-serif; }
+      .tiny { fill: #6b7780; font: 600 11px "Segoe UI", Arial, sans-serif; }
+      .callout { fill: #145f46; stroke: #ffffff; stroke-width: 4; }
+      .calltext { fill: #ffffff; font: 900 18px "Segoe UI", Arial, sans-serif; text-anchor: middle; dominant-baseline: central; }
+      .line { stroke: #145f46; stroke-width: 3; stroke-linecap: round; fill: none; }
+      .accent { fill: #e8f5ef; stroke: #93c8b5; stroke-width: 1; }
+      .warn { fill: #fff3d8; stroke: #e7be72; stroke-width: 1; }
+      .bar1 { fill: #6db59a; }
+      .bar2 { fill: #e2a95f; }
+      .bar3 { fill: #c65f5f; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="720" fill="#eef2f0"/>
+  <rect x="36" y="34" width="1208" height="652" rx="18" class="screen" filter="url(#shadow)"/>
+
+  <rect x="36" y="34" width="1208" height="68" rx="18" fill="#ffffff"/>
+  <rect x="36" y="84" width="1208" height="18" fill="#ffffff"/>
+  <text x="62" y="72" class="label">Rate Application Monitoring</text>
+  <text x="62" y="93" class="tiny">Source | rate-base-latest.csv | Updated 2026.06.25 | Cache 17:52:50</text>
+  <rect x="980" y="52" width="94" height="32" rx="6" class="panel"/>
+  <text x="1002" y="73" class="small">Guide</text>
+  <rect x="1084" y="52" width="114" height="32" rx="6" class="panel"/>
+  <text x="1103" y="73" class="small">Dashboard</text>
+
+  <rect x="56" y="118" width="1168" height="66" rx="10" class="panel"/>
+  <text x="78" y="146" class="label">Filters</text>
+  <rect x="150" y="133" width="92" height="30" rx="5" class="accent"/>
+  <text x="167" y="153" class="tiny">Start</text>
+  <rect x="252" y="133" width="92" height="30" rx="5" class="accent"/>
+  <text x="272" y="153" class="tiny">End</text>
+  <rect x="354" y="133" width="128" height="30" rx="5" class="accent"/>
+  <text x="379" y="153" class="tiny">Origin</text>
+  <rect x="492" y="133" width="128" height="30" rx="5" class="accent"/>
+  <text x="508" y="153" class="tiny">Destination</text>
+  <rect x="630" y="133" width="98" height="30" rx="5" class="accent"/>
+  <text x="650" y="153" class="tiny">CNTR</text>
+  <rect x="738" y="133" width="118" height="30" rx="5" class="accent"/>
+  <text x="760" y="153" class="tiny">Usage</text>
+  <rect x="866" y="133" width="118" height="30" rx="5" class="accent"/>
+  <text x="890" y="153" class="tiny">Company</text>
+  <rect x="994" y="133" width="178" height="30" rx="5" class="accent"/>
+  <text x="1018" y="153" class="tiny">Rate No. Search</text>
+
+  <rect x="56" y="204" width="200" height="86" rx="10" class="panel"/>
+  <text x="78" y="230" class="small">Active Rates</text>
+  <text x="78" y="267" class="label">960,498</text>
+  <rect x="276" y="204" width="200" height="86" rx="10" class="panel"/>
+  <text x="298" y="230" class="small">Low Cases</text>
+  <text x="298" y="267" class="label">143,654</text>
+  <rect x="496" y="204" width="200" height="86" rx="10" class="panel"/>
+  <text x="518" y="230" class="small">Market Low</text>
+  <text x="518" y="267" class="label">Direct</text>
+  <rect x="716" y="204" width="200" height="86" rx="10" class="panel"/>
+  <text x="738" y="230" class="small">Period AVG Low</text>
+  <text x="738" y="267" class="label">Fallback</text>
+  <rect x="936" y="204" width="288" height="86" rx="10" class="panel"/>
+  <text x="958" y="230" class="small">Direct Market Match</text>
+  <rect x="958" y="252" width="220" height="16" rx="8" fill="#e8eeee"/>
+  <rect x="958" y="252" width="136" height="16" rx="8" class="bar1"/>
+
+  <rect x="56" y="314" width="760" height="326" rx="12" class="panel"/>
+  <text x="80" y="346" class="label">Aggregated Analysis</text>
+  <rect x="80" y="366" width="130" height="30" rx="15" class="accent"/>
+  <text x="107" y="386" class="tiny">Rate Band</text>
+  <rect x="222" y="366" width="110" height="30" rx="15" class="panel"/>
+  <text x="250" y="386" class="tiny">Origin</text>
+  <rect x="344" y="366" width="138" height="30" rx="15" class="panel"/>
+  <text x="365" y="386" class="tiny">Destination</text>
+  <line x1="126" y1="594" x2="760" y2="594" stroke="#d8e1dd" stroke-width="1"/>
+  <line x1="126" y1="420" x2="126" y2="594" stroke="#d8e1dd" stroke-width="1"/>
+  <rect x="164" y="512" width="46" height="82" rx="4" class="bar1"/>
+  <rect x="238" y="470" width="46" height="124" rx="4" class="bar2"/>
+  <rect x="312" y="438" width="46" height="156" rx="4" class="bar3"/>
+  <rect x="386" y="490" width="46" height="104" rx="4" class="bar2"/>
+  <rect x="460" y="454" width="46" height="140" rx="4" class="bar1"/>
+  <circle cx="598" cy="504" r="8" class="bar3"/>
+  <circle cx="640" cy="462" r="8" class="bar2"/>
+  <circle cx="686" cy="530" r="8" class="bar1"/>
+  <text x="150" y="622" class="tiny">Lane A</text>
+  <text x="298" y="622" class="tiny">Lane B</text>
+  <text x="446" y="622" class="tiny">Lane C</text>
+  <text x="590" y="622" class="tiny">Scatter</text>
+
+  <rect x="840" y="314" width="384" height="326" rx="12" class="panel"/>
+  <text x="864" y="346" class="label">Focus Lanes</text>
+  <rect x="864" y="370" width="336" height="44" rx="8" class="warn"/>
+  <text x="884" y="397" class="small">SHA CN -&gt; SUB ID</text>
+  <rect x="864" y="424" width="336" height="44" rx="8" class="panel"/>
+  <text x="884" y="451" class="small">TAO CN -&gt; INC KR</text>
+  <rect x="864" y="478" width="336" height="44" rx="8" class="panel"/>
+  <text x="884" y="505" class="small">DLC CN -&gt; TAK JP</text>
+  <rect x="864" y="532" width="336" height="44" rx="8" class="panel"/>
+  <text x="884" y="559" class="small">Route / Vessel / Voyage</text>
+
+  <path d="M230 105 L165 122" class="line"/>
+  <circle cx="230" cy="104" r="16" class="callout"/><text x="230" y="104" class="calltext">1</text>
+  <path d="M760 106 L780 132" class="line"/>
+  <circle cx="760" cy="104" r="16" class="callout"/><text x="760" y="104" class="calltext">2</text>
+  <path d="M960 194 L974 214" class="line"/>
+  <circle cx="960" cy="194" r="16" class="callout"/><text x="960" y="194" class="calltext">3</text>
+  <path d="M536 306 L544 366" class="line"/>
+  <circle cx="536" cy="306" r="16" class="callout"/><text x="536" y="306" class="calltext">4</text>
+  <path d="M1020 300 L1024 370" class="line"/>
+  <circle cx="1020" cy="300" r="16" class="callout"/><text x="1020" y="300" class="calltext">5</text>
+  <path d="M1118 104 L1058 68" class="line"/>
+  <circle cx="1118" cy="104" r="16" class="callout"/><text x="1118" y="104" class="calltext">6</text>
+</svg>
