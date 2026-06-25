@@ -2,7 +2,7 @@
 
 운임파일 등록현황 모니터링 대시보드의 데이터 생성, 저운임 판정 로직, 화면 사용법, 운영 절차, 최근 개발 업데이트를 정리한 가이드입니다.
 
-최종 업데이트: 2026-06-15
+최종 업데이트: 2026-06-25
 
 ## 1. 목적
 
@@ -11,6 +11,13 @@
 대시보드는 등록 오류를 단정하는 도구가 아니라 확인 우선순위를 정하는 도구입니다. 최종 조정 여부는 계약, 프로모션, 특수 화물 조건, 담당자 확인을 함께 보고 판단합니다.
 
 ## 2. 최근 개발 업데이트
+
+### 2026-06-25 반영 사항
+
+- Oracle 최신 추출과 Google Drive 운영 캐시 업로드 기준으로 Booking/B/L 번호 상세 조회가 가능하도록 데이터가 갱신되었습니다.
+- 상세 패널의 사용 실적 영역에서 `Show by route / vessel / voyage`를 펼치고 항로 행을 선택하면 연결된 Booking No.와 B/L No.를 확인할 수 있습니다.
+- B/L이 아직 생성되지 않은 건은 Booking No.와 TEU를 먼저 보여주고, B/L 칸에는 `B/L 미생성`으로 표시합니다.
+- 운영 Drive 업로드 시 `weekly-monitoring-details.json`과 `shipment-volumes.json`을 함께 올리고, 메인 `weekly-monitoring.json` metadata에 상세/물량 Drive file id를 기록하도록 정리했습니다.
 
 ### 2026-06-15 반영 사항
 
@@ -24,6 +31,7 @@
 - rate-band scatter의 X축 구간 정렬은 선택 기간에 종속되지 않고, 동일 필터 범위의 전체 BL TEU 물량 기준으로 정렬합니다. 물량이 없으면 운임 건수와 Lane key로 deterministic fallback 정렬합니다.
 - 상단 필터에서 OOG Type과 Full/Empty 직접 필터를 제거하고, `사용 실적` 필터를 추가했습니다. 화면 필터는 더 단순해졌지만 기간 평균 비교군 생성에는 OOG Type과 Full/Empty가 계속 사용됩니다.
 - booking 사용량 추출에서 `ODS_ICC.M_SA003I`를 추가로 조회해 예정/현재 B/L 배정까지 탐지합니다. 과거 확정 B/L은 `ODS_ICC.CS004R`, 예정/현재 B/L은 `M_SA003I` 최신 `BASC_DT` snapshot으로 보완합니다.
+- shipment link 안에 route, vessel, voyage, leg, 선적/도착 구간과 Booking/B/L 번호 목록을 함께 저장해 상세 화면에서 배/항차별 사용 내역을 바로 확인할 수 있습니다.
 - charge 상세 생성 시 동일 charge 항목이 중복 표시되지 않도록 charge basket/detail-only 항목을 dedupe합니다.
 - 레거시 `scripts/build-data.py`를 제거하고 `scripts/build-weekly-data.py`를 단일 JSON 빌더로 정리했습니다.
 
@@ -55,8 +63,12 @@ Google Drive market guideline 동기화
 Python 빌드
   -> scripts/build-weekly-data.py
   -> public/data/weekly-monitoring.json
+  -> public/data/weekly-monitoring-details.json
+  -> public/data/shipment-volumes.json
 배포/공유
   -> dist/data/weekly-monitoring.json
+  -> dist/data/weekly-monitoring-details.json
+  -> dist/data/shipment-volumes.json
   -> Google Drive 업로드
   -> GitHub Pages 또는 내부 정적 서버에서 조회
 ```
@@ -118,6 +130,8 @@ Booking 사용량은 `RATE_APPLICATION_NO + CONTAINER_SIZE + CONTAINER_TYPE` 기
 - `CS004R`은 과거 확정 B/L mapping, `M_SA003I`는 현재/예정 B/L assignment를 보완합니다.
 - Python 빌더는 booking별 `TOTAL_TEU`를 최대값으로 접어 조인 fan-out에 따른 TEU 중복 합산을 방지합니다.
 - 화면 상세에는 `부킹 N건 · booking TEU · BL N건 · BL TEU` 형식으로 표시합니다.
+- 상세 패널의 연결 항로 목록은 `ROUTE_NAME + VESSEL_CODE + VOYAGE_NO + LEG_SEQ + booking/leg lane` 기준으로 묶입니다. 항로 행을 선택하면 해당 묶음의 Booking No., B/L No., TEU 목록을 표시합니다.
+- B/L 번호가 아직 없는 booking은 누락으로 처리하지 않고 `B/L 미생성`으로 표시합니다. 이 경우 booking TEU에는 포함되지만 B/L TEU에는 포함되지 않을 수 있습니다.
 - 상단 필터의 `사용 실적`은 booking 또는 BL이 있는 운임과 미사용 운임을 구분합니다.
 
 ## 7. Charge 표시 기준
@@ -156,6 +170,10 @@ Booking 사용량은 `RATE_APPLICATION_NO + CONTAINER_SIZE + CONTAINER_TYPE` 기
 ### 상세 검토
 
 상세 목록에서는 확인 대상 운임을 행 단위로 보고, 행 선택 시 오른쪽 패널에서 charge 상세, 비교 기준, 사용 실적, 담당자/화주/항로 정보를 확인합니다.
+
+사용 실적 영역의 `Show by route / vessel / voyage` 버튼을 열면 연결된 항로별 사용량이 표시됩니다. 먼저 route/vessel/voyage 행을 선택한 뒤, 아래 `Booking / B/L 번호` 영역에서 Booking No., B/L No., TEU를 확인합니다. 여러 booking이 같은 배/항차에 묶이면 같은 항로 행 아래에 함께 표시됩니다.
+
+이 영역이 `데이터 갱신 후 표시` 또는 `Booking and B/L numbers are available after the next data refresh`로 보이면, 화면 문제가 아니라 현재 캐시가 Booking/B/L 상세 목록을 포함하지 않는 상태일 가능성이 큽니다. `npm run data:oracle`로 `booking-usage-latest.csv`를 새로 추출하고, `python scripts/upload-to-gdrive.py`로 메인/상세/물량 JSON을 함께 업로드해야 합니다.
 
 업체 행을 클릭하면 상세로 이동하지 않고 상단 그래프가 해당 업체 기준으로 변경됩니다. 상단 `EN` / `KO` 토글로 한국어와 영어 화면을 전환하며, 선택값은 브라우저 localStorage에 저장됩니다.
 
@@ -198,6 +216,8 @@ Google Drive에 JSON 업로드:
 python scripts/upload-to-gdrive.py
 ```
 
+운영 화면이 Drive JSON을 읽는 경우, Oracle 갱신 후에는 위 업로드까지 실행해야 Cache 시각과 Booking/B/L 번호 상세가 화면에 반영됩니다. 이 스크립트는 `weekly-monitoring.json`, `weekly-monitoring-details.json`, `shipment-volumes.json`을 같은 Drive 폴더에 업데이트하고 메인 metadata에 상세 파일 id를 기록합니다.
+
 Google Drive에 문서 업로드:
 
 ```bash
@@ -230,6 +250,8 @@ Google 로그인은 회사 Google 계정 기준으로 동작하며, 배포본은
 
 - 최신 데이터가 보이지 않으면 Google Drive JSON 업로드 시각과 화면 상단 cache 시각을 비교합니다.
 - 사용 실적이 모두 비어 있으면 `data/booking-usage-latest.csv` 생성 여부와 `usageAvailable` metadata를 확인합니다.
+- 사용 실적 숫자는 보이지만 Booking/B/L 번호 영역에 `데이터 갱신 후 표시`가 나오면 `shipmentLinkAvailable`, `shipmentLinkBookingDetailSchema`, `detailDriveFileId`, `shipmentVolumeDriveFileId`가 최신 `weekly-monitoring.json` metadata에 들어 있는지 확인합니다.
+- 특정 route/vessel/voyage 행의 번호가 기대보다 적으면 B/L 미생성 booking인지 먼저 확인합니다. B/L 미생성 건은 Booking No.만 표시되고 B/L 칸은 `B/L 미생성`으로 표시됩니다.
 - 예정 B/L이 누락되면 `M_SA003I` 최신 `BASC_DT`, `CNCL_DT IS NULL`, booking number mapping을 확인합니다.
 - charge 금액이 비어 있으면 원천 적용 방식이 `WAIVE`인지 먼저 확인합니다.
 - local charge의 등록 금액이 비어 있는데 USD 환산만 보이면 `CUR_CD`, `LOC_AMT`, `USD_AMT`, `FIX_USD_AMT` 추출 여부를 확인합니다.

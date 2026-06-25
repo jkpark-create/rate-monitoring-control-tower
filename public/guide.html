@@ -14,7 +14,7 @@
     * { box-sizing: border-box; }
     body { margin: 0; background: #f3f5f4; }
     a { color: #0f5d77; }
-    .page { max-width: 1180px; margin: 0 auto; padding: 24px 20px 48px; }
+    .page { max-width: 1240px; margin: 0 auto; padding: 24px 20px 48px; }
     .topbar {
       position: sticky;
       top: 0;
@@ -65,22 +65,43 @@
     .hero p { max-width: 860px; margin: 12px 0 0; color: #53616a; font-size: 15px; }
     .toc {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      margin: 18px 0;
+      position: sticky;
+      top: 70px;
+      z-index: 4;
+      float: right;
+      width: 248px;
+      max-height: calc(100vh - 88px);
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin: 18px 0 20px 22px;
+      padding: 12px;
+      overflow: auto;
+      border: 1px solid #dce3e0;
+      border-radius: 12px;
+      background: rgba(251, 252, 251, 0.96);
+      box-shadow: 0 12px 28px rgba(31, 43, 51, 0.08);
+      backdrop-filter: blur(12px);
     }
     .toc a {
-      padding: 11px 12px;
-      border: 1px solid #dce3e0;
-      border-radius: 8px;
-      background: #fff;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      background: transparent;
       color: #34404a;
       font-size: 12px;
       font-weight: 800;
       text-decoration: none;
     }
+    .toc a:hover,
+    .toc a:focus-visible {
+      border-color: #c8d9d1;
+      background: #eef8f4;
+      color: #1f6a51;
+      outline: none;
+    }
     section.card {
       margin-top: 16px;
+      margin-right: 270px;
       padding: 20px;
       border: 1px solid #dce3e0;
       border-radius: 12px;
@@ -151,7 +172,7 @@
       background: #fff;
     }
     .mini-card h3 { margin-top: 0; }
-    .footer { margin-top: 24px; color: #687580; font-size: 12px; text-align: center; }
+    .footer { margin: 24px 270px 0 0; color: #687580; font-size: 12px; text-align: center; }
     .en { display: none; }
     body.lang-en .ko { display: none; }
     body.lang-en .en { display: block; }
@@ -166,10 +187,19 @@
     body.lang-ko .toc.ko,
     body.lang-en .toc.en { display: grid; }
     @media (max-width: 860px) {
-      .toc, .grid-2, .logic-flow { grid-template-columns: 1fr; }
+      .toc {
+        position: static;
+        float: none;
+        width: auto;
+        max-height: none;
+        grid-template-columns: 1fr;
+        margin: 18px 0;
+      }
+      .grid-2, .logic-flow { grid-template-columns: 1fr; }
       .topbar { align-items: flex-start; flex-direction: column; }
       .actions { justify-content: flex-start; }
       section.card, .hero { padding: 16px; }
+      section.card, .footer { margin-right: 0; }
       table { display: block; overflow-x: auto; white-space: nowrap; }
     }
   </style>
@@ -251,6 +281,7 @@
         <li><strong>확인 집중 구간 확인:</strong> 우측 Focus Lanes에서 건수가 큰 Lane을 우선 봅니다. 이 영역은 집계 탭에서만 표시됩니다.</li>
         <li><strong>포트 행 클릭:</strong> 국가를 펼친 뒤 포트 행을 클릭하면 상세 탭으로 이동하며 해당 조건이 상세 필터에 적용됩니다.</li>
         <li><strong>상세 행 선택:</strong> Rate No. 행을 클릭하면 오른쪽 패널에서 운임파일 상세와 charge 항목을 확인합니다.</li>
+        <li><strong>Booking/B/L 번호 확인:</strong> 사용 실적 영역을 펼친 뒤 route/vessel/voyage 행을 선택하면 연결된 Booking No.와 B/L No.가 표시됩니다.</li>
         <li><strong>비교 기준 확인:</strong> 같은 구간·사이즈·타입·Cargo·OOG·F/E 조건끼리 비교됐는지, Market 기준인지 기간 평균 기준인지 확인합니다.</li>
         <li><strong>조치 판단:</strong> Market 저운임인지 기간 AVG 저운임인지, Gap 금액이 큰지, WAIVE/Basic Tariff 등 상세 조회 항목인지 확인 후 담당자 확인 대상을 정합니다.</li>
       </ol>
@@ -265,6 +296,7 @@
         <li><strong>Use Focus Lanes:</strong> Prioritize lanes with high low-rate count. Focus Lanes appears only in Summary view.</li>
         <li><strong>Click a port row:</strong> Expanding a country and clicking a port moves to Detail with that condition applied.</li>
         <li><strong>Select a detail row:</strong> Click a Rate No. row to review charge items on the right panel.</li>
+        <li><strong>Check Booking/B/L numbers:</strong> Expand the usage area, then select a route/vessel/voyage row to show linked Booking No. and B/L No.</li>
         <li><strong>Check comparison basis:</strong> Confirm whether comparison used the same lane, size, type, Cargo, OOG, and F/E condition, and whether the benchmark came from Market or Period AVG.</li>
         <li><strong>Decide action:</strong> Check whether the case is Market Low or Period AVG Low, the gap amount, and whether charge items are comparison-applied or detail-only.</li>
       </ol>
@@ -280,7 +312,7 @@
         <tr><td>선적지 / 도착지 포트</td><td>POR/DLY 포트 기준 필터</td><td>국가 선택 후 포트 선택으로 좁히는 흐름이 가장 안정적입니다.</td></tr>
         <tr><td>CNTR Size / Type</td><td>20/40/45, GP/HC/TK 등 장비 조건</td><td>같은 구간이라도 20GP와 40HC의 운임 수준은 다르므로 비교군을 나눕니다. Market Rate 직접 비교는 GP/HC/TK 중심입니다.</td></tr>
         <tr><td>Cargo Type</td><td>General, HZ, RF, OOG, ING, FB 등 화물 구분</td><td>위험물, Reefer, Flexi Bag 등은 비용/리스크가 달라 일반화물과 같은 평균으로 비교하면 왜곡될 수 있습니다.</td></tr>
-        <tr><td>사용 실적</td><td>부킹 또는 B/L 실적이 있는 운임과 미사용 운임 구분</td><td>사용량 CSV가 갱신된 뒤 정확히 표시됩니다. 미사용 운임을 별도로 걸러 등록 후 실제 사용 여부를 확인할 수 있습니다.</td></tr>
+        <tr><td>사용 실적</td><td>부킹 또는 B/L 실적이 있는 운임과 미사용 운임 구분</td><td>사용량 CSV가 갱신된 뒤 정확히 표시됩니다. 상세 패널에서는 route/vessel/voyage별 Booking/B/L 번호까지 확인할 수 있습니다.</td></tr>
         <tr><td>영업사원 / 업체</td><td>담당자 또는 화주 단위 검토</td><td>업체는 코드/회사명 검색 후 멀티 선택 가능합니다.</td></tr>
         <tr><td>상세 보기 모드</td><td>전체 / 확인대상 / Market 저운임 / 기간 AVG 저운임</td><td>상세 탭에서 목록 범위를 빠르게 전환할 때 사용합니다.</td></tr>
         <tr><td>운임번호 검색</td><td>Rate Application No. 직접 검색</td><td>상세 탭에서 특정 파일을 빠르게 찾을 때 사용합니다.</td></tr>
@@ -297,7 +329,7 @@
         <tr><td>Origin / Destination Port</td><td>POR/DLY port filter</td><td>Selecting country first and then port is the most stable workflow.</td></tr>
         <tr><td>CNTR Size / Type</td><td>Equipment condition such as 20/40/45, GP/HC/TK</td><td>20GP and 40HC have different normal price levels, so peer groups are separated. Direct Market comparison mainly uses GP/HC/TK.</td></tr>
         <tr><td>Cargo Type</td><td>General, HZ, RF, OOG, ING, FB, etc.</td><td>Dangerous, reefer, flexi bag, and other cargo types carry different cost/risk profiles and should not be compared to general cargo averages.</td></tr>
-        <tr><td>Usage</td><td>Separate rates with booking or B/L usage from unused rates</td><td>Accurate after the usage CSV is refreshed. Use it to isolate registered rates that have or have not been used.</td></tr>
+        <tr><td>Usage</td><td>Separate rates with booking or B/L usage from unused rates</td><td>Accurate after the usage CSV is refreshed. The detail panel can also show Booking/B/L numbers by route/vessel/voyage.</td></tr>
         <tr><td>Sales Staff / Company</td><td>Owner or shipper-level review</td><td>Company supports code/name search and multi-select.</td></tr>
         <tr><td>Detail View Mode</td><td>All / Check Targets / Market Low / Period AVG Low</td><td>Used in Detail view to switch the list scope quickly.</td></tr>
         <tr><td>Rate No. Search</td><td>Direct Rate Application No. search</td><td>Useful when locating a specific file.</td></tr>
@@ -377,10 +409,18 @@
         <tr><td>Market Rate</td><td>직접 매핑된 Market Rate</td><td>없으면 기간 평균 fallback이 적용됩니다.</td></tr>
         <tr><td>적용 비교 기준</td><td>판정에 실제 사용된 benchmark</td><td>Market Rate 또는 기간 AVG 중 어떤 기준인지 확인합니다.</td></tr>
         <tr><td>조회 기간 Avg</td><td>동일 조건 비교군 평균</td><td>표본 수가 작으면 해석에 주의합니다. 최소 3건 이상만 적용합니다.</td></tr>
-        <tr><td>사용 실적</td><td>부킹 수·booking TEU·BL 수·BL TEU</td><td>등록된 운임이 실제 booking 또는 B/L에 사용됐는지 확인합니다. 예정 B/L은 M_SA003I 기준으로 보완됩니다.</td></tr>
+        <tr><td>사용 실적</td><td>부킹 수·booking TEU·BL 수·BL TEU</td><td>사용 실적 영역을 펼쳐 route/vessel/voyage 행을 선택하면 Booking No., B/L No., TEU를 확인할 수 있습니다.</td></tr>
         <tr><td>Gap</td><td>등록 all-in과 benchmark all-in의 차이</td><td>비율뿐 아니라 금액이 큰 건을 우선 확인합니다.</td></tr>
         <tr><td>Charge 항목</td><td>파일 내 O/F, surcharge, local charge 상세</td><td>적용 방식, 지불지, 비교 반영 여부를 확인합니다.</td></tr>
       </table>
+      <h3>Booking/B/L 번호 조회</h3>
+      <ol>
+        <li>상세 목록에서 Rate No. 행을 선택합니다.</li>
+        <li>오른쪽 패널의 사용 실적 영역에서 `Show by route / vessel / voyage`를 엽니다.</li>
+        <li>항로 행을 선택하면 아래 `부킹 / B/L 번호` 영역에 Booking No., B/L No., TEU가 표시됩니다.</li>
+        <li>B/L이 아직 생성되지 않은 booking은 Booking No.와 TEU를 표시하고 B/L 칸은 `B/L 미생성`으로 표시합니다.</li>
+      </ol>
+      <div class="callout"><strong>갱신 조건:</strong> 이 기능은 최신 booking usage CSV와 shipment link metadata가 있는 캐시에서 동작합니다. 숫자는 보이는데 번호 목록이 `데이터 갱신 후 표시`로 나오면 운영 JSON 업로드가 최신인지 확인합니다.</div>
       <h3>Charge 항목 해석</h3>
       <ul>
         <li><strong>OCEAN FREIGHT:</strong> O/F이며 항상 가장 위에 표시됩니다.</li>
@@ -403,10 +443,18 @@
         <tr><td>Market Rate</td><td>Directly mapped Market Rate</td><td>If absent, period-average fallback applies.</td></tr>
         <tr><td>Applied Benchmark</td><td>Actual benchmark used for judgement</td><td>Check whether Market or Period AVG was used.</td></tr>
         <tr><td>Period AVG</td><td>Peer average under same condition</td><td>Interpret carefully when sample count is small. Minimum 3 samples are required.</td></tr>
-        <tr><td>Usage</td><td>Booking count, booking TEU, B/L count, and B/L TEU</td><td>Check whether the registered rate was actually used in booking or B/L. Planned/current B/L assignment is supplemented from M_SA003I.</td></tr>
+        <tr><td>Usage</td><td>Booking count, booking TEU, B/L count, and B/L TEU</td><td>Expand the usage area and select a route/vessel/voyage row to review Booking No., B/L No., and TEU.</td></tr>
         <tr><td>Gap</td><td>Difference between registered all-in and benchmark all-in</td><td>Prioritize large amount gaps as well as high percentages.</td></tr>
         <tr><td>Charge Items</td><td>O/F, surcharge, local charge detail</td><td>Check application type, payment location, and comparison inclusion.</td></tr>
       </table>
+      <h3>Booking/B/L Number Drilldown</h3>
+      <ol>
+        <li>Select a Rate No. row in the detail list.</li>
+        <li>Open `Show by route / vessel / voyage` in the usage area on the right panel.</li>
+        <li>Select a route row to show Booking No., B/L No., and TEU in the `Booking / B/L Numbers` area.</li>
+        <li>If a B/L has not been created yet, the Booking No. and TEU are shown and the B/L field displays `No B/L`.</li>
+      </ol>
+      <div class="callout"><strong>Refresh requirement:</strong> This feature requires a current cache with booking usage and shipment link metadata. If counts appear but the number list says it is available after refresh, check that the production JSON upload is current.</div>
       <h3>Charge Interpretation</h3>
       <ul>
         <li><strong>OCEAN FREIGHT:</strong> O/F, always shown first.</li>
@@ -521,6 +569,8 @@
       <h2>8. FAQ / 문제 확인</h2>
       <h3>데이터가 최신이 아닌 것 같습니다.</h3>
       <p>상단 Cache 시각을 확인하세요. 자동 갱신은 06:30과 12:00 KST에 실행됩니다. Google Drive JSON 업로드 또는 배치 실패가 있으면 이전 캐시가 보일 수 있습니다.</p>
+      <h3>Booking/B/L 번호가 `데이터 갱신 후 표시`로 나옵니다.</h3>
+      <p>사용 실적 숫자는 보이지만 번호 목록이 보이지 않으면 현재 캐시가 shipment link 상세를 포함하지 않는 상태일 수 있습니다. `npm run data:oracle`로 최신 CSV를 만들고 `python scripts/upload-to-gdrive.py`로 메인/상세/물량 JSON을 함께 업로드한 뒤 Cache 시각을 확인합니다.</p>
       <h3>금액이 비어 있는데 USD 환산만 보입니다.</h3>
       <p>원천 적용 방식이 WAIVE인지 먼저 확인합니다. WAIVE가 아니라면 SQL 추출에서 `CUR_CD`, `LOC_AMT`, `USD_AMT`, `FIX_USD_AMT`가 들어왔는지 확인해야 합니다.</p>
       <h3>Basic Tariff 항목이 비교 all-in에 포함되지 않는 이유는?</h3>
@@ -535,6 +585,8 @@
       <h2>8. FAQ / Troubleshooting</h2>
       <h3>Data does not look current.</h3>
       <p>Check the Cache timestamp in the header. Refresh runs at 06:30 and 12:00 KST. If Drive upload or batch failed, an older cache may remain visible.</p>
+      <h3>Booking/B/L numbers say they are available after refresh.</h3>
+      <p>If usage counts appear but the number list does not, the current cache may not include shipment link details. Run `npm run data:oracle`, upload the main/detail/volume JSON files with `python scripts/upload-to-gdrive.py`, then check the Cache timestamp.</p>
       <h3>Registered amount is blank but USD amount exists.</h3>
       <p>First check whether the source application type is WAIVE. If not WAIVE, confirm that `CUR_CD`, `LOC_AMT`, `USD_AMT`, and `FIX_USD_AMT` were included in SQL extract.</p>
       <h3>Why are Basic Tariff items not included in comparison all-in?</h3>
@@ -545,8 +597,8 @@
       <p>The production JSON is read from a company-restricted Google Drive file with OAuth. The browser does not connect directly to Oracle.</p>
     </section>
 
-    <div class="footer ko">Rate Monitoring Control Tower Guide | Last updated: 2026-06-15</div>
-    <div class="footer en">Rate Monitoring Control Tower Guide | Last updated: 2026-06-15</div>
+    <div class="footer ko">Rate Monitoring Control Tower Guide | Last updated: 2026-06-25</div>
+    <div class="footer en">Rate Monitoring Control Tower Guide | Last updated: 2026-06-25</div>
   </div>
 
   <script>

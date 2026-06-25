@@ -1,7 +1,7 @@
 # Rate Monitoring — 데이터 수집 로직 정리
 
 > 운임 모니터링 대시보드(Origin Sales 등록 운임 감시)의 데이터 파이프라인 전체 문서
-> 최종 정리일: 2026-06-15
+> 최종 정리일: 2026-06-25
 
 ---
 
@@ -45,6 +45,7 @@ Oracle DB + Google Drive(시장 가이드) → CSV/JSON 추출 → Python 가공
 - 조인 fan-out으로 인한 중복은 `CLOS_DTM` 최신값 기준으로 먼저 제거하고, 최신 booking 상태가 확정/선적(STS `01`, `04`)인 경우만 집계합니다.
 - T/S 누락 방지를 위해 `SP002S.LEG_SEQ` 전체를 추출하고, leg별 `RTE_CD + VSL_CD + ET_VOY_NO + POR/POL/POD/DLY`를 shipment link로 보존합니다.
 - B/L이 아직 생성되지 않은 booking도 vessel/voyage 필터에서 확인되도록 shipment link는 booking 기준으로 생성하고, BL 수·TEU와 booking 수·TEU를 분리해 저장합니다.
+- shipment link에는 route, vessel, voyage, leg, booking lane, leg lane, destination lane과 함께 Booking No./B/L No./TEU 상세 목록을 저장합니다. 화면은 항로 행 선택 시 이 목록을 펼쳐 보여줍니다.
 - 과거 확정 B/L은 `ODS_ICC.CS004R`, 현재/예정 B/L assignment는 `ODS_ICC.M_SA003I` 최신 `BASC_DT` snapshot을 함께 사용.
 - `SP002S.FRT_APP_NO`가 비어 있어도 B/L Master Freight에 운임이 링크된 경우가 있어 `ODS_ICC.CS101M.FRT_APP_NO`로 보강합니다.
 
@@ -109,25 +110,26 @@ CSV들을 읽어 대시보드용 단일 JSON으로 변환하는 핵심 스크립
 1. **CSV 인덱싱** — O/F 행 분리, CHARGE/WAIVE/DETAIL_ONLY 그룹·tariff 인덱싱.
 2. **부대비 병합** — 각 O/F 행에 사이즈/타입(와일드카드 `00` 포함) 매칭 부대비 합산 → `ALL_IN_RATE`, `CHARGE_COUNT`, `CHARGE_BASKET`. 동적 EFC tariff 상세 병합. US 항로는 PSS/GRI를 비교에서 제외(상세는 표시).
 3. **시장 비교** — `guideline_for()`로 origin에 따라 CN/HK 또는 SEA/ETC 가이드 조회. all-in < (가이드 O/F + 부대비 델타)이면 "Market 저운임", 기간 그룹 평균 대비 낮으면 "기간 Avg 저운임".
-4. **Booking 사용량 집계** — 중복 booking 행 제거 후 booking별 TEU 합산, HAS_BL_FLAG로 BL/Booking 수 분리. B/L TEU와 booking TEU를 따로 저장해 실제 선적 실적과 예정/booking 실적을 함께 볼 수 있게 함.
+4. **Booking 사용량 집계** — 중복 booking 행 제거 후 booking별 TEU 합산, HAS_BL_FLAG로 BL/Booking 수 분리. B/L TEU와 booking TEU를 따로 저장해 실제 선적 실적과 예정/booking 실적을 함께 볼 수 있게 함. route/vessel/voyage/leg별 shipment link에는 Booking No., B/L No., TEU, B/L 생성 여부를 보존함.
 5. **레코드 변환·인덱싱** — `Origin Sales`만, O/F ≤ 0/유효기간 오류 행 skip. 차원값(항로·화주·영업·팀·컨테이너 등 14종)을 정수 인덱스로 매핑하여 dense 배열로 저장.
 
 ---
 
 ## 6. 출력 & 배포
 
-**산출물:** `public/data/weekly-monitoring.json`
-- 인덱싱된 차원 + 레코드 배열 형태의 컴팩트 JSON (~121–124MB, gzip 효율 높음).
-- 약 487K개 O/F 레코드, 14개 차원.
-- 메타: `generatedAt`, `sourceFile`, `sourceMode`(canonical/legacy-fallback), `defaultWeek`, `availableStart/EndDate`, `recordCount`, `usageAvailable`, `chargeDetailAvailable`.
-- 화면의 `사용 실적` 필터와 상세 패널은 `usageAvailable`, B/L 수, booking 수, B/L TEU, booking TEU를 기준으로 표시.
+**산출물:** `public/data/weekly-monitoring.json`, `public/data/weekly-monitoring-details.json`, `public/data/shipment-volumes.json`
+- `weekly-monitoring.json`: 인덱싱된 차원 + 레코드 배열 형태의 메인 JSON. 화면 초기 로딩, 필터, 저운임 목록, shipment link, Booking/B/L 번호 상세에 사용합니다.
+- `weekly-monitoring-details.json`: rate detail 전용 JSON. charge 상세는 필요 시 별도 파일에서 로딩해 메인 JSON 초기 크기를 줄입니다.
+- `shipment-volumes.json`: route/vessel/voyage/leg 및 lane 단위 물량 JSON. 운임대별 scatter의 Lane 정렬과 선박/항차 필터 옵션 보강에 사용합니다.
+- 메타: `generatedAt`, `sourceFile`, `sourceMode`(canonical/legacy-fallback), `defaultWeek`, `availableStart/EndDate`, `recordCount`, `usageAvailable`, `shipmentLinkAvailable`, `chargeDetailAvailable`, `detailSourceFile`, `shipmentVolumeSourceFile`.
+- 화면의 `사용 실적` 필터와 상세 패널은 `usageAvailable`, B/L 수, booking 수, B/L TEU, booking TEU를 기준으로 표시합니다. Booking/B/L 번호 상세는 `shipmentLinkAvailable`과 `shipmentLinkBookingDetailSchema`가 있는 최신 캐시에서 표시됩니다.
 
 **배포 경로**
 - 로컬 개발: `npm run dev` → `public/data/...` 읽음.
 - 빌드: `npm run build` → `dist/data/weekly-monitoring.json` 번들.
 - GitHub Pages: 정적 스냅샷(`dist/` 커밋).
 - 사내 서버: `npm run data:oracle:watch`(15분 주기 재추출) + `npm run serve:dist`로 준실시간.
-- 선택적 Drive 연동: `upload-to-gdrive.py`로 JSON을 "Rate Monitoring" 폴더에 업로드, 회사 도메인(ekmtc.com) read-only 공유. 대시보드는 `VITE_DRIVE_FILE_ID`로 로그인 사용자가 Drive API 통해 읽음.
+- 선택적 Drive 연동: `upload-to-gdrive.py`로 JSON을 "Rate Monitoring" 폴더에 업로드, 회사 도메인(ekmtc.com) read-only 공유. 메인 JSON 업로드 시 상세 JSON과 물량 JSON도 함께 upsert하고 메인 metadata에 `detailDriveFileId`, `shipmentVolumeDriveFileId`를 기록합니다. 대시보드는 `VITE_DRIVE_FILE_ID`로 로그인 사용자가 Drive API 통해 메인/상세/물량 JSON을 읽습니다.
 
 ---
 
@@ -167,7 +169,9 @@ CSV (data/*.csv)                 sync-china/sea-guideline.py
           build-weekly-data.py
         (부대비 병합·시장비교·팀분류·차원인덱싱)
                    ▼
-      public/data/weekly-monitoring.json  (487K 레코드 / 14 차원)
+      public/data/weekly-monitoring.json
+      public/data/weekly-monitoring-details.json
+      public/data/shipment-volumes.json
                    ▼
    ┌───────────────┼───────────────┬────────────────┐
    ▼               ▼               ▼                ▼
@@ -201,6 +205,7 @@ CSV (data/*.csv)                 sync-china/sea-guideline.py
 - **부대비 아키텍처:** SQL `UNION ALL` 결합 → Python에서 적용단위별 재병합 + 동적 EFC + US 항로 예외.
 - **시장비교는 O/F ↔ O/F** 기준이며 부대비 델타는 동적 계산.
 - **사용량 보강:** CS004R의 과거 B/L과 M_SA003I의 현재/예정 B/L을 합쳐 booking 화면과의 괴리를 줄임.
+- **Booking/B/L 번호 조회:** shipment link에 booking 상세 목록을 보존해 화면에서 route/vessel/voyage 행 선택 시 Booking No.와 B/L No.를 바로 확인.
 - **화면 기본 분석:** 집계 화면은 운임대별 scatter를 기본으로 열며, X축 Lane은 선택 기간이 아니라 동일 scope 전체 BL TEU 기준으로 정렬.
 - **데이터 밀도:** 레코드를 차원 인덱스의 정수 배열로 저장해 JSON 압축·React 필터링 효율 확보.
 - **OneDrive 내구성:** 임시파일 + atomic replace로 동기화 잠금 손상 방지.
