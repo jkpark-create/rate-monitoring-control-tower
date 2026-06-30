@@ -354,6 +354,15 @@ type ShipmentVolume = {
   departureEnd: string;
 };
 
+type ShipmentCandidateWindow = {
+  start: string;
+  end: string;
+};
+
+type ShipmentCandidateScope = {
+  windowsByLane: Map<string, ShipmentCandidateWindow[]>;
+};
+
 type LaneBenchmark = {
   sum: number;
   count: number;
@@ -492,7 +501,7 @@ const UI_COPY = {
     },
     metrics: {
       activeRates: '기간 유효 운임',
-      linkedRates: '링크 운임',
+      linkedRates: '선박 관련 운임',
       lowCases: '저운임 확인 필요',
       marketLow: 'Market 대비 저운임 건수',
       averageLow: '기간 AVG 대비 저운임 건수',
@@ -722,7 +731,7 @@ const UI_COPY = {
     },
     metrics: {
       activeRates: 'Active Rates',
-      linkedRates: 'Linked Rates',
+      linkedRates: 'Shipment Rates',
       lowCases: 'Low Freight Cases',
       marketLow: 'Below Market Count',
       averageLow: 'Below Period AVG Count',
@@ -1193,6 +1202,108 @@ function matchingShipmentVolumes(volumes: ShipmentVolume[], filters: ScopeFilter
   return volumes.filter((volume) => shipmentVolumeMatchesScope(volume, filters));
 }
 
+function shipmentDateToIso(value: string) {
+  const trimmed = value.trim();
+  if (/^\d{8}$/.test(trimmed)) {
+    return `${trimmed.slice(0, 4)}-${trimmed.slice(4, 6)}-${trimmed.slice(6, 8)}`;
+  }
+  return trimmed;
+}
+
+function candidateLaneKey(
+  originCountry: string,
+  originPort: string,
+  destinationCountry: string,
+  destinationPort: string,
+  containerSize: string,
+  containerType: string,
+) {
+  return [
+    originCountry,
+    originPort,
+    destinationCountry,
+    destinationPort,
+    containerSize,
+    containerType,
+  ].join('|');
+}
+
+function shipmentVolumeCandidateKey(volume: ShipmentVolume, filters: Pick<ScopeFilters, 'vessel' | 'voyage'>) {
+  const useCargoLane = usesCargoLaneForShipmentScope(filters);
+  const originCountry = useCargoLane
+    ? (volume.bookingPorCountry || volume.legOriginCountry)
+    : (volume.legOriginCountry || volume.bookingPorCountry);
+  const originPort = useCargoLane
+    ? (volume.bookingPorPort || volume.legOriginPort)
+    : (volume.legOriginPort || volume.bookingPorPort);
+  const destinationCountry = useCargoLane
+    ? (volume.bookingDlyCountry || volume.legDestinationCountry)
+    : (volume.legDestinationCountry || volume.bookingDlyCountry);
+  const destinationPort = useCargoLane
+    ? (volume.bookingDlyPort || volume.legDestinationPort)
+    : (volume.legDestinationPort || volume.bookingDlyPort);
+
+  if (!originCountry && !originPort && !destinationCountry && !destinationPort) {
+    return '';
+  }
+
+  return candidateLaneKey(
+    originCountry,
+    originPort,
+    destinationCountry,
+    destinationPort,
+    volume.containerSize,
+    volume.containerType,
+  );
+}
+
+function rateCandidateLaneKey(record: RateRecord) {
+  return candidateLaneKey(
+    record.porCountry,
+    record.porPort,
+    record.dlyCountry,
+    record.dlyPort,
+    record.containerSize,
+    record.containerType,
+  );
+}
+
+function buildShipmentCandidateScope(volumes: ShipmentVolume[], filters: ScopeFilters): ShipmentCandidateScope | null {
+  if (!hasShipmentFilter(filters)) {
+    return null;
+  }
+
+  const windowsByLane = new Map<string, ShipmentCandidateWindow[]>();
+  for (const volume of matchingShipmentVolumes(volumes, filters)) {
+    const key = shipmentVolumeCandidateKey(volume, filters);
+    if (!key) {
+      continue;
+    }
+    const windows = windowsByLane.get(key) ?? [];
+    windows.push({
+      start: shipmentDateToIso(volume.departureStart),
+      end: shipmentDateToIso(volume.departureEnd),
+    });
+    windowsByLane.set(key, windows);
+  }
+
+  return windowsByLane.size ? { windowsByLane } : null;
+}
+
+function rateOverlapsShipmentWindow(record: RateRecord, window: ShipmentCandidateWindow) {
+  const start = window.start || window.end;
+  const end = window.end || window.start;
+  return !start || !end || (record.effectiveStart <= end && record.effectiveEnd >= start);
+}
+
+function matchesShipmentCandidateScope(record: RateRecord, candidateScope?: ShipmentCandidateScope | null) {
+  if (!candidateScope) {
+    return false;
+  }
+  const windows = candidateScope.windowsByLane.get(rateCandidateLaneKey(record));
+  return Boolean(windows?.some((window) => rateOverlapsShipmentWindow(record, window)));
+}
+
 function shipmentAnalysisLaneLabels(record: RateRecord, filters: ScopeFilters) {
   if (!hasShipmentFilter(filters)) {
     return [rateLaneLabel(record)];
@@ -1412,7 +1523,7 @@ function overlapsRange(record: RateRecord, rangeStart: string, rangeEnd: string)
   return record.effectiveStart <= rangeEnd && record.effectiveEnd >= rangeStart;
 }
 
-function matchesScope(record: RateRecord, filters: ScopeFilters) {
+function matchesScope(record: RateRecord, filters: ScopeFilters, candidateScope?: ShipmentCandidateScope | null) {
   const shipmentMode = hasShipmentFilter(filters);
   return (
     (shipmentMode || hasSelection(filters.originCountry, record.porCountry)) &&
@@ -1425,7 +1536,7 @@ function matchesScope(record: RateRecord, filters: ScopeFilters) {
     hasSelection(filters.specialCargoType, record.specialCargoType) &&
     hasSelection(filters.fullEmptyType, record.fullEmptyType) &&
     hasUsageSelection(filters.usagePresence, record) &&
-    (!shipmentMode || hasShipmentSelection(filters, record)) &&
+    (!shipmentMode || hasShipmentSelection(filters, record) || matchesShipmentCandidateScope(record, candidateScope)) &&
     hasSelection(filters.staff, record.staff) &&
     hasSelection(filters.company, shipperKey(record))
   );
@@ -2483,6 +2594,7 @@ function RateLaneScatter({
   containerCombo,
   setContainerCombo,
   shipmentScope,
+  shipmentCandidateScope,
 }: {
   rates: RateRecord[];
   volumeRates: RateRecord[];
@@ -2496,6 +2608,7 @@ function RateLaneScatter({
   containerCombo: string;
   setContainerCombo: (combo: string) => void;
   shipmentScope: ScopeFilters;
+  shipmentCandidateScope: ShipmentCandidateScope | null;
 }) {
   const text = UI_COPY[language].summary;
   const statusText = UI_COPY[language].status;
@@ -2571,6 +2684,15 @@ function RateLaneScatter({
         const current = deduped.get(entry.key) ?? { key: entry.key, country: entry.country, volume: 0 };
         current.volume += entry.volume;
         deduped.set(entry.key, current);
+      }
+      if (matchesShipmentCandidateScope(record, shipmentCandidateScope)) {
+        const key = axis === 'origin'
+          ? (record.porPort || record.porCountry)
+          : (record.dlyPort || record.dlyCountry);
+        const country = axis === 'origin' ? record.porCountry : record.dlyCountry;
+        if (key && !deduped.has(key)) {
+          deduped.set(key, { key, country, volume: record.bookingTeu ?? record.teu ?? 0 });
+        }
       }
       return Array.from(deduped.values());
     };
@@ -2676,7 +2798,7 @@ function RateLaneScatter({
       averageValue: valueCount ? valueSum / valueCount : null,
       chartMinWidth: Math.max(SCATTER_MIN_CHART_WIDTH, lanes.length * SCATTER_WIDTH_PER_LANE + 120),
     };
-  }, [rates, volumeRates, shipmentVolumes, containerCombo, axis, metric, caseStatusById, shipmentScope]);
+  }, [rates, volumeRates, shipmentVolumes, containerCombo, axis, metric, caseStatusById, shipmentScope, shipmentCandidateScope]);
 
   const laneTick = (value: number) => model.lanes[value]?.key ?? '';
 
@@ -2806,6 +2928,7 @@ function RateBandPanel({
   scatterContainer,
   setScatterContainer,
   shipmentScope,
+  shipmentCandidateScope,
 }: {
   rates: RateRecord[];
   volumeRates: RateRecord[];
@@ -2822,6 +2945,7 @@ function RateBandPanel({
   scatterContainer: string;
   setScatterContainer: (combo: string) => void;
   shipmentScope: ScopeFilters;
+  shipmentCandidateScope: ShipmentCandidateScope | null;
 }) {
   const text = UI_COPY[language].summary;
   const detailText = UI_COPY[language].detail;
@@ -3009,6 +3133,7 @@ function RateBandPanel({
           containerCombo={scatterContainer}
           setContainerCombo={setScatterContainer}
           shipmentScope={shipmentScope}
+          shipmentCandidateScope={shipmentCandidateScope}
         />
       ) : (
       <>
@@ -3327,14 +3452,22 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
 
   const summaryScope = useMemo(() => filterScope(summaryFilters), [summaryFilters]);
   const detailScope = useMemo(() => filterScope(detailFilters), [detailFilters]);
+  const summaryCandidateScope = useMemo(
+    () => buildShipmentCandidateScope(shipmentVolumes, summaryScope),
+    [shipmentVolumes, summaryScope],
+  );
+  const detailCandidateScope = useMemo(
+    () => buildShipmentCandidateScope(shipmentVolumes, detailScope),
+    [shipmentVolumes, detailScope],
+  );
   const summaryActiveRates = useMemo(
     () => {
       const periodRates = summaryIgnoresPeriod
         ? records
         : records.filter((rate) => overlapsRange(rate, summaryFilters.periodStart, summaryFilters.periodEnd));
-      return periodRates.filter((rate) => matchesScope(rate, summaryScope));
+      return periodRates.filter((rate) => matchesScope(rate, summaryScope, summaryCandidateScope));
     },
-    [records, summaryFilters.periodEnd, summaryFilters.periodStart, summaryIgnoresPeriod, summaryScope],
+    [records, summaryCandidateScope, summaryFilters.periodEnd, summaryFilters.periodStart, summaryIgnoresPeriod, summaryScope],
   );
   const summaryPeriodAnalysis = useMemo(
     () => buildAnalysisFromActiveRates(
@@ -3352,9 +3485,9 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       const periodRates = detailIgnoresPeriod
         ? records
         : records.filter((rate) => overlapsRange(rate, detailFilters.periodStart, detailFilters.periodEnd));
-      return periodRates.filter((rate) => matchesScope(rate, detailScope));
+      return periodRates.filter((rate) => matchesScope(rate, detailScope, detailCandidateScope));
     },
-    [detailFilters.periodEnd, detailFilters.periodStart, detailIgnoresPeriod, detailScope, records, view],
+    [detailCandidateScope, detailFilters.periodEnd, detailFilters.periodStart, detailIgnoresPeriod, detailScope, records, view],
   );
   const detailPeriodAnalysis = useMemo(
     () => view === 'detail'
@@ -3372,9 +3505,9 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   // which weeks a rate file happens to be valid in.
   const summaryVolumeRates = useMemo(
     () => summaryDim === 'rateband' && rateBandChartMode === 'scatter'
-      ? records.filter((rate) => matchesScope(rate, summaryScope))
+      ? records.filter((rate) => matchesScope(rate, summaryScope, summaryCandidateScope))
       : [],
-    [rateBandChartMode, records, summaryDim, summaryScope],
+    [rateBandChartMode, records, summaryCandidateScope, summaryDim, summaryScope],
   );
   const summaryShipmentVolumes = useMemo(
     () => summaryDim === 'rateband' && rateBandChartMode === 'scatter' && hasShipmentFilter(summaryScope)
@@ -3453,12 +3586,14 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   }, [activeFilters]);
   const optionRecords = useCallback((...excluded: (keyof ScopeFilters)[]) => {
     const scope = optionScope(...excluded);
-    return optionUniverse.filter((record) => matchesScope(record, scope));
-  }, [optionScope, optionUniverse]);
+    const candidateScope = buildShipmentCandidateScope(shipmentVolumes, scope);
+    return optionUniverse.filter((record) => matchesScope(record, scope, candidateScope));
+  }, [optionScope, optionUniverse, shipmentVolumes]);
   const shipmentOptionRecords = useCallback((...excluded: (keyof ScopeFilters)[]) => {
     const scope = optionScope(...excluded);
-    return records.filter((record) => matchesScope(record, scope));
-  }, [optionScope, records]);
+    const candidateScope = buildShipmentCandidateScope(shipmentVolumes, scope);
+    return records.filter((record) => matchesScope(record, scope, candidateScope));
+  }, [optionScope, records, shipmentVolumes]);
   const shipmentOptionVolumes = useCallback((...excluded: (keyof ScopeFilters)[]) => {
     const scope = optionScope(...excluded);
     if (!hasShipmentFilter(scope)) {
@@ -3735,7 +3870,8 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       return { weeks: [] as Record<string, number | string | null>[], series: [] as { dataKey: string; key: string; label: string }[], showBenchmark: false };
     }
     const trendScope = { ...summaryScope, company: [] };
-    const scopedRecords = records.filter((record) => matchesScope(record, trendScope));
+    const trendCandidateScope = buildShipmentCandidateScope(shipmentVolumes, trendScope);
+    const scopedRecords = records.filter((record) => matchesScope(record, trendScope, trendCandidateScope));
     const series = top.map((row, index) => ({ dataKey: `s${index}`, key: row.key, label: row.label }));
     const weeks = data.weeks.map((week) => {
       const weekEndDate = addDays(week.value, 6);
@@ -3769,7 +3905,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       return row;
     });
     return { weeks, series, showBenchmark: Boolean(selectedTrendCompanyRow) };
-  }, [companySummary, records, summaryScope, data.weeks, selectedTrendCompanyRow]);
+  }, [companySummary, records, shipmentVolumes, summaryScope, data.weeks, selectedTrendCompanyRow]);
 
   const drillToDetail = (drill: DrillFilters) => {
     setDetailFilters({
@@ -4192,6 +4328,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
                     scatterContainer={rateScatterContainer}
                     setScatterContainer={setRateScatterContainer}
                     shipmentScope={summaryScope}
+                    shipmentCandidateScope={summaryCandidateScope}
                   />
                 )}
 
