@@ -544,9 +544,10 @@ const UI_COPY = {
       rateBandAxisOrigin: '선적지',
       rateBandAxisDestination: '도착지',
       rateBandContainer: '컨테이너',
-      rateBandScatterNote: '점 하나가 운임 한 건입니다. 가로로 흩뿌려 같은 구간 안의 분포(편중)를 보여주고, 색은 저운임 판정을 나타냅니다. 점을 클릭하면 상세로 이동합니다.',
+      rateBandScatterNote: '표시되는 점 하나가 운임 한 건입니다. 가로로 흩뿌려 같은 구간 안의 분포를 보여주고, 색은 저운임 판정을 나타냅니다. 데이터가 많으면 응답성을 위해 대표 점만 표시합니다.',
       rateBandScatterAvg: '전체 평균',
       rateBandMoreLanes: (n: number) => `상위 30개 구간만 표시 (외 ${n}개 생략)`,
+      rateBandSampledPoints: (shown: number, total: number) => `대표 점 ${shown.toLocaleString('en-US')}/${total.toLocaleString('en-US')}개 표시`,
       rateBandNormal: '정상',
       drillNote: '국가 행을 클릭하면 포트별 집계가 펼쳐집니다. 포트 행을 클릭하면 해당 조건의 상세 목록으로 이동합니다.',
       noTrend: '트렌드를 표시할 업체가 없습니다.',
@@ -774,9 +775,10 @@ const UI_COPY = {
       rateBandAxisOrigin: 'Origin',
       rateBandAxisDestination: 'Destination',
       rateBandContainer: 'Container',
-      rateBandScatterNote: 'Each dot is one rate. Dots are jittered horizontally to show the spread (concentration) within a lane; colour marks the low-freight judgement. Click a dot to open its detail.',
+      rateBandScatterNote: 'Each displayed dot is one rate. Dots are jittered horizontally to show the spread within a lane; colour marks the low-freight judgement. Large result sets are sampled for responsiveness.',
       rateBandScatterAvg: 'Overall avg',
       rateBandMoreLanes: (n: number) => `Showing top 30 lanes (${n} more hidden)`,
+      rateBandSampledPoints: (shown: number, total: number) => `Showing ${shown.toLocaleString('en-US')} representative dots of ${total.toLocaleString('en-US')}`,
       rateBandNormal: 'Normal',
       drillNote: 'Click a country row to expand port-level totals. Click a port row to open the filtered detail list.',
       noTrend: 'No companies available for the trend chart.',
@@ -1022,9 +1024,12 @@ function clearStoredAuthSession() {
   }
 }
 
-const formatNumber = (value: number) => new Intl.NumberFormat('en-US').format(Math.round(value));
-const formatMoney = (value: number) => `$${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value)}`;
-const formatRateMoney = (value: number | null) => value === null ? '-' : `${value < 0 ? '-' : ''}$${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Math.abs(value))}`;
+const NUMBER_FORMATTER = new Intl.NumberFormat('en-US');
+const MONEY_FORMATTER = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const AMOUNT_FORMATTER = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+const formatNumber = (value: number) => NUMBER_FORMATTER.format(Math.round(value));
+const formatMoney = (value: number) => `$${MONEY_FORMATTER.format(value)}`;
+const formatRateMoney = (value: number | null) => value === null ? '-' : `${value < 0 ? '-' : ''}$${AMOUNT_FORMATTER.format(Math.abs(value))}`;
 const formatPct = (value: number) => `${(value * 100).toFixed(1)}%`;
 const formatSignedPct = (value: number) => `${value > 0 ? '-' : ''}${Math.abs(value * 100).toFixed(1)}%`;
 const formatDate = (value: string) => value.replaceAll('-', '.');
@@ -1046,7 +1051,7 @@ const niceStep = (rough: number) => {
   const nice = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
   return nice * pow;
 };
-const formatAmount = (value: number | null) => value === null ? '-' : new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
+const formatAmount = (value: number | null) => value === null ? '-' : AMOUNT_FORMATTER.format(value);
 const addDays = (value: string, days: number) => {
   const date = new Date(`${value}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
@@ -2564,6 +2569,8 @@ type RateScatterAxis = 'origin' | 'destination';
 const SCATTER_MAX_LANES = 30;
 const SCATTER_MIN_CHART_WIDTH = 860;
 const SCATTER_WIDTH_PER_LANE = 46;
+const SCATTER_MAX_RENDERED_POINTS = 2400;
+const SCATTER_LOW_POINT_SHARE = 0.72;
 const SCATTER_STATUS_ORDER: DetailStatus[] = ['normal', 'average', 'market'];
 const SCATTER_STATUS_COLORS: Record<DetailStatus, string> = {
   normal: '#1f7a5a',
@@ -2571,14 +2578,57 @@ const SCATTER_STATUS_COLORS: Record<DetailStatus, string> = {
   market: '#ea580c',
 };
 
-// Deterministic horizontal jitter in [-0.35, 0.35] so overlapping dots in the
-// same lane spread out into a strip, and they don't jump between renders.
-function scatterJitter(id: string) {
+type RateScatterPoint = { x: number; y: number; rate: RateRecord; status: DetailStatus };
+type RateScatterCandidate = RateScatterPoint & { rank: number };
+
+function scatterHash(id: string) {
   let hash = 0;
   for (let index = 0; index < id.length; index += 1) {
     hash = (hash * 31 + id.charCodeAt(index)) >>> 0;
   }
+  return hash;
+}
+
+// Deterministic horizontal jitter in [-0.35, 0.35] so overlapping dots in the
+// same lane spread out into a strip, and they don't jump between renders.
+function scatterJitter(id: string) {
+  const hash = scatterHash(id);
   return ((hash % 1000) / 1000 - 0.5) * 0.7;
+}
+
+function scatterRank(id: string) {
+  return scatterHash(id) / 0xffffffff;
+}
+
+function stripScatterRank({ rank: _rank, ...point }: RateScatterCandidate): RateScatterPoint {
+  return point;
+}
+
+function takeRankedScatterPoints(candidates: RateScatterCandidate[], limit: number): RateScatterPoint[] {
+  if (candidates.length <= limit) {
+    return candidates.map(stripScatterRank);
+  }
+  return [...candidates]
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, limit)
+    .map(stripScatterRank);
+}
+
+function sampleScatterPoints(candidates: RateScatterCandidate[]): RateScatterPoint[] {
+  if (candidates.length <= SCATTER_MAX_RENDERED_POINTS) {
+    return candidates.map(stripScatterRank);
+  }
+
+  const lowCandidates = candidates.filter((point) => point.status !== 'normal');
+  const normalCandidates = candidates.filter((point) => point.status === 'normal');
+  let lowLimit = Math.min(lowCandidates.length, Math.round(SCATTER_MAX_RENDERED_POINTS * SCATTER_LOW_POINT_SHARE));
+  const normalLimit = Math.min(normalCandidates.length, SCATTER_MAX_RENDERED_POINTS - lowLimit);
+  lowLimit += Math.min(lowCandidates.length - lowLimit, SCATTER_MAX_RENDERED_POINTS - lowLimit - normalLimit);
+
+  return [
+    ...takeRankedScatterPoints(lowCandidates, lowLimit),
+    ...takeRankedScatterPoints(normalCandidates, normalLimit),
+  ];
 }
 
 function RateLaneScatter({
@@ -2767,7 +2817,7 @@ function RateLaneScatter({
     const hiddenLanes = sortedLanes.length - lanes.length;
     const laneIndex = new Map(lanes.map((lane, index) => [lane.key, index]));
 
-    const pointsByStatus = new Map<DetailStatus, { x: number; y: number; rate: RateRecord; status: DetailStatus }[]>();
+    const candidatePoints: RateScatterCandidate[] = [];
     let valueSum = 0;
     let valueCount = 0;
     for (const record of comboRates) {
@@ -2781,13 +2831,25 @@ function RateLaneScatter({
           continue;
         }
         const status: DetailStatus = caseStatusById.get(record.id) ?? 'normal';
-        const point = { x: index + scatterJitter(`${record.id}|${entry.key}`), y: value, rate: record, status };
-        const bucket = pointsByStatus.get(status) ?? [];
-        bucket.push(point);
-        pointsByStatus.set(status, bucket);
+        const sampleKey = `${record.id}|${entry.key}`;
+        candidatePoints.push({
+          x: index + scatterJitter(sampleKey),
+          y: value,
+          rate: record,
+          status,
+          rank: scatterRank(sampleKey),
+        });
         valueSum += value;
         valueCount += 1;
       }
+    }
+
+    const sampledPoints = sampleScatterPoints(candidatePoints);
+    const pointsByStatus = new Map<DetailStatus, RateScatterPoint[]>();
+    for (const point of sampledPoints) {
+      const bucket = pointsByStatus.get(point.status) ?? [];
+      bucket.push(point);
+      pointsByStatus.set(point.status, bucket);
     }
 
     return {
@@ -2795,6 +2857,7 @@ function RateLaneScatter({
       hiddenLanes,
       pointsByStatus,
       pointCount: valueCount,
+      renderedPointCount: sampledPoints.length,
       averageValue: valueCount ? valueSum / valueCount : null,
       chartMinWidth: Math.max(SCATTER_MIN_CHART_WIDTH, lanes.length * SCATTER_WIDTH_PER_LANE + 120),
     };
@@ -2901,8 +2964,13 @@ function RateLaneScatter({
             </ScatterChart>
             </ResponsiveContainer>
           </div>
-          {model.hiddenLanes > 0 && (
-            <p className="rate-scatter-foot">{text.rateBandMoreLanes(model.hiddenLanes)}</p>
+          {(model.hiddenLanes > 0 || model.renderedPointCount < model.pointCount) && (
+            <p className="rate-scatter-foot">
+              {model.hiddenLanes > 0 && <span>{text.rateBandMoreLanes(model.hiddenLanes)}</span>}
+              {model.renderedPointCount < model.pointCount && (
+                <span>{text.rateBandSampledPoints(model.renderedPointCount, model.pointCount)}</span>
+              )}
+            </p>
           )}
         </div>
       ) : (
@@ -3322,7 +3390,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   // Rate-band view state is lifted here so it survives navigating into the detail
   // view and back (the panel unmounts, but the chosen chart/container persist).
   const [rateBandMetric, setRateBandMetric] = useState<RateBandMetric>('of');
-  const [rateBandChartMode, setRateBandChartMode] = useState<RateBandChartMode>('scatter');
+  const [rateBandChartMode, setRateBandChartMode] = useState<RateBandChartMode>('histogram');
   const [rateScatterAxis, setRateScatterAxis] = useState<RateScatterAxis>('origin');
   const [rateScatterContainer, setRateScatterContainer] = useState('40|HC');
   const [expandedOriginCountries, setExpandedOriginCountries] = useState<string[]>([]);
@@ -3787,74 +3855,86 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   }, [summaryCases, summaryRates, summaryScope]);
 
   const originCountrySummary = useMemo(
-    () => buildGroupSummary(
-      summaryCases,
-      summaryRates,
-      (record) => record.porCountry,
-      (record) => record.porCountry,
-      (record) => ({ originCountry: record.porCountry }),
-    ),
-    [summaryCases, summaryRates],
+    () => summaryDim === 'origin'
+      ? buildGroupSummary(
+        summaryCases,
+        summaryRates,
+        (record) => record.porCountry,
+        (record) => record.porCountry,
+        (record) => ({ originCountry: record.porCountry }),
+      )
+      : [],
+    [summaryCases, summaryDim, summaryRates],
   );
   const originPortSummary = useMemo(
-    () => buildGroupSummary(
-      summaryCases,
-      summaryRates,
-      (record) => record.porPort ? `${record.porCountry}|${record.porPort}` : '',
-      (record) => `${record.porCountry} ${record.porPort}`,
-      (record) => ({ originCountry: record.porCountry, originPort: record.porPort }),
-    ),
-    [summaryCases, summaryRates],
+    () => summaryDim === 'origin'
+      ? buildGroupSummary(
+        summaryCases,
+        summaryRates,
+        (record) => record.porPort ? `${record.porCountry}|${record.porPort}` : '',
+        (record) => `${record.porCountry} ${record.porPort}`,
+        (record) => ({ originCountry: record.porCountry, originPort: record.porPort }),
+      )
+      : [],
+    [summaryCases, summaryDim, summaryRates],
   );
   const originSummary = useMemo(
     () => buildExpandedLocationSummary(originCountrySummary, originPortSummary, expandedOriginCountries, 'originCountry'),
     [expandedOriginCountries, originCountrySummary, originPortSummary],
   );
   const destinationCountrySummary = useMemo(
-    () => buildGroupSummary(
-      summaryCases,
-      summaryRates,
-      (record) => record.dlyCountry,
-      (record) => record.dlyCountry,
-      (record) => ({ destinationCountry: record.dlyCountry }),
-    ),
-    [summaryCases, summaryRates],
+    () => summaryDim === 'destination'
+      ? buildGroupSummary(
+        summaryCases,
+        summaryRates,
+        (record) => record.dlyCountry,
+        (record) => record.dlyCountry,
+        (record) => ({ destinationCountry: record.dlyCountry }),
+      )
+      : [],
+    [summaryCases, summaryDim, summaryRates],
   );
   const destinationPortSummary = useMemo(
-    () => buildGroupSummary(
-      summaryCases,
-      summaryRates,
-      (record) => record.dlyPort ? `${record.dlyCountry}|${record.dlyPort}` : '',
-      (record) => `${record.dlyCountry} ${record.dlyPort}`,
-      (record) => ({ destinationCountry: record.dlyCountry, destinationPort: record.dlyPort }),
-    ),
-    [summaryCases, summaryRates],
+    () => summaryDim === 'destination'
+      ? buildGroupSummary(
+        summaryCases,
+        summaryRates,
+        (record) => record.dlyPort ? `${record.dlyCountry}|${record.dlyPort}` : '',
+        (record) => `${record.dlyCountry} ${record.dlyPort}`,
+        (record) => ({ destinationCountry: record.dlyCountry, destinationPort: record.dlyPort }),
+      )
+      : [],
+    [summaryCases, summaryDim, summaryRates],
   );
   const destinationSummary = useMemo(
     () => buildExpandedLocationSummary(destinationCountrySummary, destinationPortSummary, expandedDestinationCountries, 'destinationCountry'),
     [destinationCountrySummary, destinationPortSummary, expandedDestinationCountries],
   );
   const staffSummary = useMemo(
-    () => buildGroupSummary(
-      summaryCases,
-      summaryRates,
-      (record) => record.staff,
-      (record) => record.staff || '미지정',
-      (record) => ({ staff: record.staff }),
-    ),
-    [summaryCases, summaryRates],
+    () => summaryDim === 'staff'
+      ? buildGroupSummary(
+        summaryCases,
+        summaryRates,
+        (record) => record.staff,
+        (record) => record.staff || '미지정',
+        (record) => ({ staff: record.staff }),
+      )
+      : [],
+    [summaryCases, summaryDim, summaryRates],
   );
   const companySummary = useMemo(
-    () => buildGroupSummary(
-      summaryCases,
-      summaryRates,
-      (record) => record.shipperCode || record.shipperName,
-      (record) => `${record.shipperCode || '-'} / ${record.shipperName || 'No company name'}`,
-      (record) => ({ company: record.shipperCode || record.shipperName }),
-    ),
-    [summaryCases, summaryRates],
+    () => summaryDim === 'company'
+      ? buildGroupSummary(
+        summaryCases,
+        summaryRates,
+        (record) => record.shipperCode || record.shipperName,
+        (record) => `${record.shipperCode || '-'} / ${record.shipperName || 'No company name'}`,
+        (record) => ({ company: record.shipperCode || record.shipperName }),
+      )
+      : [],
+    [summaryCases, summaryDim, summaryRates],
   );
-  const selectedTrendCompanyRow = selectedTrendCompany
+  const selectedTrendCompanyRow = summaryDim === 'company' && selectedTrendCompany
     ? companySummary.find((row) => row.key === selectedTrendCompany) ?? null
     : null;
 
@@ -3865,6 +3945,9 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   }, [selectedTrendCompany, selectedTrendCompanyRow]);
 
   const companyTrend = useMemo(() => {
+    if (summaryDim !== 'company') {
+      return { weeks: [] as Record<string, number | string | null>[], series: [] as { dataKey: string; key: string; label: string }[], showBenchmark: false };
+    }
     const top = selectedTrendCompanyRow ? [selectedTrendCompanyRow] : companySummary.slice(0, 5);
     if (!top.length) {
       return { weeks: [] as Record<string, number | string | null>[], series: [] as { dataKey: string; key: string; label: string }[], showBenchmark: false };
@@ -3905,7 +3988,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       return row;
     });
     return { weeks, series, showBenchmark: Boolean(selectedTrendCompanyRow) };
-  }, [companySummary, records, shipmentVolumes, summaryScope, data.weeks, selectedTrendCompanyRow]);
+  }, [companySummary, records, shipmentVolumes, summaryDim, summaryScope, data.weeks, selectedTrendCompanyRow]);
 
   const drillToDetail = (drill: DrillFilters) => {
     setDetailFilters({

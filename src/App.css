@@ -1016,6 +1016,10 @@ tr.rate-band-case:hover td {
   font-size: 11px;
 }
 
+.rate-scatter-foot span + span {
+  margin-left: 10px;
+}
+
 .rate-scatter-tip {
   display: flex;
   flex-direction: column;
@@ -1818,6 +1822,10 @@ tr.rate-band-case:hover td {
     flex-wrap: wrap;
     padding-right: 0;
     overflow-x: visible;
+  }
+
+  .legacy-filter-grid {
+    display: none;
   }
 
   .metric-strip {
