@@ -56,6 +56,26 @@ TARIFF_HEADER AS (
         H.SCHG_TRF_NO
 ),
 
+ROUTE_SHIPPER_NAME AS (
+    SELECT /*+ MATERIALIZE */
+        M.FRT_APP_NO,
+        M.BKG_SHPR_CST_NO,
+        MAX(
+            COALESCE(
+                NULLIF(TRIM(M.BKG_SHPR_CST_NM), ''),
+                NULLIF(TRIM(M.CST_NM), '')
+            )
+        ) AS BKG_SHPR_ENM
+    FROM ODS_ICC.M_SA201M M
+    WHERE M.FRT_APP_NO IS NOT NULL
+      AND M.BKG_SHPR_CST_NO IS NOT NULL
+      AND M.STR_DT <= TO_CHAR(ADD_MONTHS(SYSDATE, 13), 'YYYYMMDD')
+      AND NVL(M.END_DT, '99991231') >= TO_CHAR(ADD_MONTHS(SYSDATE, -6), 'YYYYMMDD')
+    GROUP BY
+        M.FRT_APP_NO,
+        M.BKG_SHPR_CST_NO
+),
+
 RATE_BASE AS (
     SELECT /*+ INLINE */
         F.FRT_APP_NO,
@@ -71,7 +91,11 @@ RATE_BASE AS (
         F.DLY_PLC_CD,
 
         F.BKG_SHPR_CST_NO,
-        F.BKG_SHPR_ENM,
+        COALESCE(
+            NULLIF(TRIM(F.BKG_SHPR_ENM), ''),
+            R.BKG_SHPR_ENM,
+            NULLIF(TRIM(F.BKG_SHPR_NM), '')
+        ) AS BKG_SHPR_ENM,
 
         F.BIZ_STAF_NO,
         F.BIZ_TEAM_CAT_CD,
@@ -129,6 +153,9 @@ RATE_BASE AS (
        AND B.FRT_PNC_CD = NVL(F.FRT_PNC_CD, '00')
     LEFT JOIN TARIFF_HEADER H
         ON H.SCHG_TRF_NO = F.SCHG_TRF_NO
+    LEFT JOIN ROUTE_SHIPPER_NAME R
+        ON R.FRT_APP_NO = F.FRT_APP_NO
+       AND R.BKG_SHPR_CST_NO = F.BKG_SHPR_CST_NO
     WHERE F.FRT_APP_NO IS NOT NULL
       AND F.APV_STS_CD = '03'
       AND F.BIZ_TEAM_CAT_CD IN ('O', 'E', 'I', 'J')

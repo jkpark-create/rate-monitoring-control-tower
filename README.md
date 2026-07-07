@@ -102,7 +102,7 @@ npm run data:oracle:watch
 
 사내 정적 서버에서 준실시간으로 운영하려면:
 
-1. `.env.local`에 `VITE_DATA_REFRESH_SECONDS=300`처럼 브라우저 캐시 재조회 간격을 설정합니다.
+1. `.env.local`에 `VITE_DATA_REFRESH_SECONDS=0`으로 브라우저 자동 재조회를 기본 비활성화합니다. 내부 라이브 서버에서 꼭 켜야 한다면 30분 이상 간격을 사용합니다.
 2. `npm run build`를 실행합니다.
 3. `npm run serve:dist`로 내부 정적 서버를 실행합니다.
 4. `npm run data:oracle:watch` 또는 작업 스케줄러를 실행합니다.

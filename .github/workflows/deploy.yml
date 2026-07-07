@@ -38,7 +38,7 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_ALLOWED_GOOGLE_DOMAINS: ${{ vars.VITE_ALLOWED_GOOGLE_DOMAINS }}
           VITE_DRIVE_FILE_ID: ${{ vars.VITE_DRIVE_FILE_ID }}
-          VITE_DATA_REFRESH_SECONDS: 300
+          VITE_DATA_REFRESH_SECONDS: 0
         run: npm run build
 
       - name: Setup Pages

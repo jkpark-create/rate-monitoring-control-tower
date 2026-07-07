@@ -12,12 +12,17 @@
 
 ## 2. 최근 개발 업데이트
 
+### 2026-07-07 반영 사항
+
+- US 진행 건처럼 `SP301I`의 booking shipper 이름이 비어 있는 운임은 `M_SA201M`의 고객명으로 보강해 화면의 업체명/tooltip에 `No company name`이 남지 않도록 했습니다.
+- 브라우저 탭 크래시를 줄이기 위해 운임 레코드 로딩 시 Booking/B/L shipment link 상세를 즉시 객체화하지 않고 필요한 화면에서만 지연 디코딩하도록 변경했습니다. 브라우저 자동 재조회는 기본 비활성화하고, 켜는 경우 최소 30분 간격을 사용합니다.
+
 ### 2026-06-25 반영 사항
 
 - Oracle 최신 추출과 Google Drive 운영 캐시 업로드 기준으로 Booking/B/L 번호 상세 조회가 가능하도록 데이터가 갱신되었습니다.
 - 상세 패널의 사용 실적 영역에서 `Show by route / vessel / voyage`를 펼치고 항로 행을 선택하면 연결된 Booking No.와 B/L No.를 확인할 수 있습니다.
 - B/L이 아직 생성되지 않은 건은 Booking No.와 TEU를 먼저 보여주고, B/L 칸에는 `B/L 미생성`으로 표시합니다.
-- 운영 Drive 업로드 시 `weekly-monitoring-details.json`과 `shipment-volumes.json`을 함께 올리고, 메인 `weekly-monitoring.json` metadata에 상세/물량 Drive file id를 기록하도록 정리했습니다.
+- 운영 Drive 업로드 시 `weekly-monitoring-details.json`, `weekly-monitoring-shipment-links.json`, `shipment-volumes.json`을 함께 올리고, 메인 `weekly-monitoring.json` metadata에 상세/shipment-link/물량 Drive file id를 기록하도록 정리했습니다.
 
 ### 2026-06-15 반영 사항
 
@@ -39,7 +44,7 @@
 
 | 구분 | 소스 | 대상 | 담당 파일 |
 | --- | --- | --- | --- |
-| 운임 본문 | Oracle | O/F, surcharge, local charge, charge detail | `scripts/extract-rate-base.sql` |
+| 운임 본문 | Oracle | O/F, surcharge, local charge, charge detail, 고객명 보강 | `scripts/extract-rate-base.sql` |
 | Booking 사용량 | Oracle | booking 수, BL 수, TEU | `scripts/extract-booking-usage.sql` |
 | Basic Tariff | Oracle | 동적 EFC 상세 조회용 tariff | `scripts/extract-basic-tariff.sql` |
 | 운임 적용 항로 | Oracle | rate application route | `scripts/extract-rate-route.sql` |
@@ -64,10 +69,12 @@ Python 빌드
   -> scripts/build-weekly-data.py
   -> public/data/weekly-monitoring.json
   -> public/data/weekly-monitoring-details.json
+  -> public/data/weekly-monitoring-shipment-links.json
   -> public/data/shipment-volumes.json
 배포/공유
   -> dist/data/weekly-monitoring.json
   -> dist/data/weekly-monitoring-details.json
+  -> dist/data/weekly-monitoring-shipment-links.json
   -> dist/data/shipment-volumes.json
   -> Google Drive 업로드
   -> GitHub Pages 또는 내부 정적 서버에서 조회
@@ -216,7 +223,7 @@ Google Drive에 JSON 업로드:
 python scripts/upload-to-gdrive.py
 ```
 
-운영 화면이 Drive JSON을 읽는 경우, Oracle 갱신 후에는 위 업로드까지 실행해야 Cache 시각과 Booking/B/L 번호 상세가 화면에 반영됩니다. 이 스크립트는 `weekly-monitoring.json`, `weekly-monitoring-details.json`, `shipment-volumes.json`을 같은 Drive 폴더에 업데이트하고 메인 metadata에 상세 파일 id를 기록합니다.
+운영 화면이 Drive JSON을 읽는 경우, Oracle 갱신 후에는 위 업로드까지 실행해야 Cache 시각과 Booking/B/L 번호 상세가 화면에 반영됩니다. 이 스크립트는 `weekly-monitoring.json`, `weekly-monitoring-details.json`, `weekly-monitoring-shipment-links.json`, `shipment-volumes.json`을 같은 Drive 폴더에 업데이트하고 메인 metadata에 보조 파일 id를 기록합니다.
 
 Google Drive에 문서 업로드:
 
@@ -250,7 +257,7 @@ Google 로그인은 회사 Google 계정 기준으로 동작하며, 배포본은
 
 - 최신 데이터가 보이지 않으면 Google Drive JSON 업로드 시각과 화면 상단 cache 시각을 비교합니다.
 - 사용 실적이 모두 비어 있으면 `data/booking-usage-latest.csv` 생성 여부와 `usageAvailable` metadata를 확인합니다.
-- 사용 실적 숫자는 보이지만 Booking/B/L 번호 영역에 `데이터 갱신 후 표시`가 나오면 `shipmentLinkAvailable`, `shipmentLinkBookingDetailSchema`, `detailDriveFileId`, `shipmentVolumeDriveFileId`가 최신 `weekly-monitoring.json` metadata에 들어 있는지 확인합니다.
+- 사용 실적 숫자는 보이지만 Booking/B/L 번호 영역에 `데이터 갱신 후 표시`가 나오면 `shipmentLinkAvailable`, `shipmentLinkBookingDetailSchema`, `detailDriveFileId`, `shipmentLinkDriveFileId`, `shipmentVolumeDriveFileId`가 최신 `weekly-monitoring.json` metadata에 들어 있는지 확인합니다.
 - 특정 route/vessel/voyage 행의 번호가 기대보다 적으면 B/L 미생성 booking인지 먼저 확인합니다. B/L 미생성 건은 Booking No.만 표시되고 B/L 칸은 `B/L 미생성`으로 표시됩니다.
 - 예정 B/L이 누락되면 `M_SA003I` 최신 `BASC_DT`, `CNCL_DT IS NULL`, booking number mapping을 확인합니다.
 - charge 금액이 비어 있으면 원천 적용 방식이 `WAIVE`인지 먼저 확인합니다.

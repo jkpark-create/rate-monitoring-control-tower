@@ -25,7 +25,7 @@ Oracle DB + Google Drive(시장 가이드) → CSV/JSON 추출 → Python 가공
 
 | 구분 | 소스 | 대상 테이블 / 파일 | 추출 방법 |
 |------|------|------|------|
-| 운임 본문 | Oracle | `DW_SALES.SP301I`, `ODS_ICC.SA202D`, `ODS_ICC.SA215I` | `extract-rate-base.sql` |
+| 운임 본문 | Oracle | `DW_SALES.SP301I`, `ODS_ICC.SA202D`, `ODS_ICC.SA215I`, `ODS_ICC.M_SA201M` | `extract-rate-base.sql` |
 | Booking 사용량 | Oracle | `DW_SALES.SP002S`, `ODS_ICC.CS004R`, `ODS_ICC.M_SA003I`, `ODS_ICC.CS101M` | `extract-booking-usage.sql` |
 | Basic Tariff(EFC) | Oracle | `DW_SALES.SP301I02` | `extract-basic-tariff.sql` |
 | 운임 적용 항로 | Oracle | `ODS_ICC.SA201M` | `extract-rate-route.sql` |
@@ -37,6 +37,7 @@ Oracle DB + Google Drive(시장 가이드) → CSV/JSON 추출 → Python 가공
 - 유효기간 범위: 오늘 기준 **과거 6개월 ~ 미래 13개월**.
 - `APV_STS='03'`(승인) 상태의 O/F 적용건만 스코프로 사용.
 - HQ route team 전체(`BIZ_TEAM_CAT_CD IN ('O', 'E', 'I', 'J')`, OBT/EST/IST/JBT)를 추출해 배/항차 사용 운임이 특정 팀 코드 때문에 누락되지 않게 합니다.
+- `SP301I.BKG_SHPR_ENM`이 비어 있는 진행/US 항로 건은 `M_SA201M.BKG_SHPR_CST_NM` 또는 `M_SA201M.CST_NM`으로 고객명을 보강합니다.
 
 ### 2.2 Booking 사용량 (Oracle)
 - 운임 적용 단위별 **실제 사용량**(BL 수, Booking 수, TEU)을 제공.
@@ -60,7 +61,7 @@ Oracle DB + Google Drive(시장 가이드) → CSV/JSON 추출 → Python 가공
 
 | 파일 | 입력 테이블 | 출력 |
 |------|------|------|
-| `extract-rate-base.sql` | SP301I, SA202D, SA215I | `data/rate-base-latest.csv` (70+ 컬럼) |
+| `extract-rate-base.sql` | SP301I, SA202D, SA215I, M_SA201M | `data/rate-base-latest.csv` (70+ 컬럼) |
 | `extract-basic-tariff.sql` | SP301I02 | `data/basic-tariff-latest.csv` |
 | `extract-rate-route.sql` | SA201M | `data/rate-route-latest.csv` |
 | `extract-booking-usage.sql` | SP002S, CS004R, M_SA003I, CS101M | `data/booking-usage-latest.csv` |
@@ -117,11 +118,12 @@ CSV들을 읽어 대시보드용 단일 JSON으로 변환하는 핵심 스크립
 
 ## 6. 출력 & 배포
 
-**산출물:** `public/data/weekly-monitoring.json`, `public/data/weekly-monitoring-details.json`, `public/data/shipment-volumes.json`
-- `weekly-monitoring.json`: 인덱싱된 차원 + 레코드 배열 형태의 메인 JSON. 화면 초기 로딩, 필터, 저운임 목록, shipment link, Booking/B/L 번호 상세에 사용합니다.
+**산출물:** `public/data/weekly-monitoring.json`, `public/data/weekly-monitoring-details.json`, `public/data/weekly-monitoring-shipment-links.json`, `public/data/shipment-volumes.json`
+- `weekly-monitoring.json`: 인덱싱된 차원 + 레코드 배열 형태의 메인 JSON. 화면 초기 로딩, 필터, 저운임 목록에 사용합니다.
 - `weekly-monitoring-details.json`: rate detail 전용 JSON. charge 상세는 필요 시 별도 파일에서 로딩해 메인 JSON 초기 크기를 줄입니다.
+- `weekly-monitoring-shipment-links.json`: Booking/B/L 번호와 route/vessel/voyage 상세 링크 전용 JSON. 상세 탭이나 선박/항차 필터가 필요할 때 지연 로딩해 메인 JSON 초기 크기와 브라우저 메모리 사용을 줄입니다.
 - `shipment-volumes.json`: route/vessel/voyage/leg 및 lane 단위 물량 JSON. 운임대별 scatter의 Lane 정렬과 선박/항차 필터 옵션 보강에 사용합니다.
-- 메타: `generatedAt`, `sourceFile`, `sourceMode`(canonical/legacy-fallback), `defaultWeek`, `availableStart/EndDate`, `recordCount`, `usageAvailable`, `shipmentLinkAvailable`, `chargeDetailAvailable`, `detailSourceFile`, `shipmentVolumeSourceFile`.
+- 메타: `generatedAt`, `sourceFile`, `sourceMode`(canonical/legacy-fallback), `defaultWeek`, `availableStart/EndDate`, `recordCount`, `usageAvailable`, `shipmentLinkAvailable`, `chargeDetailAvailable`, `detailSourceFile`, `shipmentLinkSourceFile`, `shipmentVolumeSourceFile`.
 - 화면의 `사용 실적` 필터와 상세 패널은 `usageAvailable`, B/L 수, booking 수, B/L TEU, booking TEU를 기준으로 표시합니다. Booking/B/L 번호 상세는 `shipmentLinkAvailable`과 `shipmentLinkBookingDetailSchema`가 있는 최신 캐시에서 표시됩니다.
 
 **배포 경로**
@@ -129,7 +131,7 @@ CSV들을 읽어 대시보드용 단일 JSON으로 변환하는 핵심 스크립
 - 빌드: `npm run build` → `dist/data/weekly-monitoring.json` 번들.
 - GitHub Pages: 정적 스냅샷(`dist/` 커밋).
 - 사내 서버: `npm run data:oracle:watch`(15분 주기 재추출) + `npm run serve:dist`로 준실시간.
-- 선택적 Drive 연동: `upload-to-gdrive.py`로 JSON을 "Rate Monitoring" 폴더에 업로드, 회사 도메인(ekmtc.com) read-only 공유. 메인 JSON 업로드 시 상세 JSON과 물량 JSON도 함께 upsert하고 메인 metadata에 `detailDriveFileId`, `shipmentVolumeDriveFileId`를 기록합니다. 대시보드는 `VITE_DRIVE_FILE_ID`로 로그인 사용자가 Drive API 통해 메인/상세/물량 JSON을 읽습니다.
+- 선택적 Drive 연동: `upload-to-gdrive.py`로 JSON을 "Rate Monitoring" 폴더에 업로드, 회사 도메인(ekmtc.com) read-only 공유. 메인 JSON 업로드 시 상세 JSON, shipment-link JSON, 물량 JSON도 함께 upsert하고 메인 metadata에 `detailDriveFileId`, `shipmentLinkDriveFileId`, `shipmentVolumeDriveFileId`를 기록합니다. 대시보드는 `VITE_DRIVE_FILE_ID`로 로그인 사용자가 Drive API 통해 필요한 JSON을 읽습니다.
 
 ---
 

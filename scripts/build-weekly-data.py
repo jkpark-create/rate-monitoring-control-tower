@@ -20,6 +20,7 @@ BASIC_TARIFF_FILE = ROOT / "data" / "basic-tariff-latest.csv"
 RATE_ROUTE_FILE = ROOT / "data" / "rate-route-latest.csv"
 OUTPUT_FILE = ROOT / "public" / "data" / "weekly-monitoring.json"
 DETAIL_OUTPUT_FILE = ROOT / "public" / "data" / "weekly-monitoring-details.json"
+SHIPMENT_LINK_OUTPUT_FILE = ROOT / "public" / "data" / "weekly-monitoring-shipment-links.json"
 SHIPMENT_VOLUME_OUTPUT_FILE = ROOT / "public" / "data" / "shipment-volumes.json"
 
 
@@ -1104,6 +1105,7 @@ payload = {
         "usageAvailable": booking_usage_available,
         "shipmentLinkAvailable": shipment_link_available,
         "usageSourceFile": BOOKING_USAGE_FILE.name if BOOKING_USAGE_FILE else "",
+        "shipmentLinkSourceFile": SHIPMENT_LINK_OUTPUT_FILE.name,
         "shipmentVolumeSourceFile": SHIPMENT_VOLUME_OUTPUT_FILE.name,
         "latestSourceDate": iso_date(latest_source_date),
         "defaultWeek": iso_date(default_week),
@@ -1209,7 +1211,7 @@ payload = {
         ],
     },
     "weeks": weeks,
-    "dimensions": {**dimensions, "rateDetails": []},
+    "dimensions": {**dimensions, "rateDetails": [], "shipmentLinks": []},
     "records": records,
 }
 
@@ -1223,13 +1225,27 @@ detail_payload = {
     "rateDetails": dimensions["rateDetails"],
 }
 
+shipment_link_payload = {
+    "metadata": {
+        "generatedAt": payload["metadata"]["generatedAt"],
+        "sourceFile": RATE_FILE.name,
+        "shipmentLinkCount": len(dimensions["shipmentLinks"]),
+        "shipmentLinkSchema": payload["metadata"]["shipmentLinkSchema"],
+        "shipmentLinkBookingDetailSchema": payload["metadata"]["shipmentLinkBookingDetailSchema"],
+    },
+    "shipmentLinks": dimensions["shipmentLinks"],
+}
+
 write_json_atomic(payload, OUTPUT_FILE)
 write_json_atomic(detail_payload, DETAIL_OUTPUT_FILE)
+write_json_atomic(shipment_link_payload, SHIPMENT_LINK_OUTPUT_FILE)
 
 print(f"Wrote {OUTPUT_FILE.relative_to(ROOT)}")
 print(f"Wrote {DETAIL_OUTPUT_FILE.relative_to(ROOT)}")
+print(f"Wrote {SHIPMENT_LINK_OUTPUT_FILE.relative_to(ROOT)}")
 print(f"Focused O/F records: {len(records):,}")
 print(f"Rate details: {len(dimensions['rateDetails']):,}")
+print(f"Shipment link groups: {len(dimensions['shipmentLinks']):,}")
 print(f"Weeks: {weeks[0]['value']} ~ {weeks[-1]['value']}")
 print(f"Data window: {iso_date(first_week)} ~ {iso_date(data_window_end)}")
 print(f"Skipped invalid-date rows: {skipped_invalid_date_rows:,}")

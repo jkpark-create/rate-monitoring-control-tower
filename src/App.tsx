@@ -162,6 +162,8 @@ type MonitoringData = {
     usageAvailable?: boolean;
     shipmentLinkAvailable?: boolean;
     usageSourceFile?: string;
+    shipmentLinkSourceFile?: string;
+    shipmentLinkDriveFileId?: string;
     shipmentVolumeSourceFile?: string;
     shipmentVolumeDriveFileId?: string;
     latestSourceDate: string;
@@ -235,6 +237,18 @@ type RateDetailPayload = {
   };
 };
 
+type ShipmentLinkPayload = {
+  metadata?: {
+    shipmentLinkCount?: number;
+    shipmentLinkSchema?: string[];
+    shipmentLinkBookingDetailSchema?: string[];
+  };
+  shipmentLinks?: RawShipmentLink[][];
+  dimensions?: {
+    shipmentLinks?: RawShipmentLink[][];
+  };
+};
+
 type RateDetail = {
   freightUnit: string;
   prepaidCollect: string;
@@ -299,7 +313,7 @@ type RateRecord = {
   bookingCount: number | null;
   teu: number | null;
   bookingTeu: number | null;
-  shipmentLinks: ShipmentLink[];
+  shipmentLinkIndex: number | null;
 };
 
 type ShipmentLink = {
@@ -928,8 +942,9 @@ const USER_GUIDE_COPY = {
 
 const PAGE_SIZE = 30;
 const configuredDataRefreshSeconds = Number(import.meta.env.VITE_DATA_REFRESH_SECONDS ?? 0);
+const MIN_DATA_REFRESH_SECONDS = 30 * 60;
 const DATA_REFRESH_MS = Number.isFinite(configuredDataRefreshSeconds) && configuredDataRefreshSeconds > 0
-  ? configuredDataRefreshSeconds * 1000
+  ? Math.max(configuredDataRefreshSeconds, MIN_DATA_REFRESH_SECONDS) * 1000
   : 0;
 const GOOGLE_CLIENT_ID = String(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim();
 const ALLOWED_GOOGLE_DOMAINS = String(import.meta.env.VITE_ALLOWED_GOOGLE_DOMAINS ?? '')
@@ -949,6 +964,8 @@ type GoogleProfile = {
   picture?: string;
   hd?: string;
 };
+
+type ShipmentLinkResolver = (record: Pick<RateRecord, 'shipmentLinkIndex'>, filters?: ScopeFilters) => ShipmentLink[];
 
 type GoogleTokenResponse = {
   access_token?: string;
@@ -1186,18 +1203,15 @@ function shipmentVolumeMatchesScope(volume: ShipmentVolume, filters: ScopeFilter
   );
 }
 
-function hasShipmentSelection(filters: ScopeFilters, record: RateRecord) {
+function hasShipmentSelection(filters: ScopeFilters, record: RateRecord, resolveShipmentLinks: ShipmentLinkResolver) {
   if (!hasShipmentFilter(filters) && !hasShipmentLocationFilter(filters)) {
     return true;
   }
-  return record.shipmentLinks.some((link) => shipmentMatchesScope(link, filters));
+  return resolveShipmentLinks(record, filters).length > 0;
 }
 
-function matchingShipmentLinks(record: RateRecord, filters?: ScopeFilters) {
-  if (!filters || (!hasShipmentFilter(filters) && !hasShipmentLocationFilter(filters))) {
-    return record.shipmentLinks;
-  }
-  return record.shipmentLinks.filter((link) => shipmentMatchesScope(link, filters));
+function matchingShipmentLinks(record: RateRecord, resolveShipmentLinks: ShipmentLinkResolver, filters?: ScopeFilters) {
+  return resolveShipmentLinks(record, filters);
 }
 
 function matchingShipmentVolumes(volumes: ShipmentVolume[], filters: ScopeFilters) {
@@ -1309,12 +1323,12 @@ function matchesShipmentCandidateScope(record: RateRecord, candidateScope?: Ship
   return Boolean(windows?.some((window) => rateOverlapsShipmentWindow(record, window)));
 }
 
-function shipmentAnalysisLaneLabels(record: RateRecord, filters: ScopeFilters) {
+function shipmentAnalysisLaneLabels(record: RateRecord, filters: ScopeFilters, resolveShipmentLinks: ShipmentLinkResolver) {
   if (!hasShipmentFilter(filters)) {
     return [rateLaneLabel(record)];
   }
   const labelFn = usesCargoLaneForShipmentScope(filters) ? shipmentCargoLaneLabel : shipmentLegLaneLabel;
-  const labels = unique(matchingShipmentLinks(record, filters).map(labelFn).filter(Boolean));
+  const labels = unique(matchingShipmentLinks(record, resolveShipmentLinks, filters).map(labelFn).filter(Boolean));
   return labels.length ? labels : [rateLaneLabel(record)];
 }
 
@@ -1528,7 +1542,12 @@ function overlapsRange(record: RateRecord, rangeStart: string, rangeEnd: string)
   return record.effectiveStart <= rangeEnd && record.effectiveEnd >= rangeStart;
 }
 
-function matchesScope(record: RateRecord, filters: ScopeFilters, candidateScope?: ShipmentCandidateScope | null) {
+function matchesScope(
+  record: RateRecord,
+  filters: ScopeFilters,
+  candidateScope?: ShipmentCandidateScope | null,
+  resolveShipmentLinks: ShipmentLinkResolver = () => EMPTY_SHIPMENT_LINKS,
+) {
   const shipmentMode = hasShipmentFilter(filters);
   return (
     (shipmentMode || hasSelection(filters.originCountry, record.porCountry)) &&
@@ -1541,7 +1560,7 @@ function matchesScope(record: RateRecord, filters: ScopeFilters, candidateScope?
     hasSelection(filters.specialCargoType, record.specialCargoType) &&
     hasSelection(filters.fullEmptyType, record.fullEmptyType) &&
     hasUsageSelection(filters.usagePresence, record) &&
-    (!shipmentMode || hasShipmentSelection(filters, record) || matchesShipmentCandidateScope(record, candidateScope)) &&
+    (!shipmentMode || hasShipmentSelection(filters, record, resolveShipmentLinks) || matchesShipmentCandidateScope(record, candidateScope)) &&
     hasSelection(filters.staff, record.staff) &&
     hasSelection(filters.company, shipperKey(record))
   );
@@ -1736,9 +1755,6 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
     const rateDetail = data.dimensions.rateDetails?.[record[12]];
     const coreRate = typeof record[24] === 'number' ? record[24] : rateDetail?.[12] ?? record[8];
     const allInRate = typeof record[25] === 'number' ? record[25] : rateDetail?.[13] ?? rateDetail?.[12] ?? record[8];
-    const shipmentLinks = record[23] !== undefined
-      ? data.dimensions.shipmentLinks?.[record[23]] ?? []
-      : [];
     return {
       id: `${record[0]}-${record[3]}-${record[6]}-${record[7]}-${record[8]}-${index}`,
       rateApplicationNo: record[0],
@@ -1773,54 +1789,81 @@ function decodeRecords(data: MonitoringData): RateRecord[] {
       bookingCount: typeof record[20] === 'number' ? record[20] : null,
       teu: typeof record[21] === 'number' ? record[21] : null,
       bookingTeu: typeof record[22] === 'number' ? record[22] : null,
-      shipmentLinks: shipmentLinks.map(([
-        vesselCode,
-        voyageNo,
-        blCount,
-        bookingCount,
-        teu,
-        bookingTeu,
-        departureStart,
-        departureEnd,
-        routeName,
-        legSeq,
-        bookingPorCountry,
-        bookingPorPort,
-        legOriginCountry,
-        legOriginPort,
-        legDestinationCountry,
-        legDestinationPort,
-        bookingDlyCountry,
-        bookingDlyPort,
-        bookingDetails,
-      ]) => ({
-        routeName: routeName ?? '',
-        legSeq: legSeq ?? '',
-        bookingPorCountry: bookingPorCountry ?? '',
-        bookingPorPort: bookingPorPort ?? '',
-        legOriginCountry: legOriginCountry ?? '',
-        legOriginPort: legOriginPort ?? '',
-        legDestinationCountry: legDestinationCountry ?? '',
-        legDestinationPort: legDestinationPort ?? '',
-        bookingDlyCountry: bookingDlyCountry ?? '',
-        bookingDlyPort: bookingDlyPort ?? '',
-        vesselCode,
-        voyageNo,
-        blCount,
-        bookingCount,
-        teu,
-        bookingTeu,
-        departureStart,
-        departureEnd,
-        bookingDetails: (bookingDetails ?? []).map(([bookingNo, blNo, teu, hasBl = Boolean(blNo)]) => ({
-          bookingNo: bookingNo ?? '',
-          blNo: blNo ?? '',
-          teu: typeof teu === 'number' ? teu : 0,
-          hasBl,
-        })),
-      })),
+      shipmentLinkIndex: typeof record[23] === 'number' ? record[23] : null,
     };
   });
+}
+
+const EMPTY_SHIPMENT_LINKS: ShipmentLink[] = [];
+
+function decodeShipmentLink([
+  vesselCode,
+  voyageNo,
+  blCount,
+  bookingCount,
+  teu,
+  bookingTeu,
+  departureStart,
+  departureEnd,
+  routeName,
+  legSeq,
+  bookingPorCountry,
+  bookingPorPort,
+  legOriginCountry,
+  legOriginPort,
+  legDestinationCountry,
+  legDestinationPort,
+  bookingDlyCountry,
+  bookingDlyPort,
+  bookingDetails,
+]: RawShipmentLink): ShipmentLink {
+  return {
+    routeName: routeName ?? '',
+    legSeq: legSeq ?? '',
+    bookingPorCountry: bookingPorCountry ?? '',
+    bookingPorPort: bookingPorPort ?? '',
+    legOriginCountry: legOriginCountry ?? '',
+    legOriginPort: legOriginPort ?? '',
+    legDestinationCountry: legDestinationCountry ?? '',
+    legDestinationPort: legDestinationPort ?? '',
+    bookingDlyCountry: bookingDlyCountry ?? '',
+    bookingDlyPort: bookingDlyPort ?? '',
+    vesselCode,
+    voyageNo,
+    blCount,
+    bookingCount,
+    teu,
+    bookingTeu,
+    departureStart,
+    departureEnd,
+    bookingDetails: (bookingDetails ?? []).map(([bookingNo, blNo, teu, hasBl = Boolean(blNo)]) => ({
+      bookingNo: bookingNo ?? '',
+      blNo: blNo ?? '',
+      teu: typeof teu === 'number' ? teu : 0,
+      hasBl,
+    })),
+  };
+}
+
+function createShipmentLinkResolver(rawGroups: RawShipmentLink[][] | undefined): ShipmentLinkResolver {
+  const cache = new Map<number, ShipmentLink[]>();
+  return (record, filters) => {
+    const index = record.shipmentLinkIndex;
+    if (index === null) {
+      return EMPTY_SHIPMENT_LINKS;
+    }
+
+    let links = cache.get(index);
+    if (!links) {
+      links = (rawGroups?.[index] ?? []).map(decodeShipmentLink);
+      cache.set(index, links);
+    }
+
+    if (!filters || (!hasShipmentFilter(filters) && !hasShipmentLocationFilter(filters))) {
+      return links;
+    }
+    return links.filter((link) => shipmentMatchesScope(link, filters));
+  };
 }
 
 function decodeShipmentVolumes(payload: ShipmentVolumePayload | MonitoringData): ShipmentVolume[] {
@@ -2487,6 +2530,7 @@ function RateDetailPanel({
   detailError,
   language,
   shipmentScope,
+  resolveShipmentLinks,
   onClose,
 }: {
   rate: DetailRateRow | null;
@@ -2495,6 +2539,7 @@ function RateDetailPanel({
   detailError?: string;
   language: Language;
   shipmentScope: ScopeFilters;
+  resolveShipmentLinks: ShipmentLinkResolver;
   onClose: () => void;
 }) {
   const text = UI_COPY[language].detail;
@@ -2520,7 +2565,7 @@ function RateDetailPanel({
         .replace('{bl}', formatNumber(rate.blCount ?? 0))
         .replace('{teu}', formatNumber(rate.teu ?? 0));
   const usageClass = usageUnavailable ? 'usage-na' : usageUnused ? 'usage-none' : 'usage-used';
-  const shipmentLinks = matchingShipmentLinks(rate, shipmentScope);
+  const shipmentLinks = matchingShipmentLinks(rate, resolveShipmentLinks, shipmentScope);
 
   return (
     <aside className="detail-panel detail-side-panel">
@@ -2645,6 +2690,7 @@ function RateLaneScatter({
   setContainerCombo,
   shipmentScope,
   shipmentCandidateScope,
+  resolveShipmentLinks,
 }: {
   rates: RateRecord[];
   volumeRates: RateRecord[];
@@ -2659,6 +2705,7 @@ function RateLaneScatter({
   setContainerCombo: (combo: string) => void;
   shipmentScope: ScopeFilters;
   shipmentCandidateScope: ShipmentCandidateScope | null;
+  resolveShipmentLinks: ShipmentLinkResolver;
 }) {
   const text = UI_COPY[language].summary;
   const statusText = UI_COPY[language].status;
@@ -2712,7 +2759,7 @@ function RateLaneScatter({
         const country = axis === 'origin' ? record.porCountry : record.dlyCountry;
         return key ? [{ key, country, volume: record.teu ?? 0 }] : [];
       }
-      const entries = matchingShipmentLinks(record, shipmentScope).map((link) => {
+      const entries = matchingShipmentLinks(record, resolveShipmentLinks, shipmentScope).map((link) => {
         const key = axis === 'origin'
           ? (useCargoLane
             ? (link.bookingPorPort || link.legOriginPort || record.porPort || record.porCountry)
@@ -2861,7 +2908,7 @@ function RateLaneScatter({
       averageValue: valueCount ? valueSum / valueCount : null,
       chartMinWidth: Math.max(SCATTER_MIN_CHART_WIDTH, lanes.length * SCATTER_WIDTH_PER_LANE + 120),
     };
-  }, [rates, volumeRates, shipmentVolumes, containerCombo, axis, metric, caseStatusById, shipmentScope, shipmentCandidateScope]);
+  }, [rates, volumeRates, shipmentVolumes, containerCombo, axis, metric, caseStatusById, shipmentScope, shipmentCandidateScope, resolveShipmentLinks]);
 
   const laneTick = (value: number) => model.lanes[value]?.key ?? '';
 
@@ -2923,7 +2970,7 @@ function RateLaneScatter({
                   }
                   const point = payload[0].payload as { rate: RateRecord; status: DetailStatus };
                   const rate = point.rate;
-                  const shipmentLanes = formatShipmentLaneSummary(matchingShipmentLinks(rate, shipmentScope));
+                  const shipmentLanes = formatShipmentLaneSummary(matchingShipmentLinks(rate, resolveShipmentLinks, shipmentScope));
                   return (
                     <div className="rate-scatter-tip">
                       <strong>{rate.rateApplicationNo}</strong>
@@ -2997,6 +3044,7 @@ function RateBandPanel({
   setScatterContainer,
   shipmentScope,
   shipmentCandidateScope,
+  resolveShipmentLinks,
 }: {
   rates: RateRecord[];
   volumeRates: RateRecord[];
@@ -3014,6 +3062,7 @@ function RateBandPanel({
   setScatterContainer: (combo: string) => void;
   shipmentScope: ScopeFilters;
   shipmentCandidateScope: ShipmentCandidateScope | null;
+  resolveShipmentLinks: ShipmentLinkResolver;
 }) {
   const text = UI_COPY[language].summary;
   const detailText = UI_COPY[language].detail;
@@ -3202,6 +3251,7 @@ function RateBandPanel({
           setContainerCombo={setScatterContainer}
           shipmentScope={shipmentScope}
           shipmentCandidateScope={shipmentCandidateScope}
+          resolveShipmentLinks={resolveShipmentLinks}
         />
       ) : (
       <>
@@ -3381,6 +3431,14 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   authRef.current = auth;
   const detailDataRef = useRef<RawRateDetail[] | null>(data.dimensions.rateDetails?.length ? data.dimensions.rateDetails : null);
   const detailPromiseRef = useRef<Promise<RawRateDetail[]> | null>(null);
+  const [rawShipmentLinks, setRawShipmentLinks] = useState<RawShipmentLink[][] | undefined>(
+    () => data.dimensions.shipmentLinks?.length ? data.dimensions.shipmentLinks : undefined,
+  );
+  const shipmentLinkPromiseRef = useRef<Promise<RawShipmentLink[][]> | null>(null);
+  const resolveShipmentLinks = useMemo(
+    () => createShipmentLinkResolver(rawShipmentLinks),
+    [rawShipmentLinks],
+  );
   const records = useMemo(() => dedupeEquivalentRates(decodeRecords(data)), [data]);
   const [summaryFilters, setSummaryFilters] = useState<FilterState>(() => createDefaultFilters(data));
   const [detailFilters, setDetailFilters] = useState<FilterState>(() => createDefaultFilters(data));
@@ -3419,6 +3477,8 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   useEffect(() => {
     detailDataRef.current = data.dimensions.rateDetails?.length ? data.dimensions.rateDetails : null;
     detailPromiseRef.current = null;
+    setRawShipmentLinks(data.dimensions.shipmentLinks?.length ? data.dimensions.shipmentLinks : undefined);
+    shipmentLinkPromiseRef.current = null;
     setSelectedRateDetailState({ index: null, status: 'idle', detail: null });
   }, [data]);
 
@@ -3470,6 +3530,52 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       throw error;
     }
   }, [data.metadata.detailDriveFileId, data.metadata.detailSourceFile]);
+
+  const loadShipmentLinks = useCallback(async () => {
+    if (rawShipmentLinks?.length) {
+      return rawShipmentLinks;
+    }
+    if (shipmentLinkPromiseRef.current) {
+      return shipmentLinkPromiseRef.current;
+    }
+
+    const useDrive = Boolean(data.metadata.shipmentLinkDriveFileId);
+    const shipmentLinkSourceFile = data.metadata.shipmentLinkSourceFile || 'weekly-monitoring-shipment-links.json';
+    if (!useDrive && !shipmentLinkSourceFile) {
+      return [];
+    }
+    const url = useDrive
+      ? `https://www.googleapis.com/drive/v3/files/${data.metadata.shipmentLinkDriveFileId}?alt=media`
+      : `${import.meta.env.BASE_URL}data/${shipmentLinkSourceFile}?t=${Date.now()}`;
+    const runFetch = (token: string) =>
+      fetch(url, {
+        cache: 'no-store',
+        headers: useDrive && token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+    shipmentLinkPromiseRef.current = (async () => {
+      let token = authRef.current?.accessToken ?? '';
+      let response = await runFetch(token);
+      if (useDrive && (response.status === 401 || response.status === 403) && authRef.current) {
+        token = await authRef.current.refresh();
+        response = await runFetch(token);
+      }
+      if (!response.ok) {
+        throw new Error(`Shipment link request failed: ${response.status}`);
+      }
+      const payload = await response.json() as ShipmentLinkPayload;
+      return payload.shipmentLinks ?? payload.dimensions?.shipmentLinks ?? [];
+    })();
+
+    try {
+      const links = await shipmentLinkPromiseRef.current;
+      setRawShipmentLinks(links.length ? links : undefined);
+      return links;
+    } catch (error) {
+      shipmentLinkPromiseRef.current = null;
+      throw error;
+    }
+  }, [data.metadata.shipmentLinkDriveFileId, data.metadata.shipmentLinkSourceFile, rawShipmentLinks]);
 
   useEffect(() => {
     let active = true;
@@ -3528,14 +3634,34 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
     () => buildShipmentCandidateScope(shipmentVolumes, detailScope),
     [shipmentVolumes, detailScope],
   );
+  useEffect(() => {
+    if (!data.metadata.shipmentLinkAvailable || rawShipmentLinks?.length) {
+      return;
+    }
+    const selectedNeedsLinks = selectedCase?.shipmentLinkIndex !== null && selectedCase?.shipmentLinkIndex !== undefined;
+    const filterNeedsLinks = hasShipmentFilter(summaryScope) || hasShipmentFilter(detailScope);
+    if (!selectedNeedsLinks && !filterNeedsLinks) {
+      return;
+    }
+    loadShipmentLinks().catch(() => {
+      // Detail panels gracefully show an empty link state if the optional link file is unavailable.
+    });
+  }, [
+    data.metadata.shipmentLinkAvailable,
+    detailScope,
+    loadShipmentLinks,
+    rawShipmentLinks?.length,
+    selectedCase?.shipmentLinkIndex,
+    summaryScope,
+  ]);
   const summaryActiveRates = useMemo(
     () => {
       const periodRates = summaryIgnoresPeriod
         ? records
         : records.filter((rate) => overlapsRange(rate, summaryFilters.periodStart, summaryFilters.periodEnd));
-      return periodRates.filter((rate) => matchesScope(rate, summaryScope, summaryCandidateScope));
+      return periodRates.filter((rate) => matchesScope(rate, summaryScope, summaryCandidateScope, resolveShipmentLinks));
     },
-    [records, summaryCandidateScope, summaryFilters.periodEnd, summaryFilters.periodStart, summaryIgnoresPeriod, summaryScope],
+    [records, resolveShipmentLinks, summaryCandidateScope, summaryFilters.periodEnd, summaryFilters.periodStart, summaryIgnoresPeriod, summaryScope],
   );
   const summaryPeriodAnalysis = useMemo(
     () => buildAnalysisFromActiveRates(
@@ -3553,9 +3679,9 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       const periodRates = detailIgnoresPeriod
         ? records
         : records.filter((rate) => overlapsRange(rate, detailFilters.periodStart, detailFilters.periodEnd));
-      return periodRates.filter((rate) => matchesScope(rate, detailScope, detailCandidateScope));
+      return periodRates.filter((rate) => matchesScope(rate, detailScope, detailCandidateScope, resolveShipmentLinks));
     },
-    [detailCandidateScope, detailFilters.periodEnd, detailFilters.periodStart, detailIgnoresPeriod, detailScope, records, view],
+    [detailCandidateScope, detailFilters.periodEnd, detailFilters.periodStart, detailIgnoresPeriod, detailScope, records, resolveShipmentLinks, view],
   );
   const detailPeriodAnalysis = useMemo(
     () => view === 'detail'
@@ -3573,9 +3699,9 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   // which weeks a rate file happens to be valid in.
   const summaryVolumeRates = useMemo(
     () => summaryDim === 'rateband' && rateBandChartMode === 'scatter'
-      ? records.filter((rate) => matchesScope(rate, summaryScope, summaryCandidateScope))
+      ? records.filter((rate) => matchesScope(rate, summaryScope, summaryCandidateScope, resolveShipmentLinks))
       : [],
-    [rateBandChartMode, records, summaryCandidateScope, summaryDim, summaryScope],
+    [rateBandChartMode, records, resolveShipmentLinks, summaryCandidateScope, summaryDim, summaryScope],
   );
   const summaryShipmentVolumes = useMemo(
     () => summaryDim === 'rateband' && rateBandChartMode === 'scatter' && hasShipmentFilter(summaryScope)
@@ -3613,7 +3739,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
         item.container,
         item.cargoProfile,
         item.approvalStatus,
-        item.shipmentLinks.map((link) => [
+        matchingShipmentLinks(item, resolveShipmentLinks, detailScope).map((link) => [
           link.routeName,
           link.vesselCode,
           link.voyageNo,
@@ -3625,7 +3751,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
         .toLowerCase()
         .includes(normalizedQuery);
     });
-  }, [detailCases, detailFilters.query, detailFilters.scope, detailFilters.status, detailRows]);
+  }, [detailCases, detailFilters.query, detailFilters.scope, detailFilters.status, detailRows, detailScope, resolveShipmentLinks]);
 
   useEffect(() => {
     setPage(1);
@@ -3655,13 +3781,13 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   const optionRecords = useCallback((...excluded: (keyof ScopeFilters)[]) => {
     const scope = optionScope(...excluded);
     const candidateScope = buildShipmentCandidateScope(shipmentVolumes, scope);
-    return optionUniverse.filter((record) => matchesScope(record, scope, candidateScope));
-  }, [optionScope, optionUniverse, shipmentVolumes]);
+    return optionUniverse.filter((record) => matchesScope(record, scope, candidateScope, resolveShipmentLinks));
+  }, [optionScope, optionUniverse, resolveShipmentLinks, shipmentVolumes]);
   const shipmentOptionRecords = useCallback((...excluded: (keyof ScopeFilters)[]) => {
     const scope = optionScope(...excluded);
     const candidateScope = buildShipmentCandidateScope(shipmentVolumes, scope);
-    return records.filter((record) => matchesScope(record, scope, candidateScope));
-  }, [optionScope, records, shipmentVolumes]);
+    return records.filter((record) => matchesScope(record, scope, candidateScope, resolveShipmentLinks));
+  }, [optionScope, records, resolveShipmentLinks, shipmentVolumes]);
   const shipmentOptionVolumes = useCallback((...excluded: (keyof ScopeFilters)[]) => {
     const scope = optionScope(...excluded);
     if (!hasShipmentFilter(scope)) {
@@ -3673,10 +3799,10 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
     const scope = optionScope('route');
     return toOptions(unique([
       ...shipmentOptionRecords('route')
-        .flatMap((item) => matchingShipmentLinks(item, scope).map(routeValue)),
+        .flatMap((item) => matchingShipmentLinks(item, resolveShipmentLinks, scope).map(routeValue)),
       ...shipmentOptionVolumes('route').map(routeValue),
     ].filter(Boolean)));
-  }, [optionScope, shipmentOptionRecords, shipmentOptionVolumes]);
+  }, [optionScope, resolveShipmentLinks, shipmentOptionRecords, shipmentOptionVolumes]);
   const originCountries = useMemo(() => unique([
     ...optionRecords('originCountry').map((item) => item.porCountry),
     ...shipmentOptionVolumes('originCountry').flatMap((item) => [item.legOriginCountry, item.bookingPorCountry]),
@@ -3742,22 +3868,22 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       const scope = optionScope('vessel');
       return toOptions(unique([
         ...shipmentOptionRecords('vessel')
-          .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.vesselCode)),
+          .flatMap((item) => matchingShipmentLinks(item, resolveShipmentLinks, scope).map((link) => link.vesselCode)),
         ...shipmentOptionVolumes('vessel').map((item) => item.vesselCode),
       ].filter(Boolean)));
     },
-    [optionScope, shipmentOptionRecords, shipmentOptionVolumes],
+    [optionScope, resolveShipmentLinks, shipmentOptionRecords, shipmentOptionVolumes],
   );
   const voyageOptions = useMemo(
     () => {
       const scope = optionScope('voyage');
       return toOptions(unique([
         ...shipmentOptionRecords('voyage')
-          .flatMap((item) => matchingShipmentLinks(item, scope).map((link) => link.voyageNo)),
+          .flatMap((item) => matchingShipmentLinks(item, resolveShipmentLinks, scope).map((link) => link.voyageNo)),
         ...shipmentOptionVolumes('voyage').map((item) => item.voyageNo),
       ].filter(Boolean)));
     },
-    [optionScope, shipmentOptionRecords, shipmentOptionVolumes],
+    [optionScope, resolveShipmentLinks, shipmentOptionRecords, shipmentOptionVolumes],
   );
   const approvalStatuses = useMemo(() => unique(records.map((item) => item.approvalStatus)), [records]);
   const formatApprovalStatus = (value: string) => data.metadata.approvalStatusLabels[value] ? `${data.metadata.approvalStatusLabels[value]} (${value})` : value;
@@ -3826,7 +3952,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
   const laneSummary = useMemo(() => {
     const lanes = new Map<string, { lane: string; count: number; lowShipperCount: number; marketLow: number; averageLow: number; marketMapped: number; activeCount: number; shipperKeys: Set<string> }>();
     for (const item of summaryCases) {
-      for (const lane of shipmentAnalysisLaneLabels(item, summaryScope)) {
+      for (const lane of shipmentAnalysisLaneLabels(item, summaryScope, resolveShipmentLinks)) {
         const current = lanes.get(lane) ?? { lane, count: 0, lowShipperCount: 0, marketLow: 0, averageLow: 0, marketMapped: 0, activeCount: 0, shipperKeys: new Set<string>() };
         current.count += 1;
         current.marketLow += item.status === 'market' ? 1 : 0;
@@ -3839,7 +3965,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       }
     }
     for (const item of summaryRates) {
-      for (const lane of shipmentAnalysisLaneLabels(item, summaryScope)) {
+      for (const lane of shipmentAnalysisLaneLabels(item, summaryScope, resolveShipmentLinks)) {
         const current = lanes.get(lane);
         if (!current) {
           continue;
@@ -3852,7 +3978,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       .map(({ shipperKeys, ...lane }) => ({ ...lane, lowShipperCount: shipperKeys.size }))
       .sort((a, b) => b.count - a.count || b.lowShipperCount - a.lowShipperCount || a.lane.localeCompare(b.lane))
       .slice(0, 10);
-  }, [summaryCases, summaryRates, summaryScope]);
+  }, [resolveShipmentLinks, summaryCases, summaryRates, summaryScope]);
 
   const originCountrySummary = useMemo(
     () => summaryDim === 'origin'
@@ -3954,7 +4080,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
     }
     const trendScope = { ...summaryScope, company: [] };
     const trendCandidateScope = buildShipmentCandidateScope(shipmentVolumes, trendScope);
-    const scopedRecords = records.filter((record) => matchesScope(record, trendScope, trendCandidateScope));
+    const scopedRecords = records.filter((record) => matchesScope(record, trendScope, trendCandidateScope, resolveShipmentLinks));
     const series = top.map((row, index) => ({ dataKey: `s${index}`, key: row.key, label: row.label }));
     const weeks = data.weeks.map((week) => {
       const weekEndDate = addDays(week.value, 6);
@@ -3988,7 +4114,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       return row;
     });
     return { weeks, series, showBenchmark: Boolean(selectedTrendCompanyRow) };
-  }, [companySummary, records, shipmentVolumes, summaryDim, summaryScope, data.weeks, selectedTrendCompanyRow]);
+  }, [companySummary, records, resolveShipmentLinks, shipmentVolumes, summaryDim, summaryScope, data.weeks, selectedTrendCompanyRow]);
 
   const drillToDetail = (drill: DrillFilters) => {
     setDetailFilters({
@@ -4412,6 +4538,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
                     setScatterContainer={setRateScatterContainer}
                     shipmentScope={summaryScope}
                     shipmentCandidateScope={summaryCandidateScope}
+                    resolveShipmentLinks={resolveShipmentLinks}
                   />
                 )}
 
@@ -4569,7 +4696,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
                     </thead>
                     <tbody>
                       {visibleCases.length ? visibleCases.map((item) => {
-                        const shipmentLinks = matchingShipmentLinks(item, detailScope);
+                        const shipmentLinks = matchingShipmentLinks(item, resolveShipmentLinks, detailScope);
                         return (
                         <tr className={selectedCase?.id === item.id ? 'detail-selected-row' : undefined} key={item.id} onClick={() => setSelectedCase(item)}>
                           <td><StatusBadge status={item.status} language={language} /></td>
@@ -4663,6 +4790,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
               detailError={selectedRateDetailState.error}
               language={language}
               shipmentScope={detailScope}
+              resolveShipmentLinks={resolveShipmentLinks}
               onClose={() => setSelectedCase(null)}
             />
           )}
