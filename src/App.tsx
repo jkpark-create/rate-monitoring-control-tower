@@ -957,6 +957,8 @@ const AUTH_REQUIRED = String(import.meta.env.VITE_AUTH_REQUIRED ?? '').toLowerCa
 // static JSON. Keep the Drive file shared to the company domain only.
 const DRIVE_FILE_ID = String(import.meta.env.VITE_DRIVE_FILE_ID ?? '').trim();
 const DRIVE_SCOPES = 'openid email profile https://www.googleapis.com/auth/drive.readonly';
+const DRIVE_FRESHNESS_CHECK_MS = 10 * 60 * 1000;
+const DATA_REFRESH_TIMER_MS = DATA_REFRESH_MS || (DRIVE_FILE_ID ? DRIVE_FRESHNESS_CHECK_MS : 0);
 
 type GoogleProfile = {
   email: string;
@@ -1002,6 +1004,13 @@ type AuthContextValue = {
   accessToken: string;
   email: string;
   refresh: () => Promise<string>;
+};
+
+type DriveFileMetadata = {
+  id: string;
+  modifiedTime?: string;
+  size?: string;
+  md5Checksum?: string;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -1390,6 +1399,40 @@ function isAllowedGoogleProfile(profile: GoogleProfile) {
   const emailDomain = profile.email.split('@').at(1)?.toLowerCase() ?? '';
   const hostedDomain = profile.hd?.toLowerCase() ?? '';
   return ALLOWED_GOOGLE_DOMAINS.includes(emailDomain) || ALLOWED_GOOGLE_DOMAINS.includes(hostedDomain);
+}
+
+function googleDriveFileUrl(fileId: string, params: Record<string, string>) {
+  const query = new URLSearchParams({
+    supportsAllDrives: 'true',
+    ...params,
+  });
+  return `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?${query.toString()}`;
+}
+
+function driveFetchHeaders(token: string) {
+  const headers: Record<string, string> = {
+    'Cache-Control': 'no-cache',
+    Pragma: 'no-cache',
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+function driveFileFingerprint(metadata: DriveFileMetadata) {
+  return [metadata.modifiedTime, metadata.size, metadata.md5Checksum].filter(Boolean).join(':');
+}
+
+function cacheKeyParam(value: string) {
+  return value || String(Date.now());
+}
+
+function driveMediaUrl(fileId: string, cacheKey: string) {
+  return googleDriveFileUrl(fileId, {
+    alt: 'media',
+    _: cacheKeyParam(cacheKey),
+  });
 }
 
 const statusTone: Record<DetailStatus, string> = {
@@ -3496,12 +3539,12 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       throw new Error('Rate detail source is not configured.');
     }
     const url = useDrive
-      ? `https://www.googleapis.com/drive/v3/files/${data.metadata.detailDriveFileId}?alt=media`
+      ? driveMediaUrl(String(data.metadata.detailDriveFileId), data.metadata.generatedAt)
       : `${import.meta.env.BASE_URL}data/${detailSourceFile}?t=${Date.now()}`;
     const runFetch = (token: string) =>
       fetch(url, {
         cache: 'no-store',
-        headers: useDrive && token ? { Authorization: `Bearer ${token}` } : undefined,
+        headers: useDrive ? driveFetchHeaders(token) : undefined,
       });
 
     detailPromiseRef.current = (async () => {
@@ -3529,7 +3572,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       detailPromiseRef.current = null;
       throw error;
     }
-  }, [data.metadata.detailDriveFileId, data.metadata.detailSourceFile]);
+  }, [data.metadata.detailDriveFileId, data.metadata.detailSourceFile, data.metadata.generatedAt]);
 
   const loadShipmentLinks = useCallback(async () => {
     if (rawShipmentLinks?.length) {
@@ -3545,12 +3588,12 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       return [];
     }
     const url = useDrive
-      ? `https://www.googleapis.com/drive/v3/files/${data.metadata.shipmentLinkDriveFileId}?alt=media`
+      ? driveMediaUrl(String(data.metadata.shipmentLinkDriveFileId), data.metadata.generatedAt)
       : `${import.meta.env.BASE_URL}data/${shipmentLinkSourceFile}?t=${Date.now()}`;
     const runFetch = (token: string) =>
       fetch(url, {
         cache: 'no-store',
-        headers: useDrive && token ? { Authorization: `Bearer ${token}` } : undefined,
+        headers: useDrive ? driveFetchHeaders(token) : undefined,
       });
 
     shipmentLinkPromiseRef.current = (async () => {
@@ -3575,7 +3618,7 @@ function AppContent({ data, shipmentVolumes }: { data: MonitoringData; shipmentV
       shipmentLinkPromiseRef.current = null;
       throw error;
     }
-  }, [data.metadata.shipmentLinkDriveFileId, data.metadata.shipmentLinkSourceFile, rawShipmentLinks]);
+  }, [data.metadata.generatedAt, data.metadata.shipmentLinkDriveFileId, data.metadata.shipmentLinkSourceFile, rawShipmentLinks]);
 
   useEffect(() => {
     let active = true;
@@ -4853,6 +4896,8 @@ function DashboardLoader() {
   const auth = useContext(AuthContext);
   const authRef = useRef(auth);
   authRef.current = auth;
+  const dataRef = useRef<MonitoringData | null>(null);
+  const driveFingerprintRef = useRef('');
   const [data, setData] = useState<MonitoringData | null>(null);
   const [shipmentVolumes, setShipmentVolumes] = useState<ShipmentVolume[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -4865,28 +4910,61 @@ function DashboardLoader() {
       const request = new AbortController();
       activeRequest = request;
       const useDrive = Boolean(DRIVE_FILE_ID);
-      const url = useDrive
-        ? `https://www.googleapis.com/drive/v3/files/${DRIVE_FILE_ID}?alt=media`
-        : `${import.meta.env.BASE_URL}data/weekly-monitoring.json?t=${Date.now()}`;
-      const runFetch = (token: string) =>
-        fetch(url, {
+      const runDriveMetadataFetch = (token: string) =>
+        fetch(googleDriveFileUrl(DRIVE_FILE_ID, {
+          fields: 'id,modifiedTime,size,md5Checksum',
+          _: String(Date.now()),
+        }), {
           cache: 'no-store',
           signal: request.signal,
-          headers: useDrive && token ? { Authorization: `Bearer ${token}` } : undefined,
+          headers: driveFetchHeaders(token),
+        });
+
+      const runDataFetch = (token: string, cacheKey: string) =>
+        fetch(useDrive
+          ? driveMediaUrl(DRIVE_FILE_ID, cacheKey)
+          : `${import.meta.env.BASE_URL}data/weekly-monitoring.json?t=${Date.now()}`, {
+          cache: 'no-store',
+          signal: request.signal,
+          headers: useDrive ? driveFetchHeaders(token) : undefined,
         });
       try {
         let token = authRef.current?.accessToken ?? '';
-        let response = await runFetch(token);
+        let driveFingerprint = '';
+        if (useDrive) {
+          let metadataResponse = await runDriveMetadataFetch(token);
+          if ((metadataResponse.status === 401 || metadataResponse.status === 403) && authRef.current) {
+            token = await authRef.current.refresh();
+            metadataResponse = await runDriveMetadataFetch(token);
+          }
+          if (!metadataResponse.ok) {
+            throw new Error(`Drive metadata request failed: ${metadataResponse.status}`);
+          }
+          const metadata = await metadataResponse.json() as DriveFileMetadata;
+          driveFingerprint = driveFileFingerprint(metadata);
+          if (driveFingerprint && dataRef.current && driveFingerprint === driveFingerprintRef.current) {
+            if (active) {
+              setError(null);
+            }
+            return;
+          }
+        }
+
+        let response = await runDataFetch(token, driveFingerprint);
         // Access tokens expire (~1h); refresh once on an auth failure and retry.
         if (useDrive && (response.status === 401 || response.status === 403) && authRef.current) {
           token = await authRef.current.refresh();
-          response = await runFetch(token);
+          response = await runDataFetch(token, driveFingerprint);
         }
         if (!response.ok) {
           throw new Error(`Data request failed: ${response.status}`);
         }
         const nextData = await response.json() as MonitoringData;
         if (active) {
+          dataRef.current = nextData;
+          if (useDrive && driveFingerprint) {
+            driveFingerprintRef.current = driveFingerprint;
+          }
           setData(nextData);
           setError(null);
         }
@@ -4894,13 +4972,13 @@ function DashboardLoader() {
         const volumeSourceFile = nextData.metadata.shipmentVolumeSourceFile || 'shipment-volumes.json';
         const volumeUseDrive = Boolean(volumeDriveId);
         const volumeUrl = volumeUseDrive
-          ? `https://www.googleapis.com/drive/v3/files/${volumeDriveId}?alt=media`
+          ? driveMediaUrl(volumeDriveId, nextData.metadata.generatedAt)
           : `${import.meta.env.BASE_URL}data/${volumeSourceFile}?t=${Date.now()}`;
         const runVolumeFetch = (volumeToken: string) =>
           fetch(volumeUrl, {
             cache: 'no-store',
             signal: request.signal,
-            headers: volumeUseDrive && volumeToken ? { Authorization: `Bearer ${volumeToken}` } : undefined,
+            headers: volumeUseDrive ? driveFetchHeaders(volumeToken) : undefined,
           });
         try {
           let volumeResponse = await runVolumeFetch(token);
@@ -4935,13 +5013,22 @@ function DashboardLoader() {
     };
 
     loadData();
-    const refreshTimer = DATA_REFRESH_MS ? window.setInterval(loadData, DATA_REFRESH_MS) : null;
+    const refreshTimer = DATA_REFRESH_TIMER_MS ? window.setInterval(loadData, DATA_REFRESH_TIMER_MS) : null;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void loadData();
+      }
+    };
+    window.addEventListener('focus', loadData);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       active = false;
       activeRequest?.abort();
       if (refreshTimer) {
         window.clearInterval(refreshTimer);
       }
+      window.removeEventListener('focus', loadData);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
